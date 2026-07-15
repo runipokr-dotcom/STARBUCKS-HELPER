@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>상품 계산기</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #687389;
+      --line: #d9dee8;
+      --accent: #176b5d;
+      --accent-soft: #e5f3ef;
+      --bad: #b42318;
+      --good: #087443;
+      --warn: #b54708;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 28px auto;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: 28px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .rate-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .rate-title {
+      color: #263244;
+      font-size: 13px;
+      font-weight: 760;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .rate-title::-webkit-details-marker {
+      display: none;
+    }
+
+    .rate-title::after {
+      content: "열기";
+      float: right;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .rate-box[open] .rate-title {
+      margin-bottom: 10px;
+    }
+
+    .rate-box[open] .rate-title::after {
+      content: "닫기";
+    }
+
+    .rate-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .check input {
+      width: 18px;
+      min-height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 780;
+      color: #263244;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      min-height: 86px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.15;
+      word-break: keep-all;
+    }
+
+    .metric.good strong { color: var(--good); }
+    .metric.bad strong { color: var(--bad); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eef2f7;
+      color: #3b4658;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .formula {
+      color: #263244;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .judgement {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 0;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .judgement div {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .judgement div:nth-child(odd) {
+      background: #eef2f7;
+      color: #3b4658;
+      font-weight: 760;
+    }
+
+    .judgement div:nth-last-child(-n+2) { border-bottom: 0; }
+
+    .hint {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .layout, .summary { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .rate-grid { grid-template-columns: 1fr; }
+      main { width: min(100% - 20px, 1120px); margin-top: 16px; }
+      th, td { font-size: 13px; padding: 10px; }
+      .judgement { grid-template-columns: 130px 1fr; }
+    }
+  
+.homeBtn{position:fixed;right:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;background:#14211d;color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+</style>
+</head>
+<body>
+  <main>
+    <h1>상품 계산기</h1>
+
+    <section class="layout">
+      <div class="panel">
+        <form class="form" id="calcForm">
+          <div class="row">
+            <label>정가
+              <input id="listPrice" type="number" min="0" step="1" value="20000">
+            </label>
+            <label>수량
+              <input id="quantity" type="number" min="1" step="1" value="1">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>매입방식
+              <select id="purchaseType">
+                <option value="A">A 타입</option>
+                <option value="B">B 타입</option>
+                <option value="C" selected>C 타입</option>
+                <option value="D">D 타입</option>
+                <option value="auction">옥션 위탁</option>
+                <option value="naverBuy">네이버 매입</option>
+              </select>
+            </label>
+            <label>판매채널
+              <select id="channel">
+                <option value="coupang" selected>쿠팡</option>
+                <option value="naver">네이버</option>
+              </select>
+            </label>
+          </div>
+
+          <details class="rate-box">
+            <summary class="rate-title">매입 퍼센트(이벤트별 수정)</summary>
+            <div class="rate-grid">
+              <label>A 타입(%)
+                <input id="rateA" type="number" min="0" max="100" step="0.1" value="88">
+              </label>
+              <label>B 타입(%)
+                <input id="rateB" type="number" min="0" max="100" step="0.1" value="90">
+              </label>
+              <label>C 타입(%)
+                <input id="rateC" type="number" min="0" max="100" step="0.1" value="88">
+              </label>
+              <label>D 타입(%)
+                <input id="rateD" type="number" min="0" max="100" step="0.1" value="88">
+              </label>
+              <label>옥션 위탁(%)
+                <input id="rateAuction" type="number" min="0" max="100" step="0.1" value="85">
+              </label>
+              <label>네이버 매입(%)
+                <input id="rateNaverBuy" type="number" min="0" max="100" step="0.1" value="88">
+              </label>
+            </div>
+          </details>
+
+          <div class="row">
+            <label>목표 ROI(%)
+              <input id="targetRoi" type="number" min="0" step="0.1" value="11">
+            </label>
+            <label>고객 배송료
+              <input id="shippingIncome" type="number" min="0" step="1" value="0">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>현재 판매가 검산
+              <input id="salePrice" type="number" min="0" step="1" value="21100">
+            </label>
+            <label class="check">
+              <input id="couponEnabled" type="checkbox">
+              쿠폰 3,750원 적용
+            </label>
+          </div>
+        </form>
+        <p class="hint">기본 흐름은 정가만 넣고 목표 ROI 판매가를 보는 방식입니다. 현재 판매가 검산은 이미 팔고 있는 가격이 있을 때만 쓰면 됩니다.</p>
+      </div>
+
+      <div class="stack">
+        <div class="summary">
+          <div class="metric">
+            <span>원가</span>
+            <strong id="costMetric">0원</strong>
+          </div>
+          <div class="metric">
+            <span>BEP</span>
+            <strong id="bepMetric">0원</strong>
+          </div>
+          <div class="metric">
+            <span>목표 판매가</span>
+            <strong id="targetPriceMetric">0원</strong>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>매입방식</th>
+              <th>계산공식</th>
+              <th>원가</th>
+              <th>BEP</th>
+              <th>목표 ROI</th>
+              <th>필요 판매가</th>
+              <th>권장 판매가</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="typeCell">C 타입 / 쿠팡</td>
+              <td class="formula" id="formulaCell"></td>
+              <td class="num" id="costCell"></td>
+              <td class="num" id="bepCell"></td>
+              <td class="num" id="targetRoiCell"></td>
+              <td class="num" id="targetPriceCell"></td>
+              <td class="num" id="recommendedCell"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div>
+          <p class="section-title">목표 마진별 판매가</p>
+          <table>
+            <thead>
+              <tr>
+                <th>목표 ROI</th>
+                <th>필요 판매가</th>
+                <th>권장 판매가</th>
+                <th>예상 순이익</th>
+              </tr>
+            </thead>
+            <tbody id="targetRows"></tbody>
+          </table>
+        </div>
+
+        <div>
+          <p class="section-title">현재 판매가 검산</p>
+          <table>
+            <thead>
+              <tr>
+                <th>판매가</th>
+                <th>정산액</th>
+                <th>순이익</th>
+                <th>ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num" id="salePriceCell"></td>
+                <td class="num" id="settlementCell"></td>
+                <td class="num" id="profitCell"></td>
+                <td class="num" id="roiCell"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="summary">
+          <div class="metric">
+            <span>현재 판매가 순이익</span>
+            <strong id="profitMetric">0원</strong>
+          </div>
+          <div class="metric">
+            <span>현재 판매가 ROI</span>
+            <strong id="roiMetric">0%</strong>
+          </div>
+          <div class="metric">
+            <span>권장 판매가 순이익</span>
+            <strong id="recommendedProfitMetric">0원</strong>
+          </div>
+        </div>
+
+        <div class="judgement" aria-label="판단">
+          <div>판단</div><div id="statusText">-</div>
+          <div>판매가 구조</div><div id="priceStructureText">-</div>
+          <div>BEP</div><div id="bepText">-</div>
+          <div>권장</div><div id="recommendText">-</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const won = (n) => `${Math.round(n).toLocaleString("ko-KR")}원`;
+    const pct = (n) => `${n.toFixed(2)}%`;
+    const ceilWon = (n) => Math.ceil(n);
+    const ceil100 = (n) => Math.ceil(n / 100) * 100;
+
+    const typeLabels = {
+      A: "A 타입",
+      B: "B 타입",
+      C: "C 타입",
+      D: "D 타입",
+      auction: "옥션 위탁",
+      naverBuy: "네이버 매입"
+    };
+
+    function inputRate(id, fallback) {
+      const value = Number(el(id).value);
+      return Number.isFinite(value) ? value / 100 : fallback;
+    }
+
+    function calculateUnitCost(listPrice, type, coupon, rates) {
+      const variableFee = listPrice / 10000 * 445;
+      const couponFee = coupon ? 3750 : 0;
+      let cost = 0;
+      let orderShippingCredit = 0;
+      let formula = "";
+
+      if (type === "A") {
+        cost = listPrice * rates.A - couponFee - variableFee;
+        orderShippingCredit = 3000;
+        formula = `${won(listPrice)} × ${pct(rates.A * 100)} - ${won(couponFee)}(쿠폰) - ${won(variableFee)}(변동비)`;
+      } else if (type === "B") {
+        cost = listPrice * rates.B - couponFee;
+        formula = `${won(listPrice)} × ${pct(rates.B * 100)} - ${won(couponFee)}(쿠폰)`;
+      } else if (type === "C") {
+        cost = listPrice * rates.C - couponFee - variableFee;
+        formula = `${won(listPrice)} × ${pct(rates.C * 100)} - ${won(couponFee)}(쿠폰) - ${won(variableFee)}(변동비)`;
+      } else if (type === "D") {
+        cost = listPrice * rates.D - variableFee;
+        orderShippingCredit = 3000;
+        formula = `${won(listPrice)} × ${pct(rates.D * 100)} - ${won(variableFee)}(변동비)`;
+      } else if (type === "auction") {
+        cost = listPrice * rates.auction - couponFee;
+        formula = `${won(listPrice)} × ${pct(rates.auction * 100)} - ${won(couponFee)}(쿠폰)`;
+      } else {
+        cost = listPrice * rates.naverBuy - couponFee;
+        formula = `${won(listPrice)} × ${pct(rates.naverBuy * 100)} - ${won(couponFee)}(쿠폰)`;
+      }
+
+      return { cost, formula, variableFee, orderShippingCredit };
+    }
+
+    function update() {
+      const listPrice = Number(el("listPrice").value || 0);
+      const salePrice = Number(el("salePrice").value || 0);
+      const quantity = Math.max(1, Number(el("quantity").value || 1));
+      const targetRoi = Number(el("targetRoi").value || 0) / 100;
+      const shippingIncome = Number(el("shippingIncome").value || 0);
+      const type = el("purchaseType").value;
+      const channel = el("channel").value;
+      const coupon = el("couponEnabled").checked;
+      const rates = {
+        A: inputRate("rateA", 0.88),
+        B: inputRate("rateB", 0.9),
+        C: inputRate("rateC", 0.88),
+        D: inputRate("rateD", 0.88),
+        auction: inputRate("rateAuction", 0.85),
+        naverBuy: inputRate("rateNaverBuy", 0.88)
+      };
+
+      const rate = channel === "naver" ? 0.945 : 0.88;
+      const channelLabel = channel === "naver" ? "네이버" : "쿠팡";
+      const unit = calculateUnitCost(listPrice, type, coupon, rates);
+      const cost = unit.cost * quantity + unit.orderShippingCredit;
+      const settlement = salePrice * rate + shippingIncome;
+      const profit = settlement - cost;
+      const roi = cost > 0 ? profit / cost * 100 : 0;
+      const bep = cost > 0 ? (cost - shippingIncome) / rate : 0;
+      const targetPrice = cost > 0 ? (cost * (1 + targetRoi) - shippingIncome) / rate : 0;
+      const recommended = ceil100(targetPrice);
+      const recommendedProfit = recommended * rate + shippingIncome - cost;
+      const recommendedRoi = cost > 0 ? recommendedProfit / cost * 100 : 0;
+
+      el("typeCell").textContent = `${typeLabels[type]} / ${channelLabel}`;
+      const quantityFormula = quantity > 1 ? `(${unit.formula}) × ${quantity}개` : unit.formula;
+      el("formulaCell").textContent = unit.orderShippingCredit
+        ? `${quantityFormula} + ${won(unit.orderShippingCredit)}(배송비 보정 1회)`
+        : quantityFormula;
+      el("costCell").textContent = won(cost);
+      el("bepCell").textContent = won(ceilWon(bep));
+      el("targetRoiCell").textContent = pct(targetRoi * 100);
+      el("targetPriceCell").textContent = won(ceilWon(targetPrice));
+      el("recommendedCell").textContent = won(recommended);
+
+      el("salePriceCell").textContent = won(salePrice);
+      el("settlementCell").textContent = won(settlement);
+      el("profitCell").textContent = won(profit);
+      el("roiCell").textContent = pct(roi);
+
+      el("costMetric").textContent = won(cost);
+      el("bepMetric").textContent = won(ceilWon(bep));
+      el("targetPriceMetric").textContent = won(ceilWon(targetPrice));
+      el("profitMetric").textContent = won(profit);
+      el("roiMetric").textContent = pct(roi);
+      el("recommendedProfitMetric").textContent = `${won(recommendedProfit)} / ${pct(recommendedRoi)}`;
+
+      el("profitMetric").parentElement.className = `metric ${profit >= 0 ? "good" : "bad"}`;
+      el("roiMetric").parentElement.className = `metric ${roi >= targetRoi * 100 ? "good" : "bad"}`;
+      el("recommendedProfitMetric").parentElement.className = "metric good";
+
+      const targetOptions = [5, 10, 11, 15, 20];
+      el("targetRows").innerHTML = targetOptions.map((target) => {
+        const price = cost > 0 ? (cost * (1 + target / 100) - shippingIncome) / rate : 0;
+        const rounded = ceil100(price);
+        const rowProfit = rounded * rate + shippingIncome - cost;
+        return `
+          <tr>
+            <td class="num">${target.toFixed(0)}%</td>
+            <td class="num">${won(ceilWon(price))}</td>
+            <td class="num">${won(rounded)}</td>
+            <td class="num">${won(rowProfit)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      el("statusText").textContent = profit >= 0
+        ? (roi >= targetRoi * 100 ? "목표 마진 충족" : "흑자지만 목표 마진 미달")
+        : "손해 구간";
+      el("priceStructureText").textContent = `정가 입력 → 원가 확인 → ${pct(targetRoi * 100)} 목표 판매가 확인`;
+      el("bepText").textContent = `${channelLabel} 손익분기점 약 ${won(ceilWon(bep))}`;
+      el("recommendText").textContent = `${pct(targetRoi * 100)} 목표면 최소 ${won(ceilWon(targetPrice))}, 권장 ${won(recommended)}`;
+    }
+
+    document.querySelectorAll("input, select").forEach((node) => {
+      node.addEventListener("input", update);
+      node.addEventListener("change", update);
+    });
+
+    update();
+  </script>
+<a class="homeBtn" href="index.html">🏠 홈</a>
+</body>
+</html>

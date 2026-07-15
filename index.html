@@ -3,144 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>확인필요 67개 복붙도우미</title>
+<title>STARBUCKS HELPER</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f4f7f5;color:#14211d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{width:min(860px,calc(100% - 20px));margin:16px auto 44px;display:grid;gap:12px}
-h1{font-size:22px;margin:0}
-.sticky{position:sticky;top:0;background:#f4f7f5;padding:12px 0;z-index:10;border-bottom:1px solid #d8e0dc}
-.meta{color:#65756f;font-size:13px;margin-top:4px;line-height:1.45}
-.bar{height:10px;background:#dfe7e3;border-radius:999px;overflow:hidden;margin-top:10px}
-.bar span{display:block;height:100%;width:0;background:#006241}
-.toolbar{display:grid;grid-template-columns:1fr 82px;gap:8px;margin-top:10px}
-.toolbar input{min-height:40px;border:1px solid #d8e0dc;border-radius:7px;padding:0 10px;font-size:16px}
-button{min-height:42px;border:1px solid #006241;border-radius:7px;background:#006241;color:#fff;font-size:15px;font-weight:800}
-button.secondary{background:#fff;color:#14211d;border-color:#b9c7c1}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.actions.wide{grid-template-columns:1fr 1fr}
-.toast{min-height:24px;color:#006241;font-weight:800;margin-top:8px;line-height:1.4}
-.card{background:#fff;border:1px solid #d8e0dc;border-radius:9px;padding:12px;display:grid;gap:10px}
-.card.done-card{opacity:.55;background:#f1f5f3}
-.top{display:flex;gap:8px;align-items:center;justify-content:space-between;color:#65756f;font-size:12px;line-height:1.35}
-.top strong{font-size:15px;color:#14211d}
-.status{padding:4px 7px;border-radius:999px;background:#fff5d6;color:#9a6700;font-weight:900;white-space:nowrap}
-.grid{display:grid;grid-template-columns:1fr;gap:8px}
-label{font-size:12px;color:#65756f;font-weight:800}
-.valueInput{width:100%;font-size:23px;line-height:1.2;font-variant-numeric:tabular-nums;padding:10px 8px;border:1px solid #d8e0dc;border-radius:7px;background:#fff;color:#14211d}
-.fieldRow{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:end}
-.done{background:#fff;color:#14211d;border-color:#d8e0dc}
-.nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.small{font-size:12px;color:#65756f;line-height:1.4}
-.hint{font-size:12px;color:#8a5b00;background:#fff8df;border:1px solid #f0dfaa;border-radius:7px;padding:8px;line-height:1.45}
-.hint b{color:#6e4700}
-@media (min-width:760px){.actions.wide{grid-template-columns:1fr 1fr}.card{grid-template-columns:1fr;align-items:start}.top,.nav{grid-column:1/-1}</style>
-</head>
-<body>
-<main>
-  <section class="sticky">
-    <h1>확인필요 67개 복붙도우미</h1>
-    <div class="meta">확인필요 67개를 원본 이미지 기준으로 재추출했습니다. 입력칸 값은 수정 가능하고 이 브라우저에 자동 저장됩니다.</div>
-    <div class="bar"><span id="bar"></span></div>
-    <div class="toast" id="toast"></div>
-    <div class="toolbar"><input id="jumpNo" type="number" min="1" max="67" placeholder="번호로 이동"><button onclick="jumpToNo()">이동</button></div>
-    <div class="actions wide">
-      <button class="secondary" onclick="exportWork()">작업 저장</button>
-      <button class="secondary" onclick="document.getElementById('workFile').click()">작업 불러오기</button>
-    </div>
-    <input id="workFile" type="file" accept="application/json,.json" hidden onchange="importWork(this.files[0])">
-  </section>
-  <section id="cards"></section>
-</main>
-<script>
-const baseItems=[{"no": 1, "file": "0007_588821_Screenshot_20260427_225140_KakaoTalk.jpg", "coupon": "52823384213202682", "code": "66701041", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 2, "file": "0009_588907_Screenshot_20260427_225143_KakaoTalk.jpg", "coupon": "52823384345202682", "code": "05341706", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 3, "file": "0010_588870_Screenshot_20260427_225145_KakaoTalk.jpg", "coupon": "52823384422202682", "code": "35979747", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 4, "file": "0011_588990_Screenshot_20260427_225147_KakaoTalk.jpg", "coupon": "52823384486202682", "code": "70433185", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 5, "file": "0012_588935_Screenshot_20260427_225149_KakaoTalk.jpg", "coupon": "52823384509202682", "code": "01960555", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 6, "file": "0013_588933_Screenshot_20260427_225150_KakaoTalk.jpg", "coupon": "52823384309202682", "code": "49949124", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 7, "file": "0022_588986_Screenshot_20260427_225209_KakaoTalk.jpg", "coupon": "52823384709202682", "code": "75668406", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 8, "file": "0023_588934_Screenshot_20260427_225210_KakaoTalk.jpg", "coupon": "52823384754202682", "code": "85904041", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 9, "file": "0024_588783_Screenshot_20260427_225212_KakaoTalk.jpg", "coupon": "52823384763202682", "code": "68229465", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 10, "file": "0027_588876_Screenshot_20260427_225218_KakaoTalk.jpg", "coupon": "52823384918202682", "code": "94674475", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 11, "file": "0030_588801_Screenshot_20260427_225224_KakaoTalk.jpg", "coupon": "52823384781202682", "code": "43494563", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 12, "file": "0031_588925_Screenshot_20260427_225229_KakaoTalk.jpg", "coupon": "52823384840202682", "code": "40826456", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 13, "file": "0035_588836_Screenshot_20260427_225300_KakaoTalk.jpg", "coupon": "52826128557202683", "code": "51259983", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 14, "file": "0037_588747_Screenshot_20260427_225305_KakaoTalk.jpg", "coupon": "52826128634202683", "code": "96323800", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 15, "file": "0039_588892_Screenshot_20260427_225310_KakaoTalk.jpg", "coupon": "52826131140202683", "code": "83785820", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 16, "file": "0040_588810_Screenshot_20260427_225311_KakaoTalk.jpg", "coupon": "52826131418202683", "code": "45591189", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 17, "file": "0047_588846_Screenshot_20260427_225331_KakaoTalk.jpg", "coupon": "52826133593202683", "code": "32962208", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 18, "file": "0051_588848_Screenshot_20260427_225350_KakaoTalk.jpg", "coupon": "52826263142202683", "code": "66154106", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 19, "file": "0058_588971_Screenshot_20260427_225403_KakaoTalk.jpg", "coupon": "52826285768202683", "code": "31451159", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 20, "file": "0059_588916_Screenshot_20260427_225407_KakaoTalk.jpg", "coupon": "52826285795202683", "code": "69167235", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 21, "file": "0088_588891_Screenshot_20260427_225522_KakaoTalk.jpg", "coupon": "52829180596202684", "code": "03341948", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 22, "file": "0089_588842_Screenshot_20260427_225523_KakaoTalk.jpg", "coupon": "52829180569202684", "code": "40868039", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 23, "file": "0094_588941_Screenshot_20260427_225533_KakaoTalk.jpg", "coupon": "52829180778202684", "code": "69181749", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 24, "file": "0097_588777_Screenshot_20260427_225540_KakaoTalk.jpg", "coupon": "52829181681202684", "code": "94719604", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 25, "file": "0099_588739_Screenshot_20260427_225543_KakaoTalk.jpg", "coupon": "52829181722202684", "code": "39398618", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 26, "file": "0101_588932_Screenshot_20260427_225547_KakaoTalk.jpg", "coupon": "52829181777202684", "code": "04658063", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 27, "file": "0102_588817_Screenshot_20260427_225549_KakaoTalk.jpg", "coupon": "52829181818202684", "code": "58282590", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 28, "file": "0111_588947_Screenshot_20260427_225608_KakaoTalk.jpg", "coupon": "52829182871202684", "code": "21265667", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 29, "file": "0112_588762_Screenshot_20260427_225609_KakaoTalk.jpg", "coupon": "52829183111202684", "code": "61305720", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 30, "file": "0113_588967_Screenshot_20260427_225611_KakaoTalk.jpg", "coupon": "52829183157202684", "code": "29938295", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 31, "file": "0130_588955_Screenshot_20260427_225657_KakaoTalk.jpg", "coupon": "52829183711202684", "code": "35507100", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 32, "file": "0131_588743_Screenshot_20260427_225700_KakaoTalk.jpg", "coupon": "52829183689202684", "code": "00960937", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 33, "file": "0142_588785_Screenshot_20260427_225721_KakaoTalk.jpg", "coupon": "52829184479202684", "code": "98519324", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 34, "file": "0145_588853_Screenshot_20260427_225729_KakaoTalk.jpg", "coupon": "52829188411202684", "code": "75144574", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 35, "file": "0148_588750_Screenshot_20260427_225743_KakaoTalk.jpg", "coupon": "52829191381202684", "code": "50347095", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 36, "file": "0150_588917_Screenshot_20260427_225747_KakaoTalk.jpg", "coupon": "52829195587202684", "code": "17405834", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 37, "file": "0151_588805_Screenshot_20260427_225749_KakaoTalk.jpg", "coupon": "52829195600202684", "code": "44473954", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 38, "file": "0152_588770_Screenshot_20260427_225753_KakaoTalk.jpg", "coupon": "52829215977202684", "code": "00548693", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 39, "file": "0159_588961_Screenshot_20260427_225807_KakaoTalk.jpg", "coupon": "52829216299202684", "code": "72871211", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 40, "file": "0173_588939_Screenshot_20260427_224602_KakaoTalk.jpg", "coupon": "52823347456202682", "code": "63748761", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 41, "file": "0177_588982_Screenshot_20260427_224609_KakaoTalk.jpg", "coupon": "52823347597202682", "code": "45546495", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 42, "file": "0183_588775_Screenshot_20260427_224621_KakaoTalk.jpg", "coupon": "52823347797202682", "code": "74220605", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 43, "file": "0186_588809_Screenshot_20260427_224627_KakaoTalk.jpg", "coupon": "52823347979202682", "code": "76618979", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 44, "file": "0187_589002_Screenshot_20260427_224629_KakaoTalk.jpg", "coupon": "52823347906202682", "code": "62473614", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 45, "file": "0188_588896_Screenshot_20260427_224630_KakaoTalk.jpg", "coupon": "52823348046202682", "code": "59447972", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 46, "file": "0191_588847_Screenshot_20260427_224637_KakaoTalk.jpg", "coupon": "52823348037202682", "code": "40984499", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 47, "file": "0193_589015_Screenshot_20260427_224641_KakaoTalk.jpg", "coupon": "52823348996202682", "code": "46965338", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 48, "file": "0196_588978_Screenshot_20260427_224647_KakaoTalk.jpg", "coupon": "52823348941202682", "code": "18969093", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 49, "file": "0198_588790_Screenshot_20260427_224651_KakaoTalk.jpg", "coupon": "52823349195202682", "code": "08165631", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 50, "file": "0199_588930_Screenshot_20260427_224653_KakaoTalk.jpg", "coupon": "52823349227202682", "code": "28524371", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 51, "file": "0204_588799_Screenshot_20260427_224742_KakaoTalk.jpg", "coupon": "52823349331202682", "code": "47105109", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 52, "file": "0205_588779_Screenshot_20260427_224744_KakaoTalk.jpg", "coupon": "52823349386202682", "code": "43674862", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 53, "file": "0206_588816_Screenshot_20260427_224745_KakaoTalk.jpg", "coupon": "52823349368202682", "code": "12187300", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 54, "file": "0214_588818_Screenshot_20260427_224802_KakaoTalk.jpg", "coupon": "52823349672202682", "code": "64202593", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 55, "file": "0220_588837_Screenshot_20260427_224814_KakaoTalk.jpg", "coupon": "52823349872202682", "code": "80852124", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 56, "file": "0227_588998_Screenshot_20260427_224831_KakaoTalk.jpg", "coupon": "52823350117202682", "code": "53873724", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 57, "file": "0228_588774_Screenshot_20260427_224833_KakaoTalk.jpg", "coupon": "52823350135202682", "code": "97164017", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 58, "file": "0239_588989_Screenshot_20260427_224855_KakaoTalk.jpg", "coupon": "52823350449202682", "code": "16994141", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 59, "file": "0246_588800_Screenshot_20260427_224919_KakaoTalk.jpg", "coupon": "52823350667202682", "code": "65099861", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 60, "file": "0258_588771_Screenshot_20260427_224942_KakaoTalk.jpg", "coupon": "52823352401202682", "code": "62187932", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 61, "file": "0263_588924_Screenshot_20260427_224953_KakaoTalk.jpg", "coupon": "52823352315202682", "code": "10518590", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 62, "file": "0272_588883_Screenshot_20260427_225030_KakaoTalk.jpg", "coupon": "52823359963202682", "code": "99775045", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 63, "file": "0277_588901_Screenshot_20260427_225039_KakaoTalk.jpg", "coupon": "52823360149202682", "code": "98607688", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 64, "file": "0288_588833_Screenshot_20260427_225106_KakaoTalk.jpg", "coupon": "52823383623202682", "code": "37862423", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 65, "file": "0289_588912_Screenshot_20260427_225108_KakaoTalk.jpg", "coupon": "52823383591202682", "code": "17406356", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 66, "file": "0292_589022_Screenshot_20260427_225114_KakaoTalk.jpg", "coupon": "52823383546202682", "code": "95836434", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}, {"no": 67, "file": "0293_588888_Screenshot_20260427_225116_KakaoTalk.jpg", "coupon": "52823383814202682", "code": "15896899", "status": "재추출완료", "couponLen": "17", "codeLen": "8"}];
-const stateKey='starbucks-needs-check-67-v3';
-let raw=JSON.parse(localStorage.getItem(stateKey)||'{}');
-let state={done:new Set(raw.done||[]), edits:raw.edits||{}, index:raw.index||1};
-const el=id=>document.getElementById(id);
-function save(){localStorage.setItem(stateKey,JSON.stringify({done:[...state.done],edits:state.edits,index:state.index}));}
-function itemValue(no,key,fallback){return state.edits[no]?.[key] ?? fallback;}
-function setEdit(no,key,value){state.edits[no]={...(state.edits[no]||{}),[key]:value};save();updateProgress();}
-function copyText(text,label){navigator.clipboard?.writeText(text).then(()=>toast(label+' 복사됨')).catch(()=>{const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();toast(label+' 복사됨');})}
-function toast(msg){el('toast').textContent=msg;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el('toast').textContent='',1800);}
-function selectField(input){input.select();input.setSelectionRange(0,99999);}
-function toggleDone(no){state.done.has(no)?state.done.delete(no):state.done.add(no);save();render();}
-function jumpToNo(){const n=Math.max(1,Math.min(baseItems.length,Number(el('jumpNo').value)||1));document.querySelector(`[data-index="${n}"]`)?.scrollIntoView({behavior:'smooth',block:'start'});state.index=n;save();}
-function updateProgress(){const done=state.done.size;el('bar').style.width=(done/baseItems.length*100)+'%';el('toast').dataset.progress=done+' / '+baseItems.length;}
-function render(){
-  updateProgress();
-  el('cards').innerHTML=baseItems.map(item=>{
-    const no=item.no;
-    const coupon=itemValue(no,'coupon',item.coupon);
-    const code=itemValue(no,'code',item.code);
-    const done=state.done.has(no);
-    return `<article class="card ${done?'done-card':''}" data-index="${no}">
-      <div class="top"><strong>#${no}</strong><span>${item.file}</span><span class="status">${item.status}</span></div>
-<div class="grid">
-        <div class="small">쿠폰자리수: ${item.couponLen || '-'} · 등록코드자리수: ${item.codeLen || '-'}</div>
-        <div class="hint"><b>재추출값</b><br>쿠폰 ${item.coupon || '없음'} / 등록코드 ${item.code || '없음'}</div>
-        <div class="fieldRow"><label>쿠폰번호<input class="valueInput" id="coupon-${no}" value="${coupon}" placeholder="쿠폰번호" inputmode="numeric" onclick="selectField(this)" oninput="setEdit(${no},'coupon',this.value)"></label><button onclick="copyText(document.getElementById('coupon-${no}').value,'쿠폰번호')">복사</button></div>
-        <div class="fieldRow"><label>등록코드<input class="valueInput" id="code-${no}" value="${code}" placeholder="등록코드" inputmode="numeric" onclick="selectField(this)" oninput="setEdit(${no},'code',this.value)"></label><button onclick="copyText(document.getElementById('code-${no}').value,'등록코드')">복사</button></div>
-        <div class="nav"><button class="secondary" onclick="document.querySelector('[data-index=\'${Math.max(1,no-1)}\']')?.scrollIntoView({behavior:'smooth'})">이전</button><button class="done" onclick="toggleDone(${no})">${done?'완료취소':'완료'}</button><button class="secondary" onclick="document.querySelector('[data-index=\'${Math.min(baseItems.length,no+1)}\']')?.scrollIntoView({behavior:'smooth'})">다음</button></div>
-      </div>
-    </article>`;
-  }).join('');
-  updateProgress();
-}
-function exportCsv(){
-  const header=['번호','파일명','쿠폰번호','등록코드','원래상태','완료'];
-  const rows=baseItems.map(item=>[item.no,item.file,itemValue(item.no,'coupon',item.coupon),itemValue(item.no,'code',item.code),item.status,state.done.has(item.no)?'완료':'미완료']);
-  const csv=[header,...rows].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\\n');
-  copyText(csv,'수정 CSV');
-}
-function exportWork(){
-  const payload={
-    app:'starbucks-coupon-helper',
-    version:3,
-    savedAt:new Date().toISOString(),
-    total:baseItems.length,
-    done:[...state.done],
-    edits:state.edits,
-    index:state.index
-  };
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const date=new Date().toISOString().slice(0,10);
-  a.href=url;
-  a.download=`스타벅스_쿠폰_작업저장_${date}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  toast('작업 저장 파일 생성됨');
-}
-function importWork(file){
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const payload=JSON.parse(reader.result);
-      const done=Array.isArray(payload.done)?payload.done.map(Number).filter(n=>n>=1&&n<=baseItems.length):[];
-      const edits=payload.edits&&typeof payload.edits==='object'?payload.edits:{};
-      state={
-        done:new Set(done),
-        edits,
-        index:Number(payload.index)||1
-      };
-      save();
-      render();
-      toast('작업 불러오기 완료');
-    }catch(e){
-      alert('작업 저장 파일을 읽지 못했습니다.');
-    }finally{
-      el('workFile').value='';
-    }
-  };
-  reader.readAsText(file);
-}
-function resetAll(){if(confirm('수정값과 완료 표시를 초기화할까요?')){state={done:new Set(),edits:{},index:1};save();render();}}
-render();
-</script>
-</body>
-</html>
+*{box-sizing:border-box}body{margin:0;background:#f4f7f5;color:#14211d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{width:min(760px,calc(100% - 24px));margin:32px auto 56px}.hero{margin-bottom:18px}h1{font-size:30px;margin:0}.sub{color:#65756f;margin-top:7px;line-height:1.5}
+.grid{display:grid;gap:12px}.card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid #d8e0dc;border-radius:12px;padding:18px;transition:.15s}.card:hover{transform:translateY(-1px);border-color:#006241;box-shadow:0 8px 24px rgba(0,98,65,.08)}
+.card strong{display:block;font-size:19px;margin-bottom:5px;color:#006241}.card span{display:block;color:#65756f;line-height:1.45}.go{margin-top:12px;font-weight:800;color:#14211d}.foot{margin-top:18px;color:#7b8984;font-size:12px}
+</style>
+</head><body><main>
+<section class="hero"><h1>☕ STARBUCKS HELPER</h1><div class="sub">업무용 도구를 한곳에서 실행합니다.</div></section>
+<section class="grid">
+<a class="card" href="coupon.html"><strong>📋 쿠폰 복붙 도우미</strong><span>확인필요 67개의 쿠폰번호와 등록코드를 복사하고 완료 상태를 관리합니다.</span><div class="go">실행하기 →</div></a>
+<a class="card" href="price.html"><strong>💰 가격 찾기 미로</strong><span>기프티콘과 카드 결제 조합을 계산하고 주문별 결제안을 확인합니다.</span><div class="go">실행하기 →</div></a>
+<a class="card" href="calculate.html"><strong>🧮 상품 계산기</strong><span>정가, 판매가, 매입 방식에 따른 원가·마진·ROI를 계산합니다.</span><div class="go">실행하기 →</div></a>
+</section><div class="foot">STARBUCKS HELPER</div></main></body></html>

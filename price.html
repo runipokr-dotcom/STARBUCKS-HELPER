@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>가격 찾기 미로</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f6f7f4;color:#17211d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{width:min(1120px,calc(100% - 24px));margin:18px auto 44px}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+    h1{font-size:26px;margin:0;letter-spacing:0}
+    .sub{color:#64736d;font-size:14px;line-height:1.5;margin-top:4px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:12px;align-items:start}
+    section,.panel{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:14px}
+    h2{font-size:16px;margin:0 0 10px}
+    label{display:block;font-size:12px;font-weight:800;color:#64736d;margin:12px 0 6px}
+    textarea,input{width:100%;border:1px solid #d6dfda;border-radius:7px;background:#fff;color:#17211d;font-size:16px;padding:10px;line-height:1.45}
+    textarea{min-height:126px;resize:vertical}
+    input{height:42px}
+    .denomBox{border:1px solid #dce3df;border-radius:8px;padding:10px;background:#fbfcfb;margin-bottom:10px}
+    .denomBox summary{font-size:13px;font-weight:800;color:#64736d;cursor:pointer;list-style:none}
+    .denomBox summary::-webkit-details-marker{display:none}
+    .denomBox summary::after{content:"열기";float:right;color:#006241;font-size:12px}
+    .denomBox[open] summary{margin-bottom:8px}
+    .denomBox[open] summary::after{content:"닫기"}
+    .denomBox textarea{min-height:104px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .orderAdd{display:grid;grid-template-columns:1fr 92px 74px;gap:8px;align-items:end}
+    .orderList{display:grid;gap:8px;margin-top:10px}
+    .orderItem{display:grid;grid-template-columns:1fr 84px 48px;gap:8px;align-items:center;background:#f8faf8;border:1px solid #dce3df;border-radius:8px;padding:8px}
+    .orderItem button{min-height:38px;background:#fff;color:#17211d;border-color:#b9c7c1}
+    .quick{margin-top:10px;border:1px solid #dce3df;border-radius:8px;padding:10px;background:#fbfcfb}
+    .quick textarea{min-height:96px}
+    .quick button{width:100%;margin-top:8px;background:#fff;color:#17211d;border-color:#b9c7c1}
+    .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .sectionHead h2{margin:0}
+    .tinyToggle{display:flex;align-items:center;gap:5px;margin:0;color:#64736d;font-size:12px;font-weight:800;white-space:nowrap}
+    .tinyToggle input{width:14px;height:14px;min-height:14px;accent-color:#006241}
+    button{min-height:44px;border:1px solid #006241;border-radius:7px;background:#006241;color:#fff;font-weight:800;font-size:15px}
+    button.secondary{background:#fff;color:#17211d;border-color:#b9c7c1}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .metric{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:12px}
+    .metric b{display:block;font-size:20px;margin-top:4px}
+    .metric span{font-size:12px;color:#64736d;font-weight:800}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-bottom:1px solid #edf1ef;padding:10px 9px;text-align:right;vertical-align:top;line-height:1.45}
+    th:first-child,td:first-child{text-align:left}
+    th{font-size:12px;color:#64736d;background:#f8faf8}
+    .combo{font-weight:800;color:#006241}
+    .badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;color:#fff;font-size:11px;font-weight:900;margin-right:4px;vertical-align:1px;flex:0 0 auto}
+    .badge.g{background:#d97706}
+    .badge.c{background:#047857}
+    .orderCards{display:grid;gap:10px}
+    .orderCard{border:1px solid #dce3df;border-radius:8px;background:#fff;overflow:hidden}
+    .orderCard.completed{background:#f1f4f2;border-color:#d3ddd7;opacity:.72}
+    .orderCard.completed .orderHead{background:#e9efeb}
+    .orderCard.completed .planRow{filter:grayscale(.35)}
+    .orderHead{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:#f8faf8;border-bottom:1px solid #edf1ef;font-weight:900}
+    .orderTitle{display:flex;align-items:center;gap:8px;min-width:0}
+    .orderHead span{color:#64736d;font-size:12px;font-weight:800}
+    .doneBtn{min-height:26px;border-color:#cbd8d2;background:#fff;color:#64736d;border-radius:6px;padding:0 8px;font-size:12px}
+    .doneBtn:hover{border-color:#006241;color:#006241}
+    .completedMark{color:#64736d;font-size:12px;font-weight:900}
+    .planRow{display:grid;grid-template-columns:34px minmax(0,1fr) 96px;gap:7px;padding:8px 10px;align-items:start;border-bottom:1px solid #edf1ef}
+    .planRow.selected{background:#f0f8f4}
+    .planRow:last-child{border-bottom:0}
+    .planName{display:grid;gap:4px;font-size:13px;font-weight:900;color:#006241;white-space:nowrap}
+    .selectPlanBtn{min-height:24px;border-color:#cbd8d2;background:#fff;color:#64736d;border-radius:6px;padding:0 6px;font-size:11px}
+    .selectPlanBtn.active{background:#006241;color:#fff;border-color:#006241}
+    .planBody{display:grid;gap:3px;min-width:0}
+    .giftLine{font-size:12px;font-weight:900;color:#006241;line-height:1.3;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+    .cardLine{font-size:11px;color:#33423c;line-height:1.3;white-space:normal}
+    .costBox{text-align:right;font-size:12px;font-weight:900;white-space:nowrap}
+    .costBox span{display:block;color:#64736d;font-size:11px;font-weight:800;margin-bottom:2px}
+    .muted{color:#64736d}
+    .warn{color:#b54708;font-weight:800}
+    .copy{margin-top:10px;width:100%}
+    .note{display:block;margin-top:4px;color:#64736d;font-size:12px;line-height:1.35}
+    .two{display:grid;grid-template-columns:340px 1fr;gap:12px;align-items:start}
+    @media (max-width:860px){
+      main{width:min(760px,calc(100% - 18px));margin-top:12px}
+      header{display:block}
+      .grid,.two,.summary{grid-template-columns:1fr}
+      h1{font-size:23px}
+      section,.panel{padding:12px}
+      table{font-size:13px}
+      th,td{padding:8px 6px}
+      .planRow{grid-template-columns:34px minmax(0,1fr) 88px;gap:6px}
+      .giftLine,.cardLine{white-space:normal}
+      .costBox{grid-column:auto;text-align:right;font-size:11px}
+    }
+  
+.homeBtn{position:fixed;right:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;background:#14211d;color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>가격 찾기 미로</h1>
+      <div class="sub">기프티콘 최대 3장 조합으로 상품가에 최대한 가깝게 맞추고, 스타벅스 카드 결제액은 최소 3,000원 이상 남깁니다.</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section>
+      <h2>입력</h2>
+      <details class="denomBox">
+        <summary>입력권종</summary>
+        <textarea id="denoms" oninput="calculate()">4700
+5200
+9400
+12000
+13200
+10600
+19800
+6200
+6500
+35700
+15300
+16700
+16300
+16900
+24400
+13900
+</textarea>
+      </details>
+
+      <details class="denomBox">
+        <summary>계산 설정</summary>
+        <div class="row">
+          <label for="giftRate">기프티콘 매입률(%)
+            <input id="giftRate" type="number" value="87" step="0.1" min="0" max="100" oninput="calculate()">
+          </label>
+          <label for="cardRate">카드 매입률(%)
+            <input id="cardRate" type="number" value="89" step="0.1" min="0" max="100" oninput="calculate()">
+          </label>
+        </div>
+        <label for="minCard">최소 카드결제
+          <input id="minCard" type="number" value="3000" step="100" oninput="calculate()">
+        </label>
+      </details>
+
+      <label for="ordersQuick">주문 빠른 입력</label>
+      <div class="quick">
+        <textarea id="ordersQuick" oninput="applyQuickOrders(false)">46000 3
+58000 11</textarea>
+        <button onclick="applyQuickOrders(true)">붙여넣기 계산</button>
+      </div>
+      <label>주문 개별 추가</label>
+      <div class="orderAdd">
+        <input id="priceInput" type="number" inputmode="numeric" placeholder="정가">
+        <input id="qtyInput" type="number" inputmode="numeric" min="1" value="1" placeholder="수량">
+        <button onclick="addOrder()">추가</button>
+      </div>
+      <div class="orderList" id="orderList"></div>
+
+      <button class="secondary copy" onclick="copySummary()">결과 복사</button>
+    </section>
+
+    <div>
+      <div class="summary">
+        <div class="metric"><span>총 주문</span><b id="mOrders">0건</b></div>
+        <div class="metric"><span>사용할 기프티콘 1안</span><b id="mGift">0원</b></div>
+        <div class="metric"><span>카드로 남길 금액 1안</span><b id="mCard">0원</b></div>
+        <div class="metric"><span>실매입가 1안</span><b id="mCost">0원</b></div>
+      </div>
+
+      <div class="two">
+        <section>
+          <h2>오늘 준비할 결제수단</h2>
+          <div id="buyTable"></div>
+        </section>
+        <section>
+          <div class="sectionHead">
+            <h2>주문별 조합</h2>
+            <label class="tinyToggle">
+              <input id="showPlan2" type="checkbox" onchange="calculate()">
+              2안 보기
+            </label>
+          </div>
+          <div id="orderTable"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const fmt=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const onlyNums=s=>String(s).split(/[\s,\/]+/).map(v=>Number(v.replace(/[^\d]/g,''))).filter(Boolean);
+let orderData=[{price:46000,qty:3},{price:58000,qty:11}];
+let completedData=[];
+let selectedPlanData={};
+function parseOrders(text){
+  return text.split(/\n+/).map(line=>{
+    const nums=onlyNums(line);
+    if(nums.length===1) return {price:nums[0],qty:1};
+    if(nums.length>=2) return {price:nums[0],qty:nums[1]};
+    return null;
+  }).filter(Boolean);
+}
+function cleanOrders(orders){
+  return orders.map(o=>({price:Number(o.price),qty:Number(o.qty)})).filter(o=>o.price>0&&o.qty>0);
+}
+function mergeOrdersByPrice(orders){
+  const merged=new Map();
+  for(const order of orders){
+    merged.set(order.price,(merged.get(order.price)||0)+order.qty);
+  }
+  return [...merged.entries()]
+    .map(([price,qty])=>({price,qty}))
+    .sort((a,b)=>b.price-a.price);
+}
+function syncQuickFromOrders(){
+  document.getElementById('ordersQuick').value=orderData.map(o=>`${o.price} ${o.qty}`).join('\n');
+}
+function reviveMatchingCompleted(){
+  const activePrices=new Set(orderData.map(order=>order.price));
+  completedData=completedData.filter(order=>!activePrices.has(order.price));
+}
+function cleanSelectedPlans(){
+  const activePrices=new Set(orderData.concat(completedData).map(order=>String(order.price)));
+  selectedPlanData=Object.fromEntries(Object.entries(selectedPlanData).filter(([price])=>activePrices.has(price)));
+}
+function renderOrderInputs(){
+  const list=document.getElementById('orderList');
+  if(!orderData.length){
+    list.innerHTML='<div class="muted">추가된 주문이 없습니다.</div>';
+    return;
+  }
+  list.innerHTML=orderData.map((o,i)=>`
+    <div class="orderItem">
+      <input type="number" inputmode="numeric" value="${o.price}" aria-label="정가" onchange="updateOrder(${i},'price',this.value)">
+      <input type="number" inputmode="numeric" min="1" value="${o.qty}" aria-label="수량" onchange="updateOrder(${i},'qty',this.value)">
+      <button onclick="removeOrder(${i})">X</button>
+    </div>
+  `).join('');
+}
+function updateOrder(index,key,value){
+  orderData[index][key]=Number(value)||0;
+  orderData=cleanOrders(orderData);
+  reviveMatchingCompleted();
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+function addOrder(){
+  const price=Number(document.getElementById('priceInput').value)||0;
+  const qty=Number(document.getElementById('qtyInput').value)||1;
+  if(price<=0) return;
+  orderData.push({price,qty});
+  reviveMatchingCompleted();
+  document.getElementById('priceInput').value='';
+  document.getElementById('qtyInput').value='1';
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+function removeOrder(index){
+  orderData.splice(index,1);
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+function completePrice(price){
+  const qty=orderData.filter(order=>order.price===price).reduce((sum,order)=>sum+order.qty,0);
+  if(qty>0){
+    completedData=mergeOrdersByPrice(completedData.concat({price,qty}));
+  }
+  orderData=orderData.filter(order=>order.price!==price);
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+function restorePrice(price){
+  const restored=completedData.filter(order=>order.price===price);
+  const qty=restored.reduce((sum,order)=>sum+order.qty,0);
+  if(qty>0) orderData.push({price,qty});
+  completedData=completedData.filter(order=>order.price!==price);
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+function applyQuickOrders(syncBack=true){
+  orderData=cleanOrders(parseOrders(document.getElementById('ordersQuick').value));
+  reviveMatchingCompleted();
+  renderOrderInputs();
+  if(syncBack) syncQuickFromOrders();
+  calculate();
+}
+function combinations(values,maxCount){
+  const result=[[]];
+  function walk(start,pick){
+    if(pick.length>=maxCount) return;
+    for(let i=start;i<values.length;i++){
+      const next=pick.concat(values[i]);
+      result.push(next);
+      walk(i,next);
+    }
+  }
+  walk(0,[]);
+  return result;
+}
+function bestCombo(price,denoms,minCard,maxTickets){
+  const limit=price-minCard;
+  if(limit<=0) return {items:[],sum:0,card:price,gap:0,warning:'상품가가 최소 카드결제보다 낮음'};
+  let best={items:[],sum:0,card:price,gap:limit};
+  for(const combo of combinations(denoms,maxTickets)){
+    const sum=combo.reduce((a,b)=>a+b,0);
+    if(sum>limit) continue;
+    const gap=limit-sum;
+    const better=sum>best.sum || (sum===best.sum && combo.length<best.items.length);
+    if(better) best={items:combo,sum,card:price-sum,gap};
+  }
+  return best;
+}
+function selectedPlanNo(price,plan1,plan2){
+  if(samePlan(plan1,plan2)) return 1;
+  return Number(selectedPlanData[price])===2 ? 2 : 1;
+}
+function selectPlan(price,planNo){
+  selectedPlanData[String(price)]=Number(planNo)===2?2:1;
+  calculate();
+}
+function addCounts(counts,cardCounts,plan,qty){
+  for(const item of plan.items) counts.set(item,(counts.get(item)||0)+qty);
+  cardCounts.set(plan.card,(cardCounts.get(plan.card)||0)+qty);
+}
+function getRates(){
+  const gift=Number(document.getElementById('giftRate').value);
+  const card=Number(document.getElementById('cardRate').value);
+  return {
+    gift:Number.isFinite(gift)?gift/100:0.87,
+    card:Number.isFinite(card)?card/100:0.89
+  };
+}
+function planCost(plan,qty=1){
+  const rates=getRates();
+  return (plan.sum*rates.gift+plan.card*rates.card)*qty;
+}
+function samePlan(a,b){
+  return a.sum===b.sum && a.card===b.card && JSON.stringify(a.items)===JSON.stringify(b.items);
+}
+function sameMap(a,b){
+  const aa=[...a.entries()].sort((x,y)=>x[0]-y[0]);
+  const bb=[...b.entries()].sort((x,y)=>x[0]-y[0]);
+  return JSON.stringify(aa)===JSON.stringify(bb);
+}
+function calculate(){
+  const denoms=[...new Set(onlyNums(document.getElementById('denoms').value))].sort((a,b)=>b-a);
+  const orders=mergeOrdersByPrice(cleanOrders(orderData));
+  const minCard=Number(document.getElementById('minCard').value)||3000;
+  const rates=getRates();
+  const showPlan2=document.getElementById('showPlan2').checked;
+  cleanSelectedPlans();
+  const counts=new Map();
+  const cardCounts=new Map();
+  let totalOrders=0,totalGift=0,totalCard=0,totalGap=0,totalCost=0;
+  const rows=[];
+  const completedRows=[];
+  for(const order of orders){
+    const plan1=bestCombo(order.price,denoms,minCard,2);
+    const plan2=bestCombo(order.price,denoms,minCard,3);
+    const selectedNo=selectedPlanNo(order.price,plan1,plan2);
+    const selectedPlan=selectedNo===2?plan2:plan1;
+    totalOrders+=order.qty;
+    totalGift+=selectedPlan.sum*order.qty;
+    totalCard+=selectedPlan.card*order.qty;
+    totalGap+=selectedPlan.gap*order.qty;
+    totalCost+=planCost(selectedPlan,order.qty);
+    addCounts(counts,cardCounts,selectedPlan,order.qty);
+    rows.push({...order,plan1,plan2,selectedNo});
+  }
+  for(const order of mergeOrdersByPrice(cleanOrders(completedData))){
+    const plan1=bestCombo(order.price,denoms,minCard,2);
+    const plan2=bestCombo(order.price,denoms,minCard,3);
+    const selectedNo=selectedPlanNo(order.price,plan1,plan2);
+    completedRows.push({...order,plan1,plan2,selectedNo,completed:true});
+  }
+  document.getElementById('mOrders').textContent=totalOrders.toLocaleString('ko-KR')+'건';
+  document.getElementById('mGift').textContent=fmt(totalGift);
+  document.getElementById('mCard').textContent=fmt(totalCard);
+  document.getElementById('mCost').textContent=fmt(totalCost);
+  renderBuy(counts,cardCounts);
+  renderOrders(rows,showPlan2,completedRows);
+  localStorage.setItem('priceMazeInputs',JSON.stringify({
+    denoms:document.getElementById('denoms').value,
+    orders,
+    minCard,
+    giftRate:rates.gift*100,
+    cardRate:rates.card*100,
+    showPlan2,
+    completedOrders:completedData,
+    selectedPlans:selectedPlanData
+  }));
+}
+function badge(type,value){
+  return `<span class="badge ${type}">${type.toUpperCase()}</span>${fmt(value)}`;
+}
+function formatGiftList(items){
+  return items.length?items.map(v=>badge('g',v)).join(' + '):'<span class="warn">없음</span>';
+}
+function renderOneBuy(title,counts,cardCounts){
+  const entries=[...counts.entries()].sort((a,b)=>b[0]-a[0]);
+  const cardEntries=[...cardCounts.entries()].sort((a,b)=>b[0]-a[0]);
+  if(!entries.length&&!cardEntries.length) return '<p class="muted">계산 결과가 없습니다.</p>';
+  const total=entries.reduce((a,[v,c])=>a+v*c,0);
+  const cardTotal=cardEntries.reduce((a,[v,c])=>a+v*c,0);
+  return `<table><thead><tr><th colspan="3">${title}</th></tr><tr><th>권종</th><th>수량</th><th>합계</th></tr></thead><tbody>`+
+    entries.map(([v,c])=>`<tr><td>${badge('g',v)}</td><td>${c.toLocaleString('ko-KR')}개</td><td>${fmt(v*c)}</td></tr>`).join('')+
+    cardEntries.map(([v,c])=>`<tr><td>${badge('c',v)}</td><td>${c.toLocaleString('ko-KR')}회</td><td>${fmt(v*c)}</td></tr>`).join('')+
+    `<tr><th>합계</th><th></th><th>${fmt(total+cardTotal)}</th></tr></tbody></table>`;
+}
+function renderBuy(counts,cardCounts){
+  document.getElementById('buyTable').innerHTML=renderOneBuy('선택한 안 기준',counts,cardCounts);
+}
+function renderOrders(rows,showPlan2,completedRows=[]){
+  if(!rows.length&&!completedRows.length){document.getElementById('orderTable').innerHTML='<p class="muted">주문을 입력하세요.</p>';return;}
+  const sortedRows=[...rows].sort((a,b)=>b.price-a.price || b.qty-a.qty);
+  const sortedCompleted=[...completedRows].sort((a,b)=>b.price-a.price || b.qty-a.qty);
+  const renderCard = (r,isCompleted=false) => {
+    const same=samePlan(r.plan1,r.plan2);
+    const combo1=formatGiftList(r.plan1.items);
+    const combo2=formatGiftList(r.plan2.items);
+    const selectedNo=r.selectedNo||1;
+    const row = (name, plan, combo, planNo) => `
+      <div class="planRow ${selectedNo===planNo?'selected':''}">
+        <div class="planName">
+          <span>${name}</span>
+          ${!isCompleted&&!same?`<button class="selectPlanBtn ${selectedNo===planNo?'active':''}" onclick="selectPlan(${r.price},${planNo})">${selectedNo===planNo?'사용중':'선택'}</button>`:''}
+        </div>
+        <div class="planBody">
+          <div class="giftLine">${combo}</div>
+          <div class="cardLine">${badge('c',plan.card)} 카드로 남김</div>
+        </div>
+        <div class="costBox"><span>실매입가</span>${fmt(planCost(plan,r.qty))}</div>
+      </div>
+    `;
+    const planRows = (() => {
+      if(!showPlan2||same) return row(same ? '동일' : '1안', r.plan1, combo1, 1);
+      return selectedNo===2
+        ? row('2안', r.plan2, combo2, 2) + row('1안', r.plan1, combo1, 1)
+        : row('1안', r.plan1, combo1, 1) + row('2안', r.plan2, combo2, 2);
+    })();
+    return `
+      <article class="orderCard${isCompleted?' completed':''}">
+        <div class="orderHead">
+          <div class="orderTitle">
+            <div>${fmt(r.price)}</div>
+            ${isCompleted
+              ? `<button class="doneBtn" onclick="restorePrice(${r.price})">복구</button>`
+              : `<button class="doneBtn" onclick="completePrice(${r.price})">완료</button>`}
+          </div>
+          <span>${isCompleted?'<span class="completedMark">완료</span> · ':''}${r.qty.toLocaleString('ko-KR')}개 주문</span>
+        </div>
+        ${planRows}
+      </article>
+    `;
+  };
+  document.getElementById('orderTable').innerHTML='<div class="orderCards">'+
+    sortedRows.map(r=>renderCard(r,false)).join('')+
+    sortedCompleted.map(r=>renderCard(r,true)).join('')+
+    '</div>';
+}
+async function copySummary(){
+  const buy=document.getElementById('buyTable').innerText.trim();
+  const orders=document.getElementById('orderTable').innerText.trim();
+  const text=`가격 찾기 미로 계산 결과\n\n[오늘 준비할 결제수단]\n${buy}\n\n[주문별 조합]\n${orders}`;
+  try{await navigator.clipboard.writeText(text);alert('결과 복사 완료');}
+  catch(e){prompt('아래 내용을 복사하세요.',text);}
+}
+function restore(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('priceMazeInputs')||'null');
+    if(saved){
+      document.getElementById('denoms').value=saved.denoms;
+      orderData=Array.isArray(saved.orders)?cleanOrders(saved.orders):cleanOrders(parseOrders(saved.orders||''));
+      document.getElementById('minCard').value=saved.minCard;
+      if(saved.giftRate) document.getElementById('giftRate').value=saved.giftRate;
+      if(saved.cardRate) document.getElementById('cardRate').value=saved.cardRate;
+      document.getElementById('showPlan2').checked=Boolean(saved.showPlan2);
+      completedData=Array.isArray(saved.completedOrders)?cleanOrders(saved.completedOrders):[];
+      selectedPlanData=saved.selectedPlans&&typeof saved.selectedPlans==='object'?saved.selectedPlans:{};
+      reviveMatchingCompleted();
+    }
+  }catch(e){}
+  renderOrderInputs();
+  syncQuickFromOrders();
+  calculate();
+}
+restore();
+</script>
+<a class="homeBtn" href="index.html">🏠 홈</a>
+</body>
+</html>
