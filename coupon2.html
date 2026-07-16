@@ -14,7 +14,7 @@ Updated : 2026-07-16
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>쿠폰 관리 - STARBUCKS HELPER</title>
+  <title>STARBUCKS HELPER - 쿠폰 2서버</title>
   <style>
     :root {
       color-scheme: light;
@@ -183,7 +183,7 @@ Updated : 2026-07-16
 </head>
 <body>
   <header>
-    <h1>쿠폰 관리</h1>
+    <h1>쿠폰 2서버</h1>
     <div class="toolbar">
       <input id="searchInput" type="search" placeholder="번호, 쿠폰번호, 등록코드 검색" autocomplete="off" />
       <select id="pageSizeSelect" aria-label="페이지당 보기">
@@ -256,7 +256,7 @@ Updated : 2026-07-16
         ready: false,
         applyingRemote: false,
         saveTimer: null,
-        status: "로컬 저장"
+        status: "이 휴대폰에 자동 저장"
       }
     };
 
@@ -303,7 +303,7 @@ Updated : 2026-07-16
     function saveWorkToStorage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.work));
       updateStatus();
-      queueRemoteSave();
+
     }
 
     function setSyncStatus(text) {
@@ -525,16 +525,16 @@ Updated : 2026-07-16
 
     async function loadCoupons() {
       loadWorkFromStorage();
-      initFirebaseSync();
+
       try {
         const response = await fetch(DATA_URL, { cache: "no-store" });
-        if (!response.ok) throw new Error("coupons.json");
+        if (!response.ok) throw new Error("coupons2.json");
         const data = await response.json();
         state.coupons = data.map(normalizeCoupon);
         state.filtered = state.coupons;
         render();
       } catch {
-        els.message.innerHTML = '<div class="error">coupons.json을 불러올 수 없습니다.</div>';
+        els.message.innerHTML = '<div class="error">coupons2.json을 불러올 수 없습니다.</div>';
       }
     }
 
