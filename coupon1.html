@@ -228,7 +228,7 @@ Updated : 2026-07-16
   <input id="loadFileInput" type="file" accept="application/json,.json" hidden />
 
   <script type="module">
-    const DATA_URL = "coupons.json";
+    const DATA_URL = "coupons1.json";
     const STORAGE_KEY = "starbucks-helper-coupon-work-v2";
     const FIRESTORE_COLLECTION = "couponWork";
     const FIRESTORE_DOCUMENT = "main";
@@ -528,13 +528,13 @@ Updated : 2026-07-16
       initFirebaseSync();
       try {
         const response = await fetch(DATA_URL, { cache: "no-store" });
-        if (!response.ok) throw new Error("coupons.json");
+        if (!response.ok) throw new Error("coupons1.json");
         const data = await response.json();
         state.coupons = data.map(normalizeCoupon);
         state.filtered = state.coupons;
         render();
       } catch {
-        els.message.innerHTML = '<div class="error">coupons.json을 불러올 수 없습니다.</div>';
+        els.message.innerHTML = '<div class="error">coupons1.json을 불러올 수 없습니다.</div>';
       }
     }
 
