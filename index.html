@@ -1,1 +1,81 @@
-<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>STARBUCKS HELPER</title><style>body{margin:0;background:#f5f7f6;font-family:Arial}.wrap{max-width:980px;margin:28px auto;padding:18px}.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px;margin-bottom:18px}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.btn{display:flex;justify-content:center;align-items:center;text-decoration:none;background:#006241;color:#fff;padding:14px;border-radius:8px;font-weight:bold}button{background:#222;color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer}@media(max-width:800px){.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}</style></head><body><div class='wrap'><h1>☕ STARBUCKS HELPER</h1><div class='card'><div class='head'><h2>업무도구</h2></div><div class='grid3'><a class='btn' href='coupon.html'>📋 쿠폰 복붙 도우미</a><a class='btn' href='price.html'>💰 가격 찾기 미로</a><a class='btn' href='calculate.html'>🧮 상품 계산기</a></div></div><div class='card'><div class='head'><h2>🛒 판매처 바로가기</h2></div><div class='grid4'><a class='btn' target='_blank' href='https://www.starbucks.co.kr/index.do'>스타벅스</a><a class='btn' target='_blank' href='https://brand.naver.com/starbucks'>네이버</a><a class='btn' target='_blank' href='https://minishop.gmarket.co.kr/starbucks?spm=gmktpc.minishop.0.0.cb8f3defUCyJmM'>G마켓</a><a class='btn' target='_blank' href='https://www.ssg.com/disp/brandShop.ssg?brandId=2000016468&ctgId=6000174585'>SSG</a><a class='btn' target='_blank' href='https://www.musinsa.com/brand/starbucks/products?gf=A'>무신사</a><a class='btn' target='_blank' href='https://display.wconcept.co.kr/rn/brand/116134'>W컨셉</a><a class='btn' target='_blank' href='https://www.29cm.co.kr/store/brand/104781?brandId=104781&sort=RECOMMENDED&page=1'>29CM</a></div></div></div></body></html>
+<!--
+
+STARBUCKS HELPER
+
+File : index.html
+
+Version : 2.0
+
+Updated : 2026-07-15
+
+-->
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>STARBUCKS HELPER</title>
+<style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7f6;
+      color: #151916;
+    }
+    body {
+      margin: 0;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid #d8dfda;
+      padding: 18px 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    nav {
+      display: grid;
+      gap: 10px;
+    }
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 52px;
+      padding: 0 14px;
+      border: 1px solid #d8dfda;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #151916;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 650;
+    }
+    a span {
+      color: #5f6d64;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<header>
+<h1>STARBUCKS HELPER</h1>
+</header>
+<main>
+<nav aria-label="메뉴">
+<a href="coupon.html">쿠폰 관리 <span>coupon.html</span></a>
+<a href="price.html">가격 확인 <span>price.html</span></a>
+<a href="calculate.html">계산기 <span>calculate.html</span></a>
+</nav>
+</main>
+</body>
+</html>
