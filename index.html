@@ -1,81 +1,167 @@
 <!--
-
 STARBUCKS HELPER
-
 File : index.html
-
-Version : 2.0
-
-Updated : 2026-07-15
-
+Version : 3.0
+Updated : 2026-07-16
 -->
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>STARBUCKS HELPER</title>
 <style>
-    :root {
-      color-scheme: light;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7f6;
-      color: #151916;
+  :root {
+    color-scheme: light;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f7f6;
+    color: #151916;
+    --green: #006241;
+    --border: #d8dfda;
+    --muted: #5f6d64;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #f5f7f6;
+  }
+
+  header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px;
+  }
+
+  .header-inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 23px;
+  }
+
+  .subtitle {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  section {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: 19px;
+  }
+
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stores {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  a.card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #ffffff;
+    color: #151916;
+    text-decoration: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+
+  a.card:hover {
+    border-color: var(--green);
+    transform: translateY(-1px);
+  }
+
+  a.tool {
+    background: var(--green);
+    border-color: var(--green);
+    color: #ffffff;
+  }
+
+  .note {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 800px) {
+    .tools,
+    .stores {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    body {
-      margin: 0;
-    }
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid #d8dfda;
-      padding: 18px 20px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: 0;
-    }
-    main {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    nav {
-      display: grid;
-      gap: 10px;
-    }
-    a {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 52px;
-      padding: 0 14px;
-      border: 1px solid #d8dfda;
-      border-radius: 8px;
-      background: #ffffff;
-      color: #151916;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 650;
-    }
-    a span {
-      color: #5f6d64;
-      font-size: 14px;
-      font-weight: 500;
-    }
-  </style>
+  }
+
+  @media (max-width: 430px) {
+    main { padding: 14px; }
+    section { padding: 14px; }
+    a.card { min-height: 54px; font-size: 14px; }
+  }
+</style>
 </head>
+
 <body>
 <header>
-<h1>STARBUCKS HELPER</h1>
+  <div class="header-inner">
+    <h1>☕ STARBUCKS HELPER</h1>
+    <p class="subtitle">스타벅스 리셀 업무 도우미</p>
+  </div>
 </header>
+
 <main>
-<nav aria-label="메뉴">
-<a href="coupon.html">쿠폰 관리 <span>coupon.html</span></a>
-<a href="price.html">가격 확인 <span>price.html</span></a>
-<a href="calculate.html">계산기 <span>calculate.html</span></a>
-</nav>
+  <section>
+    <h2>업무도구</h2>
+    <div class="tools">
+      <a class="card tool" href="coupon1.html">📋 쿠폰 1서버</a>
+      <a class="card tool" href="coupon2.html">📋 쿠폰 2서버</a>
+      <a class="card tool" href="price.html">💰 가격 찾기 미로</a>
+      <a class="card tool" href="calculate.html">🧮 상품 계산기</a>
+    </div>
+    <p class="note">쿠폰 2서버는 coupons2.json을 업로드하면 바로 사용할 수 있습니다.</p>
+  </section>
+
+  <section>
+    <h2>🛒 판매처 바로가기</h2>
+    <div class="stores">
+      <a class="card" href="https://www.starbucks.co.kr/index.do" target="_blank" rel="noopener noreferrer">스타벅스 공식</a>
+      <a class="card" href="https://brand.naver.com/starbucks" target="_blank" rel="noopener noreferrer">네이버 공식</a>
+      <a class="card" href="https://minishop.gmarket.co.kr/starbucks?spm=gmktpc.minishop.0.0.cb8f3defUCyJmM" target="_blank" rel="noopener noreferrer">G마켓</a>
+      <a class="card" href="https://www.ssg.com/disp/brandShop.ssg?brandId=2000016468&ctgId=6000174585" target="_blank" rel="noopener noreferrer">SSG</a>
+      <a class="card" href="https://www.musinsa.com/brand/starbucks/products?gf=A" target="_blank" rel="noopener noreferrer">무신사</a>
+      <a class="card" href="https://display.wconcept.co.kr/rn/brand/116134" target="_blank" rel="noopener noreferrer">W컨셉</a>
+      <a class="card" href="https://www.29cm.co.kr/store/brand/104781?brandId=104781&sort=RECOMMENDED&page=1" target="_blank" rel="noopener noreferrer">29CM</a>
+    </div>
+  </section>
 </main>
 </body>
 </html>
