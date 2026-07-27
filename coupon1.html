@@ -4,7 +4,7 @@ STARBUCKS HELPER
 
 File : coupon1.html
 
-Version : 2.5
+Version : 2.6
 
 Updated : 2026-07-27
 
@@ -153,11 +153,6 @@ Updated : 2026-07-27
       letter-spacing: 0;
       word-break: break-all;
     }
-    .copy-stack {
-      display: grid;
-      gap: 8px;
-      align-content: end;
-    }
     .card-actions {
       grid-column: 1 / -1;
       display: grid;
@@ -230,9 +225,6 @@ Updated : 2026-07-27
       .coupon-card {
         grid-template-columns: minmax(0, 1fr);
         padding: 14px;
-      }
-      .copy-stack {
-        grid-template-columns: 1fr;
       }
       .card-actions {
         grid-template-columns: 1fr 1fr;
@@ -570,6 +562,7 @@ Updated : 2026-07-27
         couponCopy.className = "copy-button";
         couponCopy.textContent = "쿠폰번호 복사";
         couponCopy.addEventListener("click", () => copyText(coupon.coupon_number, "쿠폰번호 복사됨"));
+        couponField.append(couponCopy);
 
         const registrationField = document.createElement("div");
         registrationField.className = "field";
@@ -585,12 +578,9 @@ Updated : 2026-07-27
         const registrationCopy = document.createElement("button");
         registrationCopy.type = "button";
         registrationCopy.className = "copy-button";
-        registrationCopy.textContent = "등록번호 복사";
-        registrationCopy.addEventListener("click", () => copyText(coupon.registration_code, "등록번호 복사됨"));
-
-        const copyStack = document.createElement("div");
-        copyStack.className = "copy-stack";
-        copyStack.append(couponCopy, registrationCopy);
+        registrationCopy.textContent = "등록코드 복사";
+        registrationCopy.addEventListener("click", () => copyText(coupon.registration_code, "등록코드 복사됨"));
+        registrationField.append(registrationCopy);
 
         const actions = document.createElement("div");
         actions.className = "card-actions";
@@ -631,7 +621,7 @@ Updated : 2026-07-27
           saveWorkToStorage();
         });
 
-        card.append(head, couponField, copyStack, registrationField, actions, note);
+        card.append(head, couponField, registrationField, actions, note);
         return card;
       }));
 
