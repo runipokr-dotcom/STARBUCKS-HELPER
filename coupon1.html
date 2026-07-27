@@ -4,7 +4,7 @@ STARBUCKS HELPER
 
 File : coupon1.html
 
-Version : 2.2
+Version : 2.5
 
 Updated : 2026-07-27
 
@@ -94,42 +94,97 @@ Updated : 2026-07-27
       height: 12px;
       accent-color: #006241;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .coupon-list {
+      display: grid;
+      gap: 12px;
+    }
+    .coupon-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 12px 18px;
+      padding: 16px;
       background: #ffffff;
       border: 1px solid #d8dfda;
+      border-radius: 8px;
     }
-    th,
-    td {
-      border-bottom: 1px solid #edf1ee;
-      padding: 8px;
-      text-align: left;
-      vertical-align: middle;
+    .coupon-card.done {
+      background: #eef6f1;
+      color: #68736c;
     }
-    th {
-      position: sticky;
-      top: 111px;
-      background: #eef4f0;
-      color: #2f3c35;
-      font-size: 13px;
-      z-index: 3;
+    .card-head {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
-    td:nth-child(1),
-    td:nth-child(2) {
-      width: 62px;
-      text-align: center;
+    .card-no {
+      font-size: 22px;
+      font-weight: 800;
+      color: #151916;
     }
-    td:nth-child(5) {
-      width: 94px;
+    .card-status {
+      font-size: 22px;
+      font-weight: 800;
+      color: #151916;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .field label {
+      color: #5f6f66;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .value {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid #d8dfda;
+      border-radius: 8px;
+      background: #ffffff;
     }
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 15px;
+      font-size: 21px;
       letter-spacing: 0;
       word-break: break-all;
     }
+    .copy-stack {
+      display: grid;
+      gap: 8px;
+      align-content: end;
+    }
+    .card-actions {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .copy-button {
+      min-height: 48px;
+      background: #006241;
+      border-color: #006241;
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .done-button,
+    .both-button {
+      min-height: 48px;
+      font-size: 17px;
+      font-weight: 800;
+      background: #ffffff;
+    }
+    .coupon-card.done .copy-button {
+      background: #5fa087;
+      border-color: #5fa087;
+    }
     .note {
+      grid-column: 1 / -1;
       width: 100%;
       min-height: 36px;
       resize: vertical;
@@ -172,8 +227,24 @@ Updated : 2026-07-27
       td {
         padding: 7px 5px;
       }
+      .coupon-card {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 14px;
+      }
+      .copy-stack {
+        grid-template-columns: 1fr;
+      }
+      .card-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+      .field label,
+      .copy-button,
+      .done-button,
+      .both-button {
+        font-size: 16px;
+      }
       code {
-        font-size: 12px;
+        font-size: 20px;
       }
       .note {
         min-width: 120px;
@@ -203,19 +274,7 @@ Updated : 2026-07-27
       <progress id="progressBar" value="0" max="1"></progress>
     </div>
 
-    <table aria-label="쿠폰번호 등록코드 목록">
-      <thead>
-        <tr>
-          <th>완료</th>
-          <th>No.</th>
-          <th>쿠폰번호</th>
-          <th>등록코드</th>
-          <th>복사</th>
-          <th>메모</th>
-        </tr>
-      </thead>
-      <tbody id="couponRows"></tbody>
-    </table>
+    <section id="couponRows" class="coupon-list" aria-label="쿠폰번호 등록코드 목록"></section>
 
     <div class="pager">
       <button id="prevButton" type="button">이전</button>
@@ -304,17 +363,61 @@ Updated : 2026-07-27
       };
     }
 
+    function couponByLegacyKey(key) {
+      return state.coupons.find((coupon) => {
+        return String(coupon.no) === String(key)
+          || coupon.coupon_number === String(key)
+          || coupon.registration_code === String(key);
+      });
+    }
+
+    function migrateWorkKeys(work) {
+      const migrated = { completed: {}, notes: {} };
+      const completed = work && typeof work.completed === "object" && work.completed ? work.completed : {};
+      const notes = work && typeof work.notes === "object" && work.notes ? work.notes : {};
+
+      Object.entries(completed).forEach(([key, value]) => {
+        const coupon = couponByLegacyKey(key);
+        migrated.completed[coupon ? couponKey(coupon) : key] = value;
+      });
+
+      Object.entries(notes).forEach(([key, value]) => {
+        const coupon = couponByLegacyKey(key);
+        migrated.notes[coupon ? couponKey(coupon) : key] = value;
+      });
+
+      return migrated;
+    }
+
+    function mergeWork(base, next) {
+      return {
+        completed: { ...base.completed, ...next.completed },
+        notes: { ...base.notes, ...next.notes }
+      };
+    }
+
     function loadWorkFromStorage() {
       if (!state.storageKey) return;
-      const raw = localStorage.getItem(state.storageKey);
-      if (!raw) return;
-      try {
-        const parsed = JSON.parse(raw);
-        state.work.completed = parsed.completed || {};
-        state.work.notes = parsed.notes || {};
-      } catch {
-        localStorage.removeItem(state.storageKey);
+      let restored = { completed: {}, notes: {} };
+      const keys = [];
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key && /starbucks|coupon/i.test(key)) keys.push(key);
       }
+      if (!keys.includes(state.storageKey)) keys.push(state.storageKey);
+
+      keys.forEach((key) => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        try {
+          restored = mergeWork(restored, migrateWorkKeys(JSON.parse(raw)));
+        } catch {
+          if (key === state.storageKey) localStorage.removeItem(key);
+        }
+      });
+
+      state.work = restored;
+      localStorage.setItem(state.storageKey, JSON.stringify(state.work));
     }
 
     function saveWorkToStorage() {
@@ -330,10 +433,10 @@ Updated : 2026-07-27
     }
 
     function sanitizeWork(work) {
-      return {
+      return migrateWorkKeys({
         completed: work && typeof work.completed === "object" && work.completed ? work.completed : {},
         notes: work && typeof work.notes === "object" && work.notes ? work.notes : {}
-      };
+      });
     }
 
     function buildRemotePayload() {
@@ -382,7 +485,7 @@ Updated : 2026-07-27
             return;
           }
           state.sync.applyingRemote = true;
-          state.work = sanitizeWork(snapshot.data());
+          state.work = mergeWork(state.work, sanitizeWork(snapshot.data()));
           if (state.storageKey) {
             localStorage.setItem(state.storageKey, JSON.stringify(state.work));
           }
@@ -437,43 +540,84 @@ Updated : 2026-07-27
 
       els.rows.replaceChildren(...pageRows.map((coupon) => {
         const key = couponKey(coupon);
-        const tr = document.createElement("tr");
+        const isDone = Boolean(state.work.completed[key]);
+        const card = document.createElement("article");
+        card.className = `coupon-card${isDone ? " done" : ""}`;
 
-        const doneCell = document.createElement("td");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = Boolean(state.work.completed[key]);
-        checkbox.addEventListener("change", () => {
-          if (checkbox.checked) {
-            state.work.completed[key] = true;
-          } else {
-            delete state.work.completed[key];
-          }
-          saveWorkToStorage();
-        });
-        doneCell.append(checkbox);
+        const head = document.createElement("div");
+        head.className = "card-head";
+        const no = document.createElement("div");
+        no.className = "card-no";
+        no.textContent = `#${coupon.no}`;
+        const status = document.createElement("div");
+        status.className = "card-status";
+        status.textContent = isDone ? "완료" : "미완료";
+        head.append(no, status);
 
-        const noCell = document.createElement("td");
-        noCell.textContent = coupon.no;
-
-        const couponCell = document.createElement("td");
+        const couponField = document.createElement("div");
+        couponField.className = "field";
+        const couponLabel = document.createElement("label");
+        couponLabel.textContent = "쿠폰번호";
+        const couponValue = document.createElement("div");
+        couponValue.className = "value";
         const couponCode = document.createElement("code");
         couponCode.textContent = coupon.coupon_number;
-        couponCell.append(couponCode);
+        couponValue.append(couponCode);
+        couponField.append(couponLabel, couponValue);
 
-        const registrationCell = document.createElement("td");
+        const couponCopy = document.createElement("button");
+        couponCopy.type = "button";
+        couponCopy.className = "copy-button";
+        couponCopy.textContent = "쿠폰번호 복사";
+        couponCopy.addEventListener("click", () => copyText(coupon.coupon_number, "쿠폰번호 복사됨"));
+
+        const registrationField = document.createElement("div");
+        registrationField.className = "field";
+        const registrationLabel = document.createElement("label");
+        registrationLabel.textContent = "등록코드";
+        const registrationValue = document.createElement("div");
+        registrationValue.className = "value";
         const registrationCode = document.createElement("code");
         registrationCode.textContent = coupon.registration_code;
-        registrationCell.append(registrationCode);
+        registrationValue.append(registrationCode);
+        registrationField.append(registrationLabel, registrationValue);
 
-        const copyCell = document.createElement("td");
-        const copyButton = document.createElement("button");
-        copyButton.type = "button";
-        copyButton.textContent = "복사";
-        copyButton.addEventListener("click", () => copyCoupon(coupon));
-        copyCell.append(copyButton);
+        const registrationCopy = document.createElement("button");
+        registrationCopy.type = "button";
+        registrationCopy.className = "copy-button";
+        registrationCopy.textContent = "등록번호 복사";
+        registrationCopy.addEventListener("click", () => copyText(coupon.registration_code, "등록번호 복사됨"));
 
-        const noteCell = document.createElement("td");
+        const copyStack = document.createElement("div");
+        copyStack.className = "copy-stack";
+        copyStack.append(couponCopy, registrationCopy);
+
+        const actions = document.createElement("div");
+        actions.className = "card-actions";
+
+        const doneButton = document.createElement("button");
+        doneButton.type = "button";
+        doneButton.className = "done-button";
+        doneButton.textContent = isDone ? "완료 취소" : "완료 처리";
+        doneButton.addEventListener("click", () => {
+          if (state.work.completed[key]) {
+            delete state.work.completed[key];
+          } else {
+            state.work.completed[key] = true;
+          }
+          saveWorkToStorage();
+          render();
+        });
+
+        const bothButton = document.createElement("button");
+        bothButton.type = "button";
+        bothButton.className = "both-button";
+        bothButton.textContent = "두 번호 복사";
+        bothButton.addEventListener("click", () => {
+          copyText(`${coupon.coupon_number}\t${coupon.registration_code}`, "두 번호 복사됨");
+        });
+        actions.append(doneButton, bothButton);
+
         const note = document.createElement("textarea");
         note.className = "note";
         note.value = state.work.notes[key] || "";
@@ -486,10 +630,9 @@ Updated : 2026-07-27
           }
           saveWorkToStorage();
         });
-        noteCell.append(note);
 
-        tr.append(doneCell, noCell, couponCell, registrationCell, copyCell, noteCell);
-        return tr;
+        card.append(head, couponField, copyStack, registrationField, actions, note);
+        return card;
       }));
 
       els.pageInfo.textContent = `${state.page} / ${maxPage}`;
@@ -498,11 +641,10 @@ Updated : 2026-07-27
       updateStatus();
     }
 
-    async function copyCoupon(coupon) {
-      const text = `${coupon.coupon_number}\t${coupon.registration_code}`;
+    async function copyText(text, successMessage) {
       try {
         await navigator.clipboard.writeText(text);
-        els.copyStatus.textContent = "복사됨";
+        els.copyStatus.textContent = successMessage;
       } catch {
         els.copyStatus.textContent = "복사 실패";
       }
