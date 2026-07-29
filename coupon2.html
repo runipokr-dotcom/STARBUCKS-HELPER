@@ -4,7 +4,7 @@ STARBUCKS HELPER
 
 File : coupon2.html
 
-Version : 3.0
+Version : 3.1
 
 Updated : 2026-07-29
 
@@ -46,6 +46,11 @@ Updated : 2026-07-29
       align-items: center;
       gap: 10px;
     }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     h1 {
       margin: 0;
       font-size: 22px;
@@ -62,6 +67,17 @@ Updated : 2026-07-29
       color: #151916;
       text-decoration: none;
       font-weight: 800;
+    }
+    .collapse-button {
+      min-width: 44px;
+      padding: 0 10px;
+      background: #ffffff;
+      border-color: #d8dfda;
+      color: #151916;
+    }
+    header.collapsed .stats,
+    header.collapsed .toolbar {
+      display: none;
     }
     .stats {
       display: flex;
@@ -278,8 +294,12 @@ Updated : 2026-07-29
     <div class="wrap">
     <div class="top">
       <h1>쿠폰 2서버</h1>
-      <a class="home" href="index.html">홈</a>
+      <div class="top-actions">
+        <button id="collapseButton" class="collapse-button" type="button" aria-expanded="true" aria-controls="headerControls">접기</button>
+        <a class="home" href="index.html">홈</a>
+      </div>
     </div>
+    <div id="headerControls">
     <div class="stats">
       <span>전체 <b id="totalCount">0</b>개</span>
       <span>완료 <b id="doneCount">0</b>개</span>
@@ -301,6 +321,7 @@ Updated : 2026-07-29
       <button id="saveButton" type="button">작업 저장</button>
       <button id="loadButton" type="button">작업 불러오기</button>
       <button id="clearButton" type="button">초기화</button>
+    </div>
     </div>
     </div>
   </header>
@@ -327,6 +348,7 @@ Updated : 2026-07-29
     const DATA_URL = "coupons2.json";
     const STORAGE_PREFIX = "starbucks-helper-coupon2-work-v5";
     const LEGACY_STORAGE_KEYS = ["starbucks-helper-coupon2-v4"];
+    const HEADER_STORAGE_KEY = "starbucks-helper-coupon2-header-collapsed";
     const FIRESTORE_COLLECTION = "couponWork";
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
@@ -373,6 +395,8 @@ Updated : 2026-07-29
       clear: document.getElementById("clearButton"),
       loadFile: document.getElementById("loadFileInput"),
       copyStatus: document.getElementById("copyStatus"),
+      header: document.querySelector("header"),
+      collapse: document.getElementById("collapseButton"),
       totalCount: document.getElementById("totalCount"),
       doneCount: document.getElementById("doneCount"),
       remainCount: document.getElementById("remainCount"),
@@ -381,6 +405,13 @@ Updated : 2026-07-29
 
     function couponKey(coupon) {
       return coupon.coupon_number;
+    }
+
+    function setHeaderCollapsed(collapsed) {
+      els.header.classList.toggle("collapsed", collapsed);
+      els.collapse.textContent = collapsed ? "펼치기" : "접기";
+      els.collapse.setAttribute("aria-expanded", String(!collapsed));
+      localStorage.setItem(HEADER_STORAGE_KEY, collapsed ? "1" : "0");
     }
 
     function buildDatasetId(coupons) {
@@ -751,6 +782,9 @@ Updated : 2026-07-29
     }
 
     els.search.addEventListener("input", filterCoupons);
+    els.collapse.addEventListener("click", () => {
+      setHeaderCollapsed(!els.header.classList.contains("collapsed"));
+    });
     els.filter.addEventListener("change", filterCoupons);
     els.pageSize.addEventListener("change", () => {
       state.pageSize = Number(els.pageSize.value);
@@ -780,6 +814,7 @@ Updated : 2026-07-29
       render();
     });
 
+    setHeaderCollapsed(localStorage.getItem(HEADER_STORAGE_KEY) === "1");
     loadCoupons();
   </script>
 </body>
