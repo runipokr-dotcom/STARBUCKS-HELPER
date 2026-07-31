@@ -4,7 +4,7 @@ STARBUCKS HELPER
 
 File : coupon1.html
 
-Version : 3.3
+Version : 3.4
 
 Updated : 2026-07-31
 
@@ -371,6 +371,7 @@ Updated : 2026-07-31
       },
       storageKey: "",
       remoteDocument: "",
+      copyGuardUntil: 0,
       sync: {
         enabled: false,
         ready: false,
@@ -651,6 +652,7 @@ Updated : 2026-07-31
         couponCopy.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
+          state.copyGuardUntil = Date.now() + 1200;
           copyText(coupon.coupon_number, "쿠폰번호 복사됨");
         });
         couponField.append(couponCopy);
@@ -675,6 +677,7 @@ Updated : 2026-07-31
         registrationCopy.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
+          state.copyGuardUntil = Date.now() + 1200;
           copyText(coupon.registration_code, "등록코드 복사됨");
         });
         registrationField.append(registrationCopy);
@@ -687,7 +690,10 @@ Updated : 2026-07-31
         doneButton.type = "button";
         doneButton.className = "done-button";
         doneButton.textContent = isDone ? "완료 취소" : "완료 처리";
-        doneButton.addEventListener("click", () => {
+        doneButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (Date.now() < state.copyGuardUntil) return;
           if (state.work.completed[key]) {
             delete state.work.completed[key];
           } else {
@@ -704,6 +710,7 @@ Updated : 2026-07-31
         bothButton.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
+          state.copyGuardUntil = Date.now() + 1200;
           copyText(`${coupon.coupon_number}\t${coupon.registration_code}`, "두 번호 복사됨");
         });
         actions.append(doneButton, bothButton);
