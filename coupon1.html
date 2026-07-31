@@ -4,7 +4,7 @@ STARBUCKS HELPER
 
 File : coupon1.html
 
-Version : 3.2
+Version : 3.3
 
 Updated : 2026-07-31
 
@@ -560,7 +560,7 @@ Updated : 2026-07-31
           }
           state.sync.applyingRemote = false;
           setSyncStatus("실시간 동기화");
-          if (state.coupons.length) filterCoupons();
+          if (state.coupons.length) filterCoupons(false);
         }, () => {
           setSyncStatus("동기화 실패");
         });
@@ -648,7 +648,11 @@ Updated : 2026-07-31
         couponCopy.type = "button";
         couponCopy.className = "copy-button";
         couponCopy.textContent = "쿠폰번호 복사";
-        couponCopy.addEventListener("click", () => copyText(coupon.coupon_number, "쿠폰번호 복사됨"));
+        couponCopy.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          copyText(coupon.coupon_number, "쿠폰번호 복사됨");
+        });
         couponField.append(couponCopy);
 
         const registrationField = document.createElement("div");
@@ -668,7 +672,11 @@ Updated : 2026-07-31
         registrationCopy.type = "button";
         registrationCopy.className = "copy-button";
         registrationCopy.textContent = "등록코드 복사";
-        registrationCopy.addEventListener("click", () => copyText(coupon.registration_code, "등록코드 복사됨"));
+        registrationCopy.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          copyText(coupon.registration_code, "등록코드 복사됨");
+        });
         registrationField.append(registrationCopy);
         fields.append(couponField, registrationField);
 
@@ -693,7 +701,9 @@ Updated : 2026-07-31
         bothButton.type = "button";
         bothButton.className = "both-button";
         bothButton.textContent = "두 번호 복사";
-        bothButton.addEventListener("click", () => {
+        bothButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           copyText(`${coupon.coupon_number}\t${coupon.registration_code}`, "두 번호 복사됨");
         });
         actions.append(doneButton, bothButton);
