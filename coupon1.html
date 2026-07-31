@@ -4,9 +4,9 @@ STARBUCKS HELPER
 
 File : coupon1.html
 
-Version : 3.1
+Version : 3.2
 
-Updated : 2026-07-29
+Updated : 2026-07-31
 
 -->
 <!doctype html>
@@ -585,7 +585,7 @@ Updated : 2026-07-29
       els.progress = document.getElementById("progressBar");
     }
 
-    function filterCoupons() {
+    function filterCoupons(resetPage = true) {
       const term = els.search.value.trim();
       const mode = els.filter.value;
       state.filtered = state.coupons.filter((coupon) => {
@@ -597,7 +597,7 @@ Updated : 2026-07-29
           || coupon.coupon_number.includes(term)
           || coupon.registration_code.includes(term);
       });
-      state.page = 1;
+      if (resetPage) state.page = 1;
       render();
     }
 
@@ -686,7 +686,7 @@ Updated : 2026-07-29
             state.work.completed[key] = true;
           }
           saveWorkToStorage();
-          filterCoupons();
+          filterCoupons(false);
         });
 
         const bothButton = document.createElement("button");
