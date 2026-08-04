@@ -4,9 +4,9 @@ STARBUCKS HELPER
 
 File : coupon2.html
 
-Version : 3.3
+Version : 3.4
 
-Updated : 2026-08-02
+Updated : 2026-08-04
 
 -->
 <!doctype html>
@@ -554,7 +554,7 @@ Updated : 2026-08-02
             return;
           }
           state.sync.applyingRemote = true;
-          state.work = mergeWork(state.work, sanitizeWork(snapshot.data()));
+          state.work = sanitizeWork(snapshot.data());
           if (state.storageKey) {
             localStorage.setItem(state.storageKey, JSON.stringify(state.work));
           }
