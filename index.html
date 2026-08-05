@@ -1,7 +1,7 @@
 <!--
 STARBUCKS HELPER
 File : index.html
-Version : 3.1
+Version : 3.2
 Updated : 2026-08-05
 -->
 <!DOCTYPE html>
@@ -71,8 +71,20 @@ Updated : 2026-08-05
 
   .tools {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
+  }
+
+  .tool-row {
+    display: grid;
+    gap: 10px;
+  }
+
+  .coupon-tools {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .utility-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stores {
@@ -81,7 +93,7 @@ Updated : 2026-08-05
     gap: 10px;
   }
 
-  a.card {
+  .card {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,14 +115,21 @@ Updated : 2026-08-05
     transform: translateY(-1px);
   }
 
-  a.tool {
+  .tool {
     background: var(--green);
     border-color: var(--green);
     color: #ffffff;
   }
 
+  .tool.disabled {
+    background: #e7ece9;
+    border-color: #d2dad5;
+    color: #68766d;
+    cursor: default;
+  }
+
   @media (max-width: 800px) {
-    .tools,
+    .tool-row,
     .stores {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -119,7 +138,7 @@ Updated : 2026-08-05
   @media (max-width: 430px) {
     main { padding: 14px; }
     section { padding: 14px; }
-    a.card { min-height: 54px; font-size: 14px; }
+    .card { min-height: 54px; font-size: 14px; }
   }
 </style>
 </head>
@@ -136,11 +155,16 @@ Updated : 2026-08-05
   <section>
     <h2>업무도구</h2>
     <div class="tools">
-      <a class="card tool" href="coupon1.html">📋 쿠폰 1서버</a>
-      <a class="card tool" href="coupon2.html">📋 쿠폰 2서버</a>
-      <a class="card tool" href="coupon3.html">📋 쿠폰 3서버</a>
-      <a class="card tool" href="price.html">💰 가격 찾기 미로</a>
-      <a class="card tool" href="calculate.html">🧮 상품 계산기</a>
+      <div class="tool-row coupon-tools">
+        <a class="card tool" href="coupon1.html">📋 쿠폰 1서버</a>
+        <a class="card tool" href="coupon2.html">📋 쿠폰 2서버</a>
+        <a class="card tool" href="coupon3.html">📋 쿠폰 3서버</a>
+        <span class="card tool disabled" aria-disabled="true">📋 쿠폰 4서버 준비 중</span>
+      </div>
+      <div class="tool-row utility-tools">
+        <a class="card tool" href="price.html">💰 가격 찾기 미로</a>
+        <a class="card tool" href="calculate.html">🧮 상품 계산기</a>
+      </div>
     </div>
   </section>
 
