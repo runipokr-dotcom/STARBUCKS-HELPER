@@ -1,183 +1,361 @@
 <!--
 STARBUCKS HELPER
 File : index.html
-Version : 3.2
-Updated : 2026-08-05
+Version : 4.0
+Updated : 2026-08-15
 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#063c2d">
 <title>STARBUCKS HELPER</title>
 <style>
   :root {
     color-scheme: light;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f5f7f6;
-    color: #151916;
-    --green: #006241;
-    --border: #d8dfda;
-    --muted: #5f6d64;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    --green-950: #063c2d;
+    --green-800: #075e45;
+    --green-700: #00754a;
+    --green-100: #dff2e8;
+    --canvas: #f3f5f3;
+    --surface: #ffffff;
+    --text: #18201c;
+    --muted: #6a766f;
+    --line: #dfe5e1;
   }
 
   * { box-sizing: border-box; }
 
+  html {
+    background: var(--canvas);
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     margin: 0;
-    background: #f5f7f6;
+    min-width: 320px;
+    background: var(--canvas);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
   }
 
-  header {
-    background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 18px 20px;
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--green-950);
+    color: #fff;
+    padding: calc(22px + env(safe-area-inset-top)) 20px 72px;
   }
 
-  .header-inner {
-    max-width: 980px;
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -54px;
+    bottom: -76px;
+    width: 210px;
+    height: 210px;
+    border: 34px solid rgba(255, 255, 255, .055);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-inner,
+  main {
+    width: min(100%, 760px);
     margin: 0 auto;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    color: rgba(255,255,255,.7);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .16em;
+  }
+
+  .brand-dot {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    border: 1px solid rgba(255,255,255,.45);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0;
   }
 
   h1 {
     margin: 0;
-    font-size: 23px;
+    max-width: 340px;
+    font-size: clamp(31px, 9vw, 44px);
+    line-height: 1.06;
+    letter-spacing: -.055em;
   }
 
   .subtitle {
-    margin: 5px 0 0;
-    color: var(--muted);
+    margin: 14px 0 0;
+    color: rgba(255,255,255,.68);
     font-size: 14px;
+    line-height: 1.55;
   }
 
   main {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 20px;
+    position: relative;
+    z-index: 1;
+    margin-top: -42px;
+    padding: 0 14px calc(28px + env(safe-area-inset-bottom));
   }
 
-  section {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
+  .panel {
+    margin-bottom: 14px;
     padding: 18px;
-    margin-bottom: 18px;
+    border: 1px solid rgba(19, 51, 37, .08);
+    border-radius: 22px;
+    background: var(--surface);
+    box-shadow: 0 10px 28px rgba(18, 46, 34, .07);
+  }
+
+  .section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
   }
 
   h2 {
-    margin: 0 0 14px;
-    font-size: 19px;
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: -.025em;
   }
 
-  .tools {
+  .hint {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .quick-grid {
     display: grid;
-    gap: 10px;
-  }
-
-  .tool-row {
-    display: grid;
-    gap: 10px;
-  }
-
-  .coupon-tools {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .utility-tools {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .quick-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 126px;
+    overflow: hidden;
+    padding: 15px;
+    border: 0;
+    border-radius: 17px;
+    background: var(--green-700);
+    color: #fff;
+    text-decoration: none;
+    transform: translateZ(0);
+    transition: transform .14s ease, background-color .14s ease;
+    will-change: transform;
+  }
+
+  .quick-card:nth-child(2) { background: var(--green-800); }
+  .quick-card:nth-child(3) { background: #1c4437; }
+
+  .quick-card::after {
+    content: "→";
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    color: rgba(255,255,255,.82);
+    font-size: 17px;
+  }
+
+  .quick-card:active,
+  .utility-card:active,
+  .store:active {
+    transform: scale(.975);
+  }
+
+  .quick-card.disabled {
+    background: #e7ebe8;
+    color: #89938d;
+    cursor: default;
+    will-change: auto;
+  }
+
+  .quick-card.disabled::after { content: ""; }
+
+  .card-number {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    opacity: .68;
+  }
+
+  .card-title {
+    padding-right: 22px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.28;
+    letter-spacing: -.03em;
+  }
+
+  .utility-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .utility-card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 68px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--text);
+    text-decoration: none;
+    transform: translateZ(0);
+    transition: transform .14s ease, border-color .14s ease;
+  }
+
+  .icon-box {
+    display: grid;
+    flex: 0 0 37px;
+    place-items: center;
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+    background: var(--green-100);
+    font-size: 17px;
+  }
+
+  .utility-title {
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.25;
   }
 
   .stores {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
   }
 
-  .card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 56px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: #ffffff;
-    color: #151916;
-    text-decoration: none;
+  .store {
+    display: grid;
+    place-items: center;
+    min-height: 53px;
+    padding: 8px 4px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fbfcfb;
+    color: #39433d;
     text-align: center;
-    font-size: 15px;
-    font-weight: 700;
-    transition: transform .12s ease, border-color .12s ease;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.2;
+    transform: translateZ(0);
+    transition: transform .14s ease, border-color .14s ease;
   }
 
-  a.card:hover {
-    border-color: var(--green);
-    transform: translateY(-1px);
+  @media (hover: hover) {
+    .quick-card:hover { transform: translateY(-2px); }
+    .utility-card:hover,
+    .store:hover { border-color: var(--green-700); }
   }
 
-  .tool {
-    background: var(--green);
-    border-color: var(--green);
-    color: #ffffff;
+  @media (min-width: 620px) {
+    .hero { padding-left: 28px; padding-right: 28px; }
+    main { padding-left: 20px; padding-right: 20px; }
+    .quick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 
-  .tool.disabled {
-    background: #e7ece9;
-    border-color: #d2dad5;
-    color: #68766d;
-    cursor: default;
+  @media (max-width: 360px) {
+    .panel { padding: 15px; border-radius: 19px; }
+    .quick-card { min-height: 116px; }
+    .stores { gap: 6px; }
+    .store { font-size: 10px; }
   }
 
-  @media (max-width: 800px) {
-    .tool-row,
-    .stores {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 430px) {
-    main { padding: 14px; }
-    section { padding: 14px; }
-    .card { min-height: 54px; font-size: 14px; }
+  @media (prefers-reduced-motion: reduce) {
+    .quick-card,
+    .utility-card,
+    .store { transition: none; }
   }
 </style>
 </head>
 
 <body>
-<header>
-  <div class="header-inner">
-    <h1>☕ STARBUCKS HELPER</h1>
-    <p class="subtitle">스타벅스 리셀 업무 도우미</p>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="brand-dot">S</span> WORKSPACE 04</div>
+    <h1>STARBUCKS<br>HELPER</h1>
+    <p class="subtitle">쿠폰부터 판매가 계산까지,<br>매일 쓰는 리셀 업무를 한곳에서.</p>
   </div>
 </header>
 
 <main>
-  <section>
-    <h2>업무도구</h2>
-    <div class="tools">
-      <div class="tool-row coupon-tools">
-        <a class="card tool" href="coupon1.html">📋 쿠폰 1서버</a>
-        <a class="card tool" href="coupon2.html">📋 쿠폰 2서버</a>
-        <a class="card tool" href="coupon3.html">📋 쿠폰 3서버</a>
-        <span class="card tool disabled" aria-disabled="true">📋 쿠폰 4서버 준비 중</span>
-      </div>
-      <div class="tool-row utility-tools">
-        <a class="card tool" href="price.html">💰 가격 찾기 미로</a>
-        <a class="card tool" href="calculate.html">🧮 상품 계산기</a>
-      </div>
+  <section class="panel" aria-labelledby="tools-title">
+    <div class="section-head">
+      <h2 id="tools-title">업무 도구</h2>
+      <span class="hint">빠른 실행</span>
+    </div>
+
+    <div class="quick-grid">
+      <a class="quick-card" href="coupon1.html">
+        <span class="card-number">SERVER 01</span>
+        <span class="card-title">쿠폰<br>1서버</span>
+      </a>
+      <a class="quick-card" href="coupon2.html">
+        <span class="card-number">SERVER 02</span>
+        <span class="card-title">쿠폰<br>2서버</span>
+      </a>
+      <a class="quick-card" href="coupon3.html">
+        <span class="card-number">SERVER 03</span>
+        <span class="card-title">쿠폰<br>3서버</span>
+      </a>
+      <span class="quick-card disabled" aria-disabled="true">
+        <span class="card-number">COMING SOON</span>
+        <span class="card-title">쿠폰<br>4서버</span>
+      </span>
+    </div>
+
+    <div class="utility-grid">
+      <a class="utility-card" href="price.html">
+        <span class="icon-box" aria-hidden="true">₩</span>
+        <span class="utility-title">가격 찾기<br>미로</span>
+      </a>
+      <a class="utility-card" href="calculate.html">
+        <span class="icon-box" aria-hidden="true">＋</span>
+        <span class="utility-title">상품<br>계산기</span>
+      </a>
     </div>
   </section>
 
-  <section>
-    <h2>🛒 판매처 바로가기</h2>
+  <section class="panel" aria-labelledby="stores-title">
+    <div class="section-head">
+      <h2 id="stores-title">판매처 바로가기</h2>
+      <span class="hint">새 창 열기</span>
+    </div>
     <div class="stores">
-      <a class="card" href="https://www.starbucks.co.kr/index.do" target="_blank" rel="noopener noreferrer">스타벅스 공식</a>
-      <a class="card" href="https://brand.naver.com/starbucks" target="_blank" rel="noopener noreferrer">네이버 공식</a>
-      <a class="card" href="https://minishop.gmarket.co.kr/starbucks?spm=gmktpc.minishop.0.0.cb8f3defUCyJmM" target="_blank" rel="noopener noreferrer">G마켓</a>
-      <a class="card" href="https://www.ssg.com/disp/brandShop.ssg?brandId=2000016468&ctgId=6000174585" target="_blank" rel="noopener noreferrer">SSG</a>
-      <a class="card" href="https://www.musinsa.com/brand/starbucks/products?gf=A" target="_blank" rel="noopener noreferrer">무신사</a>
-      <a class="card" href="https://display.wconcept.co.kr/rn/brand/116134" target="_blank" rel="noopener noreferrer">W컨셉</a>
-      <a class="card" href="https://www.29cm.co.kr/store/brand/104781?brandId=104781&sort=RECOMMENDED&page=1" target="_blank" rel="noopener noreferrer">29CM</a>
+      <a class="store" href="https://www.starbucks.co.kr/index.do" target="_blank" rel="noopener noreferrer">스타벅스<br>공식</a>
+      <a class="store" href="https://brand.naver.com/starbucks" target="_blank" rel="noopener noreferrer">네이버<br>공식</a>
+      <a class="store" href="https://minishop.gmarket.co.kr/starbucks?spm=gmktpc.minishop.0.0.cb8f3defUCyJmM" target="_blank" rel="noopener noreferrer">G마켓</a>
+      <a class="store" href="https://www.ssg.com/disp/brandShop.ssg?brandId=2000016468&amp;ctgId=6000174585" target="_blank" rel="noopener noreferrer">SSG</a>
+      <a class="store" href="https://www.musinsa.com/brand/starbucks/products?gf=A" target="_blank" rel="noopener noreferrer">무신사</a>
+      <a class="store" href="https://display.wconcept.co.kr/rn/brand/116134" target="_blank" rel="noopener noreferrer">W컨셉</a>
+      <a class="store" href="https://www.29cm.co.kr/store/brand/104781?brandId=104781&amp;sort=RECOMMENDED&amp;page=1" target="_blank" rel="noopener noreferrer">29CM</a>
     </div>
   </section>
 </main>
