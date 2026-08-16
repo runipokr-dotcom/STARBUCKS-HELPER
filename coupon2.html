@@ -4,9 +4,9 @@ STARBUCKS HELPER
 
 File : coupon2.html
 
-Version : 3.4
+Version : 3.5
 
-Updated : 2026-08-04
+Updated : 2026-08-16
 
 -->
 <!doctype html>
@@ -367,7 +367,8 @@ Updated : 2026-08-04
       pageSize: 100,
       work: {
         completed: {},
-        notes: {}
+        notes: {},
+        updatedAt: ""
       },
       storageKey: "",
       remoteDocument: "",
@@ -446,7 +447,7 @@ Updated : 2026-08-04
     }
 
     function migrateWorkKeys(work) {
-      const migrated = { completed: {}, notes: {} };
+      const migrated = { completed: {}, notes: {}, updatedAt: "" };
       const completed = work && typeof work.completed === "object" && work.completed ? work.completed : {};
       const notes = work && typeof work.notes === "object" && work.notes ? work.notes : {};
 
@@ -460,40 +461,53 @@ Updated : 2026-08-04
         migrated.notes[coupon ? couponKey(coupon) : key] = value;
       });
 
+      migrated.updatedAt = typeof work?.updatedAt === "string" ? work.updatedAt : "";
+
       return migrated;
     }
 
     function mergeWork(base, next) {
       return {
         completed: { ...base.completed, ...next.completed },
-        notes: { ...base.notes, ...next.notes }
+        notes: { ...base.notes, ...next.notes },
+        updatedAt: next.updatedAt || base.updatedAt || ""
       };
     }
 
     function loadWorkFromStorage() {
       if (!state.storageKey) return;
-      let restored = { completed: {}, notes: {} };
-      const keys = [...new Set([...LEGACY_STORAGE_KEYS, state.storageKey])];
+      const current = localStorage.getItem(state.storageKey);
+      let restored = { completed: {}, notes: {}, updatedAt: "" };
 
-      keys.forEach((key) => {
-        const raw = localStorage.getItem(key);
-        if (!raw) return;
+      if (current) {
         try {
-          restored = mergeWork(restored, migrateWorkKeys(JSON.parse(raw)));
+          restored = migrateWorkKeys(JSON.parse(current));
         } catch {
-          if (key === state.storageKey) localStorage.removeItem(key);
+          localStorage.removeItem(state.storageKey);
         }
-      });
+      } else {
+        LEGACY_STORAGE_KEYS.forEach((key) => {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
+          try {
+            restored = mergeWork(restored, migrateWorkKeys(JSON.parse(raw)));
+          } catch {
+            // Ignore malformed legacy data.
+          }
+        });
+      }
 
       state.work = restored;
       localStorage.setItem(state.storageKey, JSON.stringify(state.work));
+      LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
     }
 
-    function saveWorkToStorage() {
+    function saveWorkToStorage({ queueRemote = true, touch = true } = {}) {
       if (!state.storageKey) return;
+      if (touch) state.work.updatedAt = new Date().toISOString();
       localStorage.setItem(state.storageKey, JSON.stringify(state.work));
       updateStatus();
-      queueRemoteSave();
+      if (queueRemote) queueRemoteSave();
     }
 
     function setSyncStatus(text) {
@@ -504,7 +518,8 @@ Updated : 2026-08-04
     function sanitizeWork(work) {
       return migrateWorkKeys({
         completed: work && typeof work.completed === "object" && work.completed ? work.completed : {},
-        notes: work && typeof work.notes === "object" && work.notes ? work.notes : {}
+        notes: work && typeof work.notes === "object" && work.notes ? work.notes : {},
+        updatedAt: typeof work?.updatedAt === "string" ? work.updatedAt : ""
       });
     }
 
@@ -512,7 +527,7 @@ Updated : 2026-08-04
       return {
         completed: state.work.completed,
         notes: state.work.notes,
-        updatedAt: new Date().toISOString()
+        updatedAt: state.work.updatedAt || new Date().toISOString()
       };
     }
 
@@ -526,7 +541,7 @@ Updated : 2026-08-04
       if (!state.sync.ready || !state.sync.ref) return;
       try {
         setSyncStatus("동기화 중");
-        await state.sync.setDoc(state.sync.ref, buildRemotePayload(), { merge: true });
+        await state.sync.setDoc(state.sync.ref, buildRemotePayload());
         setSyncStatus("동기화 완료");
       } catch {
         setSyncStatus("동기화 실패");
@@ -553,11 +568,18 @@ Updated : 2026-08-04
             saveWorkToRemote();
             return;
           }
-          state.sync.applyingRemote = true;
-          state.work = sanitizeWork(snapshot.data());
-          if (state.storageKey) {
-            localStorage.setItem(state.storageKey, JSON.stringify(state.work));
+          const remoteWork = sanitizeWork(snapshot.data());
+          const remoteTime = Date.parse(remoteWork.updatedAt || "") || 0;
+          const localTime = Date.parse(state.work.updatedAt || "") || 0;
+
+          if (localTime > remoteTime) {
+            saveWorkToRemote();
+            return;
           }
+
+          state.sync.applyingRemote = true;
+          state.work = remoteWork;
+          saveWorkToStorage({ queueRemote: false, touch: false });
           state.sync.applyingRemote = false;
           setSyncStatus("실시간 동기화");
           if (state.coupons.length) filterCoupons(false);
@@ -750,7 +772,8 @@ Updated : 2026-08-04
         version: 2,
         updated: new Date().toISOString(),
         completed: state.work.completed,
-        notes: state.work.notes
+        notes: state.work.notes,
+        updatedAt: state.work.updatedAt
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -766,8 +789,7 @@ Updated : 2026-08-04
       reader.addEventListener("load", () => {
         try {
           const parsed = JSON.parse(String(reader.result || "{}"));
-          state.work.completed = parsed.completed || {};
-          state.work.notes = parsed.notes || {};
+          state.work = sanitizeWork(parsed);
           saveWorkToStorage();
           render();
         } catch {
@@ -818,12 +840,14 @@ Updated : 2026-08-04
       if (file) importWork(file);
       els.loadFile.value = "";
     });
-    els.clear.addEventListener("click", () => {
+    els.clear.addEventListener("click", async () => {
       if (!confirm("완료 여부와 메모를 초기화할까요?")) return;
+      window.clearTimeout(state.sync.saveTimer);
       state.work.completed = {};
       state.work.notes = {};
-      saveWorkToStorage();
+      saveWorkToStorage({ queueRemote: false });
       render();
+      if (state.sync.ready) await saveWorkToRemote();
     });
 
     setHeaderCollapsed(localStorage.getItem(HEADER_STORAGE_KEY) === "1");
