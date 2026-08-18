@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // STARBUCKS HELPER sync data only.
+    // NOTE: This still permits unauthenticated access to couponWork because
+    // the current GitHub Pages app does not use Firebase Authentication.
+    // Everything outside couponWork is denied.
+    match /couponWork/{documentId} {
+      allow read, write: if true;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
