@@ -1,8 +1,8 @@
 <!--
 STARBUCKS HELPER
 File : index.html
-Version : 4.0
-Updated : 2026-08-15
+Version : 4.1
+Updated : 2026-08-18
 -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -140,6 +140,111 @@ Updated : 2026-08-15
     font-size: 11px;
   }
 
+  .live-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #a6afa9;
+    box-shadow: 0 0 0 3px rgba(166,175,169,.15);
+  }
+
+  .live-dot.connected {
+    background: #00a862;
+    box-shadow: 0 0 0 3px rgba(0,168,98,.14);
+  }
+
+  .live-dot.error {
+    background: #b3261e;
+    box-shadow: 0 0 0 3px rgba(179,38,30,.12);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .server-status-card {
+    display: block;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: #fbfcfb;
+    color: var(--text);
+    text-decoration: none;
+    transform: translateZ(0);
+    transition: transform .14s ease, border-color .14s ease;
+  }
+
+  .server-status-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .server-status-name {
+    font-size: 14px;
+    font-weight: 850;
+    letter-spacing: -.02em;
+  }
+
+  .server-status-percent {
+    color: var(--green-700);
+    font-size: 19px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .server-status-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 9px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .server-status-counts b {
+    color: var(--text);
+    font-weight: 850;
+  }
+
+  .progress-track {
+    height: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e8eeea;
+  }
+
+  .progress-fill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--green-700);
+    transition: width .25s ease;
+  }
+
+  .dashboard-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 11px;
+    color: var(--muted);
+    font-size: 10px;
+  }
+
   .quick-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -178,7 +283,8 @@ Updated : 2026-08-15
 
   .quick-card:active,
   .utility-card:active,
-  .store:active {
+  .store:active,
+  .server-status-card:active {
     transform: scale(.975);
   }
 
@@ -272,7 +378,8 @@ Updated : 2026-08-15
   @media (hover: hover) {
     .quick-card:hover { transform: translateY(-2px); }
     .utility-card:hover,
-    .store:hover { border-color: var(--green-700); }
+    .store:hover,
+    .server-status-card:hover { border-color: var(--green-700); }
   }
 
   @media (min-width: 620px) {
@@ -281,17 +388,26 @@ Updated : 2026-08-15
     .quick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 
+  @media (max-width: 430px) {
+    .server-status-card { padding: 13px; }
+    .server-status-counts { gap: 4px 7px; font-size: 10px; }
+    .server-status-percent { font-size: 18px; }
+  }
+
   @media (max-width: 360px) {
     .panel { padding: 15px; border-radius: 19px; }
     .quick-card { min-height: 116px; }
     .stores { gap: 6px; }
     .store { font-size: 10px; }
+    .dashboard-grid { grid-template-columns: 1fr; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .quick-card,
     .utility-card,
-    .store { transition: none; }
+    .store,
+    .server-status-card,
+    .progress-fill { transition: none; }
   }
 </style>
 </head>
@@ -306,6 +422,46 @@ Updated : 2026-08-15
 </header>
 
 <main>
+  <section class="panel" aria-labelledby="dashboard-title">
+    <div class="section-head">
+      <h2 id="dashboard-title">실시간 진행 현황</h2>
+      <span class="hint live-hint"><span id="liveDot" class="live-dot"></span><span id="liveText">연결 중</span></span>
+    </div>
+
+    <div class="dashboard-grid">
+      <a class="server-status-card" href="coupon1.html" aria-label="쿠폰 1서버 열기">
+        <div class="server-status-top">
+          <span class="server-status-name">1서버</span>
+          <span id="server1Percent" class="server-status-percent">0%</span>
+        </div>
+        <div class="server-status-counts">
+          <span>전체 <b id="server1Total">-</b></span>
+          <span>완료 <b id="server1Done">-</b></span>
+          <span>남음 <b id="server1Remain">-</b></span>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div id="server1Progress" class="progress-fill"></div></div>
+      </a>
+
+      <a class="server-status-card" href="coupon2.html" aria-label="쿠폰 2서버 열기">
+        <div class="server-status-top">
+          <span class="server-status-name">2서버</span>
+          <span id="server2Percent" class="server-status-percent">0%</span>
+        </div>
+        <div class="server-status-counts">
+          <span>전체 <b id="server2Total">-</b></span>
+          <span>완료 <b id="server2Done">-</b></span>
+          <span>남음 <b id="server2Remain">-</b></span>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div id="server2Progress" class="progress-fill"></div></div>
+      </a>
+    </div>
+
+    <div class="dashboard-footer">
+      <span>Firebase 실시간 동기화</span>
+      <span id="lastSync">업데이트 대기</span>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tools-title">
     <div class="section-head">
       <h2 id="tools-title">업무 도구</h2>
@@ -359,5 +515,101 @@ Updated : 2026-08-15
     </div>
   </section>
 </main>
+
+<script type="module">
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
+    authDomain: "starbucks-helper-f578e.firebaseapp.com",
+    projectId: "starbucks-helper-f578e",
+    storageBucket: "starbucks-helper-f578e.firebasestorage.app",
+    messagingSenderId: "1015231512258",
+    appId: "1:1015231512258:web:25bb0229b5bc90b56a455b",
+    measurementId: "G-8H2H0NCJDF"
+  };
+  const FIRESTORE_COLLECTION = "couponWork";
+
+  const liveDot = document.getElementById("liveDot");
+  const liveText = document.getElementById("liveText");
+  const lastSync = document.getElementById("lastSync");
+
+  const servers = [
+    { id: 1, dataUrl: "coupons1.json" },
+    { id: 2, dataUrl: "coupons2.json" }
+  ];
+
+  function buildDatasetId(dataUrl, coupons) {
+    if (!coupons.length) return dataUrl.replace(/[^a-z0-9_-]/gi, "_");
+    const first = String(coupons[0]?.coupon_number || "");
+    const last = String(coupons[coupons.length - 1]?.coupon_number || "");
+    return [dataUrl, coupons.length, first, last]
+      .join("-")
+      .replace(/[^a-z0-9_-]/gi, "_");
+  }
+
+  function setConnection(status, text) {
+    liveDot.classList.remove("connected", "error");
+    if (status) liveDot.classList.add(status);
+    liveText.textContent = text;
+  }
+
+  function updateLastSync() {
+    const now = new Date();
+    lastSync.textContent = `마지막 동기화 ${now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+  }
+
+  function renderServer(serverId, total, completed) {
+    const done = Math.min(total, Object.values(completed || {}).filter(Boolean).length);
+    const remain = Math.max(0, total - done);
+    const percent = total ? Math.round((done / total) * 100) : 0;
+
+    document.getElementById(`server${serverId}Total`).textContent = total.toLocaleString("ko-KR");
+    document.getElementById(`server${serverId}Done`).textContent = done.toLocaleString("ko-KR");
+    document.getElementById(`server${serverId}Remain`).textContent = remain.toLocaleString("ko-KR");
+    document.getElementById(`server${serverId}Percent`).textContent = `${percent}%`;
+    document.getElementById(`server${serverId}Progress`).style.width = `${percent}%`;
+  }
+
+  async function initDashboard() {
+    try {
+      const [{ initializeApp }, firestore, datasets] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"),
+        Promise.all(servers.map(async (server) => {
+          const response = await fetch(server.dataUrl, { cache: "no-store" });
+          if (!response.ok) throw new Error(`${server.dataUrl} ${response.status}`);
+          const coupons = await response.json();
+          return { ...server, coupons };
+        }))
+      ]);
+
+      const app = initializeApp(FIREBASE_CONFIG);
+      const db = firestore.getFirestore(app);
+      let connectedCount = 0;
+
+      datasets.forEach((server) => {
+        renderServer(server.id, server.coupons.length, {});
+        const datasetId = buildDatasetId(server.dataUrl, server.coupons);
+        const workRef = firestore.doc(db, FIRESTORE_COLLECTION, datasetId);
+
+        firestore.onSnapshot(workRef, (snapshot) => {
+          const data = snapshot.exists() ? snapshot.data() : {};
+          renderServer(server.id, server.coupons.length, data.completed || {});
+          connectedCount += 1;
+          if (connectedCount >= datasets.length) setConnection("connected", "실시간 동기화");
+          updateLastSync();
+        }, (error) => {
+          console.error(`Server ${server.id} sync error`, error);
+          setConnection("error", "동기화 오류");
+        });
+      });
+    } catch (error) {
+      console.error("Dashboard initialization failed", error);
+      setConnection("error", "연결 실패");
+      lastSync.textContent = "데이터를 확인해 주세요";
+    }
+  }
+
+  initDashboard();
+</script>
 </body>
 </html>
