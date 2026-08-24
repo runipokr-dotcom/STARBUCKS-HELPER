@@ -137,6 +137,14 @@
       }
       return cy;
     }
+    function drawDescriptionBlock(text,x,y,maxWidth) {
+      let cy=y; const care=[], normal=[];
+      for(const raw of lines(text)) (/^(오븐|전자레인지|식기세척기) 사용 (가능|불가)$/.test(raw.trim())?care:normal).push(raw);
+      while(normal.length && !normal[normal.length-1]) normal.pop();
+      for(const raw of normal){ if(!raw){cy+=22;continue;} cy=drawTextBlock(raw,x,cy,maxWidth,17,30,'#252525',400); }
+      if(care.length){ if(normal.length) cy+=10; const joined=care.join(' · '); let size=14; do{ctx.font=`400 ${size}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`;if(ctx.measureText(joined).width<=maxWidth)break;size--;}while(size>10);ctx.fillStyle='#55514c';ctx.textAlign='left';ctx.fillText(joined,x,cy);cy+=25; }
+      return cy;
+    }
     function contain(iw,ih,bw,bh){ const s=Math.min(bw/iw,bh/ih); return {w:iw*s,h:ih*s}; }
     function drawPlaceholder(x,y,w,h){
       ctx.save(); ctx.strokeStyle='#d7d3cc'; ctx.setLineDash([10,10]); ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); ctx.setLineDash([]); ctx.fillStyle='#aaa59d'; ctx.textAlign='center'; ctx.font='500 18px -apple-system, sans-serif'; ctx.fillText('상품 사진을 넣어주세요',x+w/2,y+h/2); ctx.restore();
@@ -169,11 +177,10 @@
     function render(){
       ctx.clearRect(0,0,1000,1000); ctx.fillStyle='#fff'; ctx.fillRect(0,0,1000,1000);
       const right=$('layout').value==='right'; const tx=right?54:554, ix=right?540:54; const tw=446, iw=406;
-      ctx.fillStyle=accent; ctx.fillRect(tx,893,100,3);
       ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font='500 29px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
       const retailPrice=$('retailPrice').value.replace(/\D/g,'');
       if(retailPrice){ ctx.fillStyle='#55514c'; ctx.font='600 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText(`정가 ${Number(retailPrice).toLocaleString('ko-KR')}원`,tx,169); }
-      let y=retailPrice?220:207; y=drawTextBlock($('description').value,tx,y,tw,17,30,'#252525',400);
+      let y=retailPrice?220:207; y=drawDescriptionBlock($('description').value,tx,y,tw);
       const firstRule=Math.max(344,y+22); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
