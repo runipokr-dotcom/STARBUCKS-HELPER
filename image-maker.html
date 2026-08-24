@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>상품정보 이미지 메이커</title>
+  <style>
+    :root { --ink:#171717; --muted:#74716c; --line:#e5e1da; --paper:#fff; --bg:#f3f1ed; --accent:#1f513f; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:var(--ink); background:var(--bg); }
+    header { height:64px; padding:0 28px; display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid var(--line); }
+    header h1 { margin:0; font-size:18px; letter-spacing:-.03em; }
+    header span { color:var(--muted); font-size:13px; }
+    main { display:grid; grid-template-columns:minmax(330px,420px) minmax(520px,1fr); gap:24px; padding:24px; max-width:1440px; margin:auto; }
+    .panel { background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 8px 30px rgba(40,34,23,.05); }
+    .form { padding:24px; }
+    .section { padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid var(--line); }
+    .section:last-child { border:0; margin:0; padding:0; }
+    .section h2 { margin:0 0 14px; font-size:14px; }
+    label { display:block; margin:12px 0 6px; color:#4e4b46; font-size:12px; font-weight:650; }
+    input, textarea, select { width:100%; border:1px solid #d9d5ce; border-radius:10px; padding:11px 12px; background:#fff; font:inherit; font-size:14px; outline:none; }
+    input:focus, textarea:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,81,63,.1); }
+    textarea { min-height:82px; resize:vertical; line-height:1.55; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .upload { position:relative; display:grid; place-items:center; min-height:94px; padding:14px; border:1.5px dashed #c8c3ba; border-radius:12px; text-align:center; color:var(--muted); cursor:pointer; background:#fbfaf8; }
+    .upload strong { color:var(--ink); display:block; margin-bottom:4px; }
+    .upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .swatches { display:flex; gap:8px; }
+    .swatches button { width:30px; height:30px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #ccc; cursor:pointer; }
+    .material-presets { display:flex; flex-wrap:wrap; gap:7px; margin:7px 0 9px; }
+    .material-presets button { border:1px solid #d8d3cb; border-radius:999px; padding:7px 10px; background:#f8f6f2; color:#3e3a35; font-size:12px; cursor:pointer; }
+    .material-presets button:hover { border-color:var(--accent); color:var(--accent); background:#fff; }
+    .check-row { display:flex; align-items:center; gap:9px; margin:13px 0 7px; color:#4e4b46; font-size:12px; font-weight:650; cursor:pointer; }
+    .check-row input { width:17px; height:17px; margin:0; accent-color:var(--accent); }
+    .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+    button.action { border:0; border-radius:11px; padding:13px; font-weight:750; cursor:pointer; }
+    .primary { color:#fff; background:var(--accent); }
+    .secondary { background:#ece9e3; color:#27241f; }
+    .preview-wrap { padding:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 112px); }
+    .preview-title { width:min(100%,720px); display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:13px; color:var(--muted); }
+    canvas { width:min(100%,720px); height:auto; aspect-ratio:1; background:white; box-shadow:0 18px 60px rgba(32,27,18,.12); }
+    .hint { margin:12px 0 0; color:var(--muted); font-size:12px; }
+    @media (max-width:900px) { main { grid-template-columns:1fr; } .preview-wrap { min-height:auto; } }
+  </style>
+</head>
+<body>
+  <header><h1>상품정보 이미지 메이커</h1><span>사진 + 내용 입력 → 1000×1000 완성</span></header>
+  <main>
+    <section class="panel form">
+      <div class="section">
+        <h2>1. 상품 사진</h2>
+        <label class="upload"><span><strong id="uploadTitle">사진 1~4장 선택 또는 드래그</strong><small>여러 장을 한 번에 선택하면 자동 배치됩니다</small></span><input id="imageInput" type="file" accept="image/*" multiple></label>
+        <label for="photoScale">사진 크기 <span id="scaleValue">100%</span></label>
+        <input id="photoScale" type="range" min="45" max="145" value="100" step="5">
+      </div>
+      <div class="section">
+        <h2>2. 상품 내용</h2>
+        <label for="title">상품명</label><input id="title" value="SS 골프 러피 텀블러 710ml">
+        <label for="description">상품 설명</label><textarea id="description">블랙&화이트 조합으로 누구나 사용하기 좋은 디자인입니다.
+
+탈부착이 가능한 손잡이와 플립형 스트로가 내장되어 있어
+직음용과 스트로 모두 사용할 수 있습니다.</textarea>
+        <label for="material">재질</label>
+        <div class="material-presets" aria-label="자주 쓰는 재질">
+          <button type="button" data-part="몸체">몸체</button>
+          <button type="button" data-part="뚜껑">뚜껑</button>
+          <button type="button" data-part="빨대">빨대</button>
+          <button type="button" data-material="스테인리스제">스테인리스제</button>
+          <button type="button" data-material="폴리프로필렌">폴리프로필렌</button>
+          <button type="button" data-material="폴리시클로헥산-1,4-디메틸렌테레프탈레이트">폴리시클로헥산-1,4-디메틸렌테레프탈레이트</button>
+          <button type="button" data-material="고무제">고무제</button>
+        </div>
+        <textarea id="material">몸체 : 스테인리스제
+뚜껑 : 폴리프로필렌, 고무제</textarea>
+        <label for="size">크기</label><textarea id="size">가로 × 세로 × 높이
+
+8.8 × 8.8 × 29.5 (cm)</textarea>
+      </div>
+      <div class="section">
+        <h2>3. 디자인 설정</h2>
+        <div class="row"><div><label for="layout">사진 위치</label><select id="layout"><option value="right">오른쪽</option><option value="left">왼쪽</option></select></div><div><label for="format">저장 형식</label><select id="format"><option value="png">PNG</option><option value="jpeg">JPG</option></select></div></div>
+        <label class="check-row"><input id="copyrightEnabled" type="checkbox" checked>우측 하단 제작 표시 사용</label>
+        <input id="copyright" value="Photo &amp; Layout by thisismine" aria-label="제작 표시 문구">
+        <label>포인트 색상</label><div class="swatches"><button data-color="#171717" style="background:#171717" aria-label="검정"></button><button data-color="#1f513f" style="background:#1f513f" aria-label="초록"></button><button data-color="#b9a38f" style="background:#b9a38f" aria-label="베이지"></button><button data-color="#e2aeb8" style="background:#e2aeb8" aria-label="분홍"></button></div>
+        <div class="actions"><button class="action secondary" id="reset">예시로 초기화</button><button class="action primary" id="download">이미지 저장</button></div>
+      </div>
+    </section>
+    <section class="panel preview-wrap">
+      <div class="preview-title"><b>미리보기</b><span>1000 × 1000 px</span></div>
+      <canvas id="canvas" width="1000" height="1000"></canvas>
+      <p class="hint">내용을 바꾸면 미리보기가 바로 갱신됩니다.</p>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const canvas = $('canvas'), ctx = canvas.getContext('2d');
+    const fields = ['title','description','material','size','layout','photoScale','copyright','copyrightEnabled'];
+    let productImages = [], accent = '#171717';
+
+    function lines(text) { return text.split('\n'); }
+    function drawTextBlock(text, x, y, maxWidth, size=18, lineHeight=29, color='#292929', weight=400) {
+      ctx.fillStyle=color; ctx.font=`${weight} ${size}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`; ctx.textAlign='left';
+      let cy=y;
+      for (const raw of lines(text)) {
+        if (!raw) { cy += lineHeight * .75; continue; }
+        const words=raw.split(' '); let line='';
+        for (const word of words) { const test=line ? `${line} ${word}` : word; if (ctx.measureText(test).width>maxWidth && line) { ctx.fillText(line,x,cy); cy+=lineHeight; line=word; } else line=test; }
+        ctx.fillText(line,x,cy); cy+=lineHeight;
+      }
+      return cy;
+    }
+    function drawMaterialBlock(text,x,y,maxWidth) {
+      let cy=y; const labelWidth=72, lineHeight=27;
+      ctx.fillStyle='#32302d'; ctx.font='400 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.textAlign='left';
+      for(const raw of lines(text)) {
+        if(!raw.trim()){ cy+=lineHeight*.75; continue; }
+        const colon=raw.indexOf(':');
+        if(colon<0){ cy=drawTextBlock(raw,x,cy,maxWidth,17,lineHeight,'#32302d',400); continue; }
+        const label=raw.slice(0,colon).trim(), value=raw.slice(colon+1).trim();
+        ctx.fillText(`${label} :`,x,cy);
+        cy=drawTextBlock(value,x+labelWidth,cy,maxWidth-labelWidth,17,lineHeight,'#32302d',400);
+      }
+      return cy;
+    }
+    function contain(iw,ih,bw,bh){ const s=Math.min(bw/iw,bh/ih); return {w:iw*s,h:ih*s}; }
+    function drawPlaceholder(x,y,w,h){
+      ctx.save(); ctx.strokeStyle='#d7d3cc'; ctx.setLineDash([10,10]); ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); ctx.setLineDash([]); ctx.fillStyle='#aaa59d'; ctx.textAlign='center'; ctx.font='500 18px -apple-system, sans-serif'; ctx.fillText('상품 사진을 넣어주세요',x+w/2,y+h/2); ctx.restore();
+    }
+    function drawContained(img, box, scale=1) {
+      const d=contain(img.width,img.height,box.w,box.h), w=d.w*scale, h=d.h*scale;
+      ctx.save(); ctx.beginPath(); ctx.rect(box.x,box.y,box.w,box.h); ctx.clip();
+      ctx.drawImage(img,box.x+(box.w-w)/2,box.y+(box.h-h)/2,w,h); ctx.restore();
+    }
+    function drawProductImages(box) {
+      const imgs=productImages.slice(0,4), gap=16;
+      if(!imgs.length) return drawPlaceholder(box.x,box.y,box.w,box.h);
+      if(imgs.length===1) return drawContained(imgs[0],box,Number($('photoScale').value)/100);
+      if(imgs.length===2) {
+        const h=(box.h-gap)/2;
+        drawContained(imgs[0],{x:box.x,y:box.y,w:box.w,h});
+        drawContained(imgs[1],{x:box.x,y:box.y+h+gap,w:box.w,h});
+        return;
+      }
+      if(imgs.length===3) {
+        const topH=box.h*.52, bottomH=box.h-topH-gap, half=(box.w-gap)/2;
+        drawContained(imgs[0],{x:box.x,y:box.y,w:box.w,h:topH});
+        drawContained(imgs[1],{x:box.x,y:box.y+topH+gap,w:half,h:bottomH});
+        drawContained(imgs[2],{x:box.x+half+gap,y:box.y+topH+gap,w:half,h:bottomH});
+        return;
+      }
+      const halfW=(box.w-gap)/2, halfH=(box.h-gap)/2;
+      imgs.forEach((img,i)=>drawContained(img,{x:box.x+(i%2)*(halfW+gap),y:box.y+Math.floor(i/2)*(halfH+gap),w:halfW,h:halfH}));
+    }
+    function render(){
+      ctx.clearRect(0,0,1000,1000); ctx.fillStyle='#fff'; ctx.fillRect(0,0,1000,1000);
+      const right=$('layout').value==='right'; const tx=right?54:554, ix=right?540:54; const tw=446, iw=406;
+      ctx.fillStyle=accent; ctx.fillRect(tx,893,100,3);
+      ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font='500 29px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
+      let y=207; y=drawTextBlock($('description').value,tx,y,tw,17,27,'#252525',400);
+      const firstRule=Math.max(344,y+22); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
+      ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
+      y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
+      const secondRule=Math.max(570,y+24); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,secondRule,tw,2);
+      ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('크기',tx,secondRule+64);
+      drawTextBlock($('size').value,tx,secondRule+118,tw,17,29,'#32302d',400);
+      const box={x:ix,y:150,w:iw,h:735};
+      drawProductImages(box);
+      const copyright=$('copyright').value.trim();
+      if($('copyrightEnabled').checked && copyright){ ctx.fillStyle='#aaa7a1'; ctx.textAlign='right'; ctx.font='400 13px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.fillText(copyright,946,932); }
+    }
+    fields.forEach(id => $(id).addEventListener('input',()=>{ if(id==='photoScale') $('scaleValue').textContent=`${$('photoScale').value}%`; render(); }));
+    $('imageInput').addEventListener('change',e=>{
+      const files=[...e.target.files].filter(f=>f.type.startsWith('image/')).slice(0,4);
+      if(!files.length)return;
+      $('uploadTitle').textContent=files.length===1 ? files[0].name : `${files.length}장 선택됨`;
+      Promise.all(files.map(f=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.src=URL.createObjectURL(f);}))).then(imgs=>{productImages=imgs;render();});
+    });
+    document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{accent=b.dataset.color;document.documentElement.style.setProperty('--accent',accent);render();}));
+    document.querySelectorAll('[data-material]').forEach(b=>b.addEventListener('click',()=>{
+      const el=$('material'), value=b.dataset.material, start=el.selectionStart, end=el.selectionEnd;
+      const before=el.value.slice(0,start), after=el.value.slice(end);
+      const separator=before && !/[\s,:]$/.test(before) ? ', ' : '';
+      el.value=before+separator+value+after;
+      const cursor=(before+separator+value).length; el.focus(); el.setSelectionRange(cursor,cursor); render();
+    }));
+    document.querySelectorAll('[data-part]').forEach(b=>b.addEventListener('click',()=>{
+      const el=$('material'), value=`${b.dataset.part} : `;
+      const prefix=el.value && !el.value.endsWith('\n') ? '\n' : '';
+      el.value+=prefix+value; el.focus(); el.setSelectionRange(el.value.length,el.value.length); render();
+    }));
+    $('download').addEventListener('click',()=>{ render(); const fmt=$('format').value; const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=canvas.toDataURL(`image/${fmt}`,.94); a.click(); });
+    $('reset').addEventListener('click',()=>{ $('title').value='SS 골프 러피 텀블러 710ml'; $('description').value='블랙&화이트 조합으로 누구나 사용하기 좋은 디자인입니다.\n\n탈부착이 가능한 손잡이와 플립형 스트로가 내장되어 있어\n직음용과 스트로 모두 사용할 수 있습니다.'; $('material').value='몸체 : 스테인리스제\n뚜껑 : 폴리프로필렌, 고무제'; $('size').value='가로 × 세로 × 높이\n\n8.8 × 8.8 × 29.5 (cm)'; $('layout').value='right'; $('photoScale').value='100'; $('scaleValue').textContent='100%'; $('copyrightEnabled').checked=true; $('copyright').value='Photo & Layout by thisismine'; render(); });
+    ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
+    document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
+    render();
+  </script>
+</body>
+</html>
+
