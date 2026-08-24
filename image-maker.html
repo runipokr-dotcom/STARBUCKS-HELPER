@@ -57,6 +57,7 @@
       <div class="section">
         <h2>2. 상품 내용</h2>
         <label for="title">상품명</label><input id="title" placeholder="상품명을 입력하세요">
+        <label for="retailPrice">정가</label><input id="retailPrice" inputmode="numeric" placeholder="숫자만 입력하세요">
         <label for="description">상품 설명</label><textarea id="description" placeholder="상품 설명을 입력하세요"></textarea>
         <label for="material">재질</label>
         <div class="material-presets" aria-label="자주 쓰는 재질">
@@ -89,7 +90,7 @@
   <script>
     const $ = id => document.getElementById(id);
     const canvas = $('canvas'), ctx = canvas.getContext('2d');
-    const fields = ['title','description','material','sizeWidth','sizeDepth','sizeHeight','layout','photoScale','copyright','copyrightEnabled'];
+    const fields = ['title','retailPrice','description','material','sizeWidth','sizeDepth','sizeHeight','layout','photoScale','copyright','copyrightEnabled'];
     let productImages = [], accent = '#171717';
 
     function lines(text) { return text.split('\n'); }
@@ -161,7 +162,9 @@
       const right=$('layout').value==='right'; const tx=right?54:554, ix=right?540:54; const tw=446, iw=406;
       ctx.fillStyle=accent; ctx.fillRect(tx,893,100,3);
       ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font='500 29px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
-      let y=207; y=drawTextBlock($('description').value,tx,y,tw,17,30,'#252525',400);
+      const retailPrice=$('retailPrice').value.replace(/\D/g,'');
+      if(retailPrice){ ctx.fillStyle='#55514c'; ctx.font='600 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText(`정가 ${Number(retailPrice).toLocaleString('ko-KR')}원`,tx,169); }
+      let y=retailPrice?220:207; y=drawTextBlock($('description').value,tx,y,tw,17,30,'#252525',400);
       const firstRule=Math.max(344,y+22); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
@@ -181,6 +184,7 @@
       if(dot>=0) value=value.slice(0,dot+1)+value.slice(dot+1).replace(/\./g,'');
       e.target.value=value; render();
     }));
+    $('retailPrice').addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,''); render(); });
     $('imageInput').addEventListener('change',e=>{
       const files=[...e.target.files].filter(f=>f.type.startsWith('image/')).slice(0,4);
       if(!files.length)return;
@@ -201,7 +205,7 @@
       el.value+=prefix+value; el.focus(); el.setSelectionRange(el.value.length,el.value.length); render();
     }));
     $('download').addEventListener('click',()=>{ render(); const fmt=$('format').value; const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=canvas.toDataURL(`image/${fmt}`,.94); a.click(); });
-    $('reset').addEventListener('click',()=>{ $('title').value=''; $('description').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; render(); });
+    $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; render(); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
     render();
