@@ -31,6 +31,10 @@
     .material-presets { display:flex; flex-wrap:wrap; gap:7px; margin:7px 0 9px; }
     .material-presets button { border:1px solid #d8d3cb; border-radius:999px; padding:7px 10px; background:#f8f6f2; color:#3e3a35; font-size:12px; cursor:pointer; }
     .material-presets button:hover { border-color:var(--accent); color:var(--accent); background:#fff; }
+    .care-presets { display:grid; gap:7px; margin:8px 0 12px; }
+    .care-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:7px; color:#4e4b46; font-size:12px; }
+    .care-row button { min-width:52px; border:1px solid #d8d3cb; border-radius:9px; padding:7px 9px; background:#f8f6f2; color:#3e3a35; font-size:12px; cursor:pointer; }
+    .care-row button.active { border-color:var(--accent); background:var(--accent); color:#fff; }
     .check-row { display:flex; align-items:center; gap:9px; margin:13px 0 7px; color:#4e4b46; font-size:12px; font-weight:650; cursor:pointer; }
     .check-row input { width:17px; height:17px; margin:0; accent-color:var(--accent); }
     .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
@@ -59,6 +63,11 @@
         <label for="title">상품명</label><input id="title" placeholder="상품명을 입력하세요">
         <label for="retailPrice">정가</label><input id="retailPrice" inputmode="numeric" placeholder="숫자만 입력하세요">
         <label for="description">상품 설명</label><textarea id="description" placeholder="상품 설명을 입력하세요"></textarea>
+        <label>사용 안내</label><div class="care-presets">
+          <div class="care-row"><span>오븐</span><button type="button" data-care="오븐" data-status="가능">가능</button><button type="button" data-care="오븐" data-status="불가">불가</button></div>
+          <div class="care-row"><span>전자레인지</span><button type="button" data-care="전자레인지" data-status="가능">가능</button><button type="button" data-care="전자레인지" data-status="불가">불가</button></div>
+          <div class="care-row"><span>식기세척기</span><button type="button" data-care="식기세척기" data-status="가능">가능</button><button type="button" data-care="식기세척기" data-status="불가">불가</button></div>
+        </div>
         <label for="material">재질</label>
         <div class="material-presets" aria-label="자주 쓰는 재질">
           <button type="button" data-part="몸체">몸체</button>
@@ -204,8 +213,15 @@
       const prefix=el.value && !el.value.endsWith('\n') ? '\n' : '';
       el.value+=prefix+value; el.focus(); el.setSelectionRange(el.value.length,el.value.length); render();
     }));
+    document.querySelectorAll('[data-care]').forEach(b=>b.addEventListener('click',()=>{
+      const device=b.dataset.care, sentence=`${device} 사용 ${b.dataset.status}`; const el=$('description');
+      const kept=el.value.split('\n').filter(line=>!line.trim().startsWith(`${device} 사용 `));
+      while(kept.length && !kept[kept.length-1].trim()) kept.pop();
+      el.value=[...kept,sentence].filter(Boolean).join('\n');
+      document.querySelectorAll(`[data-care="${device}"]`).forEach(x=>x.classList.toggle('active',x===b)); render();
+    }));
     $('download').addEventListener('click',()=>{ render(); const fmt=$('format').value; const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=canvas.toDataURL(`image/${fmt}`,.94); a.click(); });
-    $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; render(); });
+    $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; document.querySelectorAll('[data-care]').forEach(b=>b.classList.remove('active')); render(); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
     render();
