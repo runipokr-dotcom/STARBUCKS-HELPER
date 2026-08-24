@@ -98,27 +98,37 @@
     let productImages = [], accent = '#171717';
 
     function lines(text) { return text.split('\n'); }
+    function wrapCanvasLine(raw,maxWidth) {
+      const out=[]; let current='';
+      for(const ch of Array.from(raw)) {
+        const next=current+ch;
+        if(!current || ctx.measureText(next).width<=maxWidth){ current=next; continue; }
+        const space=Math.max(current.lastIndexOf(' '),current.lastIndexOf(','));
+        if(space>0){ const comma=current[space]===','; out.push(current.slice(0,space+(comma?1:0)).trim()); current=current.slice(space+(comma?1:0)).trimStart()+ch; }
+        else { out.push(current); current=ch; }
+      }
+      if(current) out.push(current.trimEnd());
+      return out;
+    }
     function drawTextBlock(text, x, y, maxWidth, size=18, lineHeight=29, color='#292929', weight=400) {
       ctx.fillStyle=color; ctx.font=`${weight} ${size}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`; ctx.textAlign='left';
       let cy=y;
       for (const raw of lines(text)) {
         if (!raw) { cy += lineHeight * .75; continue; }
-        const words=raw.split(' '); let line='';
-        for (const word of words) { const test=line ? `${line} ${word}` : word; if (ctx.measureText(test).width>maxWidth && line) { ctx.fillText(line,x,cy); cy+=lineHeight; line=word; } else line=test; }
-        ctx.fillText(line,x,cy); cy+=lineHeight;
+        for(const line of wrapCanvasLine(raw,maxWidth)){ ctx.fillText(line,x,cy); cy+=lineHeight; }
       }
       return cy;
     }
     function drawMaterialBlock(text,x,y,maxWidth) {
-      let cy=y; const labelWidth=72, lineHeight=27;
+      let cy=y; const labelWidth=88, lineHeight=34;
       ctx.fillStyle='#32302d'; ctx.font='400 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.textAlign='left';
       for(const raw of lines(text)) {
         if(!raw.trim()){ cy+=lineHeight*.75; continue; }
         const colon=raw.indexOf(':');
         if(colon<0){ cy=drawTextBlock(raw,x,cy,maxWidth,17,lineHeight,'#32302d',400); continue; }
         const label=raw.slice(0,colon).trim(), value=raw.slice(colon+1).trim();
-        ctx.fillText(`${label} :`,x,cy);
-        cy=drawTextBlock(value,x+labelWidth,cy,maxWidth-labelWidth,17,lineHeight,'#32302d',400);
+        ctx.letterSpacing='1px'; ctx.fillText(`${label} :`,x,cy); ctx.letterSpacing='0px';
+        cy=drawTextBlock(value.replace(/,\s*/g,', '),x+labelWidth,cy,maxWidth-labelWidth,17,lineHeight,'#32302d',400)+8;
       }
       return cy;
     }
@@ -156,7 +166,7 @@
       const right=$('layout').value==='right'; const tx=right?54:554, ix=right?540:54; const tw=446, iw=406;
       ctx.fillStyle=accent; ctx.fillRect(tx,893,100,3);
       ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font='500 29px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
-      let y=207; y=drawTextBlock($('description').value,tx,y,tw,17,27,'#252525',400);
+      let y=207; y=drawTextBlock($('description').value,tx,y,tw,17,30,'#252525',400);
       const firstRule=Math.max(344,y+22); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
