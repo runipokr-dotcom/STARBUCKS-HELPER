@@ -28,8 +28,6 @@
     input, textarea, select { width:100%; border:1px solid #d9d5ce; border-radius:10px; padding:11px 12px; background:#fff; font:inherit; font-size:14px; outline:none; }
     input:focus, textarea:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(31,81,63,.1); }
     textarea { min-height:82px; resize:vertical; line-height:1.55; }
-    #description { min-height:132px; }
-    #extraDescription { min-height:74px; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .size-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .upload { position:relative; display:grid; place-items:center; min-height:94px; padding:14px; border:1.5px dashed #c8c3ba; border-radius:12px; text-align:center; color:var(--muted); cursor:pointer; background:#fbfaf8; }
@@ -213,10 +211,10 @@
       let y=retailPrice?220:207; y=drawDescriptionBlock($('description').value,tx,y,tw);
       if($('description').value.trim() && ($('extraDescription').value.trim() || Object.values(careState).some(v=>v!=='표시 안 함'))) y+=10;
       y=drawExtraBlock($('extraDescription').value,tx,y,tw);
-      const firstRule=Math.max(382,y+32); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
+      const firstRule=Math.max(455,y+32); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
-      const secondRule=Math.max(620,y+30); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,secondRule,tw,2);
+      const secondRule=Math.max(665,y+30); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,secondRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('크기',tx,secondRule+64);
       const dimensions=[$('sizeWidth').value.trim(),$('sizeDepth').value.trim(),$('sizeHeight').value.trim()];
       const sizeText=dimensions.some(Boolean) ? `가로 × 세로 × 높이\n\n${dimensions.map(v=>v||'-').join(' × ')} (cm)` : '';
