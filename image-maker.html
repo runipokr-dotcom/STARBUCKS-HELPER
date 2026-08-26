@@ -80,7 +80,7 @@
         <label for="description">본문 내용</label><textarea id="description" placeholder="상품의 주요 설명을 입력하세요"></textarea>
         <label for="extraDescription">추가 설명 내용</label><textarea id="extraDescription" placeholder="주의사항 등 덜 중요한 내용을 입력하세요"></textarea>
         <div class="content-settings" id="contentSettings" hidden>
-          <div class="row"><div><label for="bodyFontSize">본문 글자 크기 <span id="bodyFontValue">17px</span></label><input id="bodyFontSize" type="range" min="14" max="22" value="17"></div><div><label for="careFontSize">추가 설명 크기 <span id="careFontValue">12px</span></label><input id="careFontSize" type="range" min="10" max="16" value="12"></div></div>
+          <div class="row"><div><label for="bodyFontSize">본문 글자 크기 <span id="bodyFontValue">18px</span></label><input id="bodyFontSize" type="range" min="14" max="22" value="18"></div><div><label for="careFontSize">추가 설명 크기 <span id="careFontValue">13px</span></label><input id="careFontSize" type="range" min="10" max="16" value="13"></div></div>
           <label>사용 안내</label>
           <div class="quick-actions"><button type="button" id="loadPreviousCare">이전 내용 불러오기</button><button type="button" id="allCareOff">모두 불가</button></div>
           <div class="care-presets">
@@ -167,9 +167,9 @@
     }
     function drawExtraBlock(text,x,y,maxWidth) {
       let cy=y, size=Number($('careFontSize').value), lineHeight=Math.round(size*1.75);
-      if(text.trim()) cy=drawTextBlock(text,x,cy,maxWidth,size,lineHeight,'#55514c',400);
+      if(text.trim()) cy=drawTextBlock(text,x,cy,maxWidth,size,lineHeight,'#505050',400);
       const care=Object.entries(careState).filter(([,status])=>status!=='표시 안 함').map(([device,status])=>`${device} ${status}`);
-      if(care.length){ if(text.trim()) cy+=8; const joined=care.join(' · '); let fit=size; do{ctx.font=`400 ${fit}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`;if(ctx.measureText(joined).width<=maxWidth)break;fit--;}while(fit>9);ctx.fillStyle='#6d6963';ctx.textAlign='left';ctx.fillText(joined,x,cy);cy+=Math.round(fit*1.8); }
+      if(care.length){ if(text.trim()) cy+=8; const joined=care.join(' · '); let fit=size; do{ctx.font=`400 ${fit}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`;if(ctx.measureText(joined).width<=maxWidth)break;fit--;}while(fit>9);ctx.fillStyle='#555555';ctx.textAlign='left';ctx.fillText(joined,x,cy);cy+=Math.round(fit*1.8); }
       return cy;
     }
     function contain(iw,ih,bw,bh){ const s=Math.min(bw/iw,bh/ih); return {w:iw*s,h:ih*s}; }
@@ -211,10 +211,10 @@
       let y=retailPrice?220:207; y=drawDescriptionBlock($('description').value,tx,y,tw);
       if($('description').value.trim() && ($('extraDescription').value.trim() || Object.values(careState).some(v=>v!=='표시 안 함'))) y+=10;
       y=drawExtraBlock($('extraDescription').value,tx,y,tw);
-      const firstRule=Math.max(455,y+32); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,firstRule,tw,2);
+      const firstRule=Math.max(455,y+32); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,firstRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
-      const secondRule=Math.max(665,y+30); ctx.fillStyle='#ddd9d2'; ctx.fillRect(tx,secondRule,tw,2);
+      const secondRule=Math.max(665,y+30); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,secondRule,tw,2);
       ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('크기',tx,secondRule+64);
       const dimensions=[$('sizeWidth').value.trim(),$('sizeDepth').value.trim(),$('sizeHeight').value.trim()];
       const sizeText=dimensions.some(Boolean) ? `가로 × 세로 × 높이\n\n${dimensions.map(v=>v||'-').join(' × ')} (cm)` : '';
