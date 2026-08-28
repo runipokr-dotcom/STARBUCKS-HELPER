@@ -4,10 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>상품정보 이미지 메이커</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root { --ink:#171717; --muted:#74716c; --line:#e5e1da; --paper:#fff; --bg:#f3f1ed; --accent:#1f513f; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:var(--ink); background:var(--bg); }
+    body { margin:0; min-height:100vh; font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:var(--ink); background:var(--bg); }
     header { height:64px; padding:0 28px; display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid var(--line); }
     header h1 { margin:0; font-size:18px; letter-spacing:-.03em; }
     header span { color:var(--muted); font-size:13px; }
@@ -81,6 +82,8 @@
         <label for="extraDescription">추가 설명 내용</label><textarea id="extraDescription" placeholder="주의사항 등 덜 중요한 내용을 입력하세요"></textarea>
         <div class="content-settings" id="contentSettings" hidden>
           <div class="row"><div><label for="bodyFontSize">본문 글자 크기 <span id="bodyFontValue">18px</span></label><input id="bodyFontSize" type="range" min="14" max="22" value="18"></div><div><label for="careFontSize">추가 설명 크기 <span id="careFontValue">13px</span></label><input id="careFontSize" type="range" min="10" max="16" value="13"></div></div>
+          <div class="row"><div><label for="titleWeight">상품명 굵기</label><select id="titleWeight"><option>100</option><option>200</option><option>300</option><option>400</option><option selected>500</option><option>600</option><option>700</option><option>800</option><option>900</option></select></div><div><label for="priceWeight">정가 굵기</label><select id="priceWeight"><option>100</option><option>200</option><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option><option>900</option></select></div></div>
+          <div class="row"><div><label for="bodyWeight">본문 굵기</label><select id="bodyWeight"><option>100</option><option>200</option><option>300</option><option selected>400</option><option>500</option><option>600</option><option>700</option><option>800</option><option>900</option></select></div><div><label for="careWeight">추가 설명/사용안내 굵기</label><select id="careWeight"><option>100</option><option>200</option><option>300</option><option selected>400</option><option>500</option><option>600</option><option>700</option><option>800</option><option>900</option></select></div></div>
           <label>사용 안내</label>
           <div class="quick-actions"><button type="button" id="loadPreviousCare">이전 내용 불러오기</button><button type="button" id="allCareOff">모두 불가</button></div>
           <div class="care-presets">
@@ -120,7 +123,8 @@
   <script>
     const $ = id => document.getElementById(id);
     const canvas = $('canvas'), ctx = canvas.getContext('2d');
-    const fields = ['title','retailPrice','description','extraDescription','material','sizeWidth','sizeDepth','sizeHeight','layout','bodyFontSize','careFontSize','copyright','copyrightEnabled'];
+    const fields = ['title','retailPrice','description','extraDescription','material','sizeWidth','sizeDepth','sizeHeight','layout','bodyFontSize','careFontSize','titleWeight','priceWeight','bodyWeight','careWeight','copyright','copyrightEnabled'];
+    const fontFamily = 'Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif';
     let productImages = [], accent = '#171717', careState={오븐:'불가',전자레인지:'불가',식기세척기:'불가'};
 
     function lines(text) { return text.split('\n'); }
@@ -137,7 +141,7 @@
       return out;
     }
     function drawTextBlock(text, x, y, maxWidth, size=18, lineHeight=29, color='#292929', weight=400) {
-      ctx.fillStyle=color; ctx.font=`${weight} ${size}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`; ctx.textAlign='left';
+      ctx.fillStyle=color; ctx.font=`${weight} ${size}px ${fontFamily}`; ctx.textAlign='left';
       let cy=y;
       for (const raw of lines(text)) {
         if (!raw) { cy += lineHeight * .75; continue; }
@@ -147,7 +151,7 @@
     }
     function drawMaterialBlock(text,x,y,maxWidth) {
       let cy=y; const labelWidth=88, lineHeight=34;
-      ctx.fillStyle='#32302d'; ctx.font='400 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.textAlign='left';
+      ctx.fillStyle='#32302d'; ctx.font=`400 17px ${fontFamily}`; ctx.textAlign='left';
       for(const raw of lines(text)) {
         if(!raw.trim()){ cy+=lineHeight*.75; continue; }
         const colon=raw.indexOf(':');
@@ -161,24 +165,25 @@
     function drawDescriptionBlock(text,x,y,maxWidth) {
       let cy=y; const normal=lines(text);
       while(normal.length && !normal[normal.length-1]) normal.pop();
-      const bodySize=Number($('bodyFontSize').value), bodyLine=Math.round(bodySize*1.75);
-      for(const raw of normal){ if(!raw){cy+=Math.round(bodyLine*.75);continue;} cy=drawTextBlock(raw,x,cy,maxWidth,bodySize,bodyLine,'#252525',400); }
+      const bodySize=Number($('bodyFontSize').value), bodyLine=Math.round(bodySize*1.75), bodyWeight=Number($('bodyWeight').value);
+      for(const raw of normal){ if(!raw){cy+=Math.round(bodyLine*.75);continue;} cy=drawTextBlock(raw,x,cy,maxWidth,bodySize,bodyLine,'#252525',bodyWeight); }
       return cy;
     }
     function drawExtraBlock(text,x,y,maxWidth) {
-      let cy=y, size=Number($('careFontSize').value), lineHeight=Math.round(size*1.75);
-      if(text.trim()) cy=drawTextBlock(text,x,cy,maxWidth,size,lineHeight,'#505050',400);
+      let cy=y, size=Number($('careFontSize').value), lineHeight=Math.round(size*1.75), careWeight=Number($('careWeight').value);
+      if(text.trim()) cy=drawTextBlock(text,x,cy,maxWidth,size,lineHeight,'#505050',careWeight);
       const care=Object.entries(careState).filter(([,status])=>status!=='표시 안 함').map(([device,status])=>`${device} ${status}`);
-      if(care.length){ if(text.trim()) cy+=8; const joined=care.join(' · '); let fit=size; do{ctx.font=`400 ${fit}px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif`;if(ctx.measureText(joined).width<=maxWidth)break;fit--;}while(fit>9);ctx.fillStyle='#555555';ctx.textAlign='left';ctx.fillText(joined,x,cy);cy+=Math.round(fit*1.8); }
+      if(care.length){ if(text.trim()) cy+=8; const joined=care.join(' · '); let fit=size; do{ctx.font=`${careWeight} ${fit}px ${fontFamily}`;if(ctx.measureText(joined).width<=maxWidth)break;fit--;}while(fit>9);ctx.fillStyle='#555555';ctx.textAlign='left';ctx.fillText(joined,x,cy);cy+=Math.round(fit*1.8); }
       return cy;
     }
     function contain(iw,ih,bw,bh){ const s=Math.min(bw/iw,bh/ih); return {w:iw*s,h:ih*s}; }
     function drawPlaceholder(x,y,w,h){
-      ctx.save(); ctx.strokeStyle='#d7d3cc'; ctx.setLineDash([10,10]); ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); ctx.setLineDash([]); ctx.fillStyle='#aaa59d'; ctx.textAlign='center'; ctx.font='500 18px -apple-system, sans-serif'; ctx.fillText('상품 사진을 넣어주세요',x+w/2,y+h/2); ctx.restore();
+      ctx.save(); ctx.strokeStyle='#d7d3cc'; ctx.setLineDash([10,10]); ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); ctx.setLineDash([]); ctx.fillStyle='#aaa59d'; ctx.textAlign='center'; ctx.font=`500 18px ${fontFamily}`; ctx.fillText('상품 사진을 넣어주세요',x+w/2,y+h/2); ctx.restore();
     }
     function drawContained(img, box, scale=1) {
       const d=contain(img.width,img.height,box.w,box.h), w=d.w*scale, h=d.h*scale;
       ctx.save(); ctx.beginPath(); ctx.rect(box.x,box.y,box.w,box.h); ctx.clip();
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
       ctx.drawImage(img,box.x+(box.w-w)/2,box.y+(box.h-h)/2,w,h); ctx.restore();
     }
     function drawProductImages(box) {
@@ -205,24 +210,24 @@
     function render(){
       ctx.clearRect(0,0,1000,1000); ctx.fillStyle='#fff'; ctx.fillRect(0,0,1000,1000);
       const right=$('layout').value==='right'; const tx=right?54:554, ix=right?540:54; const tw=446, iw=406;
-      ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font='500 29px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
+      ctx.fillStyle='#202020'; ctx.textAlign='left'; ctx.font=`${$('titleWeight').value} 29px ${fontFamily}`; ctx.fillText($('title').value || '상품명을 입력하세요',tx,129);
       const retailPrice=$('retailPrice').value.replace(/\D/g,'');
-      if(retailPrice){ ctx.fillStyle='#55514c'; ctx.font='600 17px -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif'; ctx.fillText(`정가 ${Number(retailPrice).toLocaleString('ko-KR')}원`,tx,169); }
+      if(retailPrice){ ctx.fillStyle='#55514c'; ctx.font=`${$('priceWeight').value} 17px ${fontFamily}`; ctx.fillText(`정가 ${Number(retailPrice).toLocaleString('ko-KR')}원`,tx,169); }
       let y=retailPrice?220:207; y=drawDescriptionBlock($('description').value,tx,y,tw);
       if($('description').value.trim() && ($('extraDescription').value.trim() || Object.values(careState).some(v=>v!=='표시 안 함'))) y+=10;
       y=drawExtraBlock($('extraDescription').value,tx,y,tw);
       const firstRule=Math.max(455,y+32); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,firstRule,tw,2);
-      ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('재질',tx,firstRule+64);
+      ctx.fillStyle='#77736c'; ctx.font=`500 22px ${fontFamily}`; ctx.fillText('재질',tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
       const secondRule=Math.max(665,y+30); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,secondRule,tw,2);
-      ctx.fillStyle='#77736c'; ctx.font='500 22px -apple-system, sans-serif'; ctx.fillText('크기',tx,secondRule+64);
+      ctx.fillStyle='#77736c'; ctx.font=`500 22px ${fontFamily}`; ctx.fillText('크기',tx,secondRule+64);
       const dimensions=[$('sizeWidth').value.trim(),$('sizeDepth').value.trim(),$('sizeHeight').value.trim()];
       const sizeText=dimensions.some(Boolean) ? `가로 × 세로 × 높이\n\n${dimensions.map(v=>v||'-').join(' × ')} (cm)` : '';
       drawTextBlock(sizeText,tx,secondRule+118,tw,17,29,'#32302d',400);
       const box={x:ix,y:150,w:iw,h:735};
       drawProductImages(box);
       const copyright=$('copyright').value.trim();
-      if($('copyrightEnabled').checked && copyright){ ctx.fillStyle='#aaa7a1'; ctx.textAlign='right'; ctx.font='400 13px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.fillText(copyright,946,932); }
+      if($('copyrightEnabled').checked && copyright){ ctx.fillStyle='#aaa7a1'; ctx.textAlign='right'; ctx.font=`400 13px ${fontFamily}`; ctx.fillText(copyright,946,932); }
     }
     fields.forEach(id => $(id).addEventListener('input',()=>{ if(id==='bodyFontSize') $('bodyFontValue').textContent=`${$(id).value}px`; if(id==='careFontSize') $('careFontValue').textContent=`${$(id).value}px`; render(); }));
     [1,2,3,4].forEach(i=>$(`photoScale${i}`).addEventListener('input',()=>{ $(`scaleValue${i}`).textContent=`${$(`photoScale${i}`).value}%`; render(); }));
@@ -257,18 +262,19 @@
     $('allCareOff').addEventListener('click',()=>applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}));
     $('loadPreviousCare').addEventListener('click',()=>{ try{const saved=JSON.parse(localStorage.getItem('productInfoCare'));if(saved)applyCareState(saved);}catch{} });
     $('contentSettingsToggle').addEventListener('click',()=>{ const panel=$('contentSettings'), open=panel.hidden; panel.hidden=!open; $('contentSettingsToggle').textContent=`내용 설정 ${open?'▴':'▾'}`; $('contentSettingsToggle').setAttribute('aria-expanded',String(open)); });
-    $('download').addEventListener('click',()=>{
+    $('download').addEventListener('click',async()=>{
+      await document.fonts.ready;
       const fmt=$('format').value, output=document.createElement('canvas'), out=output.getContext('2d');
-      canvas.width=2000; canvas.height=2000; ctx.setTransform(2,0,0,2,0,0); render();
+      canvas.width=3000; canvas.height=3000; ctx.setTransform(3,0,0,3,0,0); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; render();
       output.width=1000; output.height=1000; out.imageSmoothingEnabled=true; out.imageSmoothingQuality='high'; out.drawImage(canvas,0,0,1000,1000);
-      const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=output.toDataURL(`image/${fmt}`,.96); a.click();
+      const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=output.toDataURL(`image/${fmt}`,fmt==='jpeg'?1:.96); a.click();
       localStorage.setItem('productInfoCare',JSON.stringify(careState));
       canvas.width=1000; canvas.height=1000; ctx.setTransform(1,0,0,1,0,0); render();
     });
     $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('extraDescription').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
-    render();
+    document.fonts.ready.then(render);
   </script>
 </body>
 </html>
