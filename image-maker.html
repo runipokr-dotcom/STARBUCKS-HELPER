@@ -51,9 +51,9 @@
     .check-row input { width:17px; height:17px; margin:0; accent-color:var(--accent); }
     .section-check { display:inline-flex; align-items:center; gap:7px; margin:0; color:inherit; font-size:inherit; font-weight:inherit; cursor:pointer; }
     .section-check input { width:16px; height:16px; margin:0; padding:0; accent-color:var(--accent); }
-    .font-size-strip { display:flex; gap:7px; overflow-x:auto; padding:2px 1px 8px; scrollbar-width:thin; -webkit-overflow-scrolling:touch; }
-    .font-size-strip button { flex:0 0 auto; min-width:44px; border:1px solid #d8d3cb; border-radius:9px; padding:8px 10px; background:#fff; color:#3e3a35; font-size:12px; font-weight:700; cursor:pointer; }
-    .font-size-strip button:hover { border-color:var(--accent); color:var(--accent); }
+    .font-size-control { display:grid; grid-template-columns:1fr 52px; align-items:center; gap:10px; }
+    .font-size-control input[type="range"] { padding:0; border:0; border-radius:0; box-shadow:none; accent-color:var(--accent); }
+    .font-size-value { text-align:right; color:#3e3a35; font-size:12px; font-weight:700; }
     .font-target-hint { margin:5px 0 10px; color:var(--muted); font-size:11px; line-height:1.45; }
     .weight-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; }
     .weight-grid label { margin:0; }
@@ -77,9 +77,9 @@
       <div class="section">
         <div class="section-heading"><h2>글자 설정</h2><button type="button" class="settings-toggle" id="contentSettingsToggle" aria-expanded="false">설정 펼치기 ▾</button></div>
         <div class="content-settings" id="contentSettings" hidden>
-          <label>글꼴 크기</label>
-          <div class="font-size-strip" id="fontSizeStrip" aria-label="글꼴 크기 선택"></div>
-          <p class="font-target-hint">아래의 상품 내용 · 재질 · 크기 체크박스를 선택한 뒤 크기를 누르면 선택 영역에 적용됩니다.</p>
+          <label for="fontSizeRange">글꼴 크기</label>
+          <div class="font-size-control"><input id="fontSizeRange" type="range" min="10" max="32" step="1" value="18"><span class="font-size-value" id="fontSizeValue">18px</span></div>
+          <p class="font-target-hint">상품 내용 · 재질 · 크기 중 하나를 선택한 뒤 좌우로 밀어 크기를 조절합니다.</p>
           <div class="weight-grid">
             <label>상품명<select id="titleWeight"><option>100</option><option>200</option><option>300</option><option>400</option><option selected>500</option><option>600</option><option>700</option><option>800</option><option>900</option></select></label>
             <label>정가<select id="priceWeight"><option>100</option><option>200</option><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option><option>900</option></select></label>
@@ -147,6 +147,7 @@
     const fontFamily = 'Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif';
     let productImages = [], accent = '#171717', careState={오븐:'불가',전자레인지:'불가',식기세척기:'불가'};
     let fontSizes={content:18,material:17,size:17};
+    const fontTargets=['targetContent','targetMaterial','targetSize'];
 
     function lines(text) { return text.split('\n'); }
     function wrapCanvasLine(raw,maxWidth) {
@@ -242,16 +243,27 @@
       if($('copyrightEnabled').checked && copyright){ ctx.fillStyle='#aaa7a1'; ctx.textAlign='right'; ctx.font=`400 13px ${fontFamily}`; ctx.fillText(copyright,946,932); }
     }
 
-    for(let s=10;s<=32;s++){
-      const b=document.createElement('button'); b.type='button'; b.textContent=`${s}px`; b.dataset.fontSize=s;
-      b.addEventListener('click',()=>{
-        if($('targetContent').checked) fontSizes.content=s;
-        if($('targetMaterial').checked) fontSizes.material=s;
-        if($('targetSize').checked) fontSizes.size=s;
-        render();
-      });
-      $('fontSizeStrip').appendChild(b);
+    function selectedTarget(){
+      if($('targetMaterial').checked) return 'material';
+      if($('targetSize').checked) return 'size';
+      return 'content';
     }
+    function syncFontSlider(){
+      const target=selectedTarget();
+      $('fontSizeRange').value=fontSizes[target];
+      $('fontSizeValue').textContent=`${fontSizes[target]}px`;
+    }
+    fontTargets.forEach(id=>$(id).addEventListener('change',e=>{
+      if(!e.target.checked){ e.target.checked=true; return; }
+      fontTargets.forEach(other=>{ if(other!==id) $(other).checked=false; });
+      syncFontSlider();
+    }));
+    $('fontSizeRange').addEventListener('input',e=>{
+      const size=Number(e.target.value), target=selectedTarget();
+      fontSizes[target]=size;
+      $('fontSizeValue').textContent=`${size}px`;
+      render();
+    });
     fields.forEach(id => $(id).addEventListener('input',render));
     [1,2,3,4].forEach(i=>$(`photoScale${i}`).addEventListener('input',()=>{ $(`scaleValue${i}`).textContent=`${$(`photoScale${i}`).value}%`; render(); }));
     ['sizeWidth','sizeDepth','sizeHeight'].forEach(id=>$(id).addEventListener('input',e=>{ let value=e.target.value.replace(/[^0-9.]/g,''); const dot=value.indexOf('.'); if(dot>=0) value=value.slice(0,dot+1)+value.slice(dot+1).replace(/\./g,''); e.target.value=value; render(); }));
@@ -282,6 +294,7 @@
     $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('extraDescription').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
+    syncFontSlider();
     document.fonts.ready.then(render);
   </script>
 </body>
