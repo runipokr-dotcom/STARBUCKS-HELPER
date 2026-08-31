@@ -1,9 +1,9 @@
 <!--
 STARBUCKS HELPER
 File : md-extractor.html
-Version : 1.0
+Version : 1.1
 Updated : 2026-08-31
-Purpose : Save one user-supplied Starbucks product page to the Mac via local helper
+Purpose : Redirect Starbucks MD extraction directly to the Mac local helper
 -->
 <!doctype html>
 <html lang="ko">
@@ -13,22 +13,14 @@ Purpose : Save one user-supplied Starbucks product page to the Mac via local hel
 <meta name="theme-color" content="#063c2d">
 <title>스타벅스 MD 추출 | STARBUCKS HELPER</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--green:#00754a;--dark:#063c2d;--pale:#dff2e8;--bg:#f3f5f3;--line:#dfe5e1;--text:#18201c;--muted:#6a766f}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}header{background:var(--dark);color:#fff;padding:calc(22px + env(safe-area-inset-top)) 20px 56px}.head,main{width:min(100%,720px);margin:auto}.back{color:#cfe7da;text-decoration:none;font-size:13px;font-weight:750}h1{margin:20px 0 8px;font-size:clamp(28px,8vw,40px);letter-spacing:-.04em}header p{margin:0;color:rgba(255,255,255,.68);font-size:14px;line-height:1.55}main{margin-top:-30px;padding:0 14px calc(30px + env(safe-area-inset-bottom))}.card{padding:20px;border:1px solid rgba(19,51,37,.08);border-radius:22px;background:#fff;box-shadow:0 10px 28px rgba(18,46,34,.07)}label{display:block;margin-bottom:9px;font-size:14px;font-weight:850}input{width:100%;height:52px;border:1px solid var(--line);border-radius:14px;padding:0 14px;background:#fbfcfb;color:var(--text);font:inherit;outline:none}input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,117,74,.11)}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:14px;background:var(--green);color:#fff;font:inherit;font-weight:850;cursor:pointer}button:disabled{background:#9aa7a0;cursor:wait}.path{margin:14px 0 0;padding:12px;border-radius:13px;background:var(--pale);color:#25513e;font-size:12px;line-height:1.45;word-break:break-all}.status{margin-top:14px;padding:15px;border:1px solid var(--line);border-radius:15px;background:#fbfcfb;font-size:13px;line-height:1.55}.status.wait{color:var(--muted)}.status.ok{border-color:#a9d5bd;background:#f0faf4;color:#075e45}.status.error{border-color:#efc2bd;background:#fff5f4;color:#9d241d}.result{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:15px;background:#fff}.result[hidden]{display:none}.result h2{margin:0 0 10px;font-size:18px}.result dl{display:grid;grid-template-columns:76px 1fr;gap:7px 10px;margin:0;font-size:13px}.result dt{color:var(--muted);font-weight:750}.result dd{margin:0;word-break:break-all}.notice{margin:16px 2px 0;color:var(--muted);font-size:11px;line-height:1.5}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--green:#00754a;--dark:#063c2d;--pale:#dff2e8;--bg:#f3f5f3;--line:#dfe5e1;--text:#18201c;--muted:#6a766f}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}header{background:var(--dark);color:#fff;padding:calc(22px + env(safe-area-inset-top)) 20px 56px}.head,main{width:min(100%,720px);margin:auto}.back{color:#cfe7da;text-decoration:none;font-size:13px;font-weight:750}h1{margin:20px 0 8px;font-size:clamp(28px,8vw,40px);letter-spacing:-.04em}header p{margin:0;color:rgba(255,255,255,.68);font-size:14px;line-height:1.55}main{margin-top:-30px;padding:0 14px calc(30px + env(safe-area-inset-bottom))}.card{padding:20px;border:1px solid rgba(19,51,37,.08);border-radius:22px;background:#fff;box-shadow:0 10px 28px rgba(18,46,34,.07)}.status{padding:15px;border:1px solid var(--line);border-radius:15px;background:#fbfcfb;color:var(--muted);font-size:13px;line-height:1.55}
 </style>
 </head>
 <body>
-<header><div class="head"><a class="back" href="index.html">← 헬퍼 홈</a><h1>스타벅스 MD 추출</h1><p>공식 상품 상세 URL 한 건에서 상품명·원본 이미지·하단 설명만 저장합니다.</p></div></header>
-<main><section class="card">
-<label>Mac 로컬 추출기</label>
-<button id="extractButton" type="button">로컬 MD 추출기 열기</button>
-<p class="path">저장 위치<br>/Users/kangsik/Downloads/스타벅스MD/상품명/</p>
-<div id="status" class="status wait">버튼을 누르면 Mac에서 실행 중인 로컬 추출기 화면이 열립니다.</div>
-<p class="notice">상품 목록을 검색하지 않습니다. 입력한 URL 한 건만 처리하며, 기존 상품 폴더가 있으면 새 번호를 붙여 안전하게 저장합니다.</p>
-</section></main>
+<header><div class="head"><a class="back" href="index.html">← 헬퍼 홈</a><h1>스타벅스 MD 추출</h1><p>Mac 로컬 추출기로 바로 연결합니다.</p></div></header>
+<main><section class="card"><div class="status">로컬 MD 추출기를 여는 중입니다…</div></section></main>
 <script>
-const HELPER="http://127.0.0.1:17832/",button=document.getElementById("extractButton"),statusBox=document.getElementById("status");
-function setStatus(message,type="wait"){statusBox.textContent=message;statusBox.className=`status ${type}`}
-button.addEventListener("click",()=>{setStatus("Mac 로컬 추출기를 여는 중입니다.","ok");location.href=HELPER});
+location.replace("http://127.0.0.1:17832/");
 </script>
 </body>
 </html>
