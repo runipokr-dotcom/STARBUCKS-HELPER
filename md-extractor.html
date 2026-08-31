@@ -19,21 +19,16 @@ Purpose : Save one user-supplied Starbucks product page to the Mac via local hel
 <body>
 <header><div class="head"><a class="back" href="index.html">← 헬퍼 홈</a><h1>스타벅스 MD 추출</h1><p>공식 상품 상세 URL 한 건에서 상품명·원본 이미지·하단 설명만 저장합니다.</p></div></header>
 <main><section class="card">
-<label for="productUrl">스타벅스 상품 상세 URL</label>
-<input id="productUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.starbucks.co.kr/menu/product_view.do?product_cd=...">
-<button id="extractButton" type="button">상품 정보와 이미지 저장</button>
+<label>Mac 로컬 추출기</label>
+<button id="extractButton" type="button">로컬 MD 추출기 열기</button>
 <p class="path">저장 위치<br>/Users/kangsik/Downloads/스타벅스MD/상품명/</p>
-<div id="status" class="status wait">Mac 로컬 다운로더 연결을 확인하는 중입니다.</div>
-<div id="result" class="result" hidden><h2 id="resultName"></h2><dl><dt>이미지</dt><dd id="resultCount"></dd><dt>저장 폴더</dt><dd id="resultFolder"></dd><dt>하단 설명</dt><dd id="resultDescription"></dd></dl></div>
+<div id="status" class="status wait">버튼을 누르면 Mac에서 실행 중인 로컬 추출기 화면이 열립니다.</div>
 <p class="notice">상품 목록을 검색하지 않습니다. 입력한 URL 한 건만 처리하며, 기존 상품 폴더가 있으면 새 번호를 붙여 안전하게 저장합니다.</p>
 </section></main>
 <script>
-const HELPER="http://127.0.0.1:17832",urlInput=document.getElementById("productUrl"),button=document.getElementById("extractButton"),statusBox=document.getElementById("status"),result=document.getElementById("result");
+const HELPER="http://127.0.0.1:17832/",button=document.getElementById("extractButton"),statusBox=document.getElementById("status");
 function setStatus(message,type="wait"){statusBox.textContent=message;statusBox.className=`status ${type}`}
-function validUrl(value){try{const u=new URL(value);return u.protocol==="https:"&&u.hostname==="www.starbucks.co.kr"&&u.pathname==="/menu/product_view.do"&&/^\d+$/.test(u.searchParams.get("product_cd")||"")}catch{return false}}
-async function health(){try{const response=await fetch(`${HELPER}/health`,{cache:"no-store"});if(!response.ok)throw 0;setStatus("Mac 로컬 다운로더가 연결되었습니다.","ok")}catch{setStatus("Mac 로컬 다운로더가 실행되지 않았습니다. 먼저 로컬 헬퍼를 실행해주세요.","error")}}
-async function extract(){const url=urlInput.value.trim();result.hidden=true;if(!validUrl(url)){setStatus("스타벅스 공식 상품 상세 URL을 정확히 입력해주세요.","error");urlInput.focus();return}button.disabled=true;button.textContent="원본 이미지 저장 중…";setStatus("상품 페이지를 확인하고 원본 이미지를 저장하고 있습니다.","wait");try{const response=await fetch(`${HELPER}/extract`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error(data.error||"추출하지 못했습니다.");document.getElementById("resultName").textContent=data.productName;document.getElementById("resultCount").textContent=`${data.imageCount}개`;document.getElementById("resultFolder").textContent=data.folder;document.getElementById("resultDescription").textContent=data.description;result.hidden=false;setStatus("저장이 완료되었습니다.","ok")}catch(error){setStatus(error.message==="Failed to fetch"?"Mac 로컬 다운로더에 연결할 수 없습니다. 로컬 헬퍼 실행 상태를 확인해주세요.":error.message,"error")}finally{button.disabled=false;button.textContent="상품 정보와 이미지 저장"}}
-button.addEventListener("click",extract);urlInput.addEventListener("keydown",event=>{if(event.key==="Enter")extract()});health();
+button.addEventListener("click",()=>{setStatus("Mac 로컬 추출기를 여는 중입니다.","ok");location.href=HELPER});
 </script>
 </body>
 </html>

@@ -8,6 +8,7 @@ Downloads/스타벅스MD directory. Uses only the Python standard library.
 from __future__ import annotations
 
 import json
+import html as html_module
 import mimetypes
 import os
 import re
@@ -200,6 +201,26 @@ def extract_product(url: str) -> dict[str, object]:
     }
 
 
+def local_page(result: dict[str, object] | None = None, error: str = "") -> bytes:
+    result_html = ""
+    if result:
+        result_html = f"""
+        <section class="result"><h2>{html_module.escape(str(result['productName']))}</h2>
+        <dl><dt>이미지</dt><dd>{result['imageCount']}개</dd>
+        <dt>저장 폴더</dt><dd>{html_module.escape(str(result['folder']))}</dd>
+        <dt>하단 설명</dt><dd>{html_module.escape(str(result['description'])).replace(chr(10), '<br>')}</dd></dl></section>"""
+    error_html = f'<p class="error">{html_module.escape(error)}</p>' if error else ""
+    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>스타벅스 MD 추출 | STARBUCKS HELPER</title><style>
+    :root{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--green:#00754a;--dark:#063c2d;--bg:#f3f5f3;--line:#dfe5e1;--text:#18201c;--muted:#6a766f}}*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text)}}header{{padding:28px 20px 54px;background:var(--dark);color:#fff}}.head,main{{width:min(100%,720px);margin:auto}}h1{{margin:0 0 8px;font-size:34px}}header p{{margin:0;color:#c8ddd3}}main{{margin-top:-28px;padding:0 14px 30px}}.card,.result{{padding:20px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 10px 28px #122e2212}}label{{display:block;margin-bottom:9px;font-weight:800}}input,button{{width:100%;height:52px;border-radius:14px;font:inherit}}input{{border:1px solid var(--line);padding:0 14px}}button{{margin-top:12px;border:0;background:var(--green);color:#fff;font-weight:850}}.path{{padding:12px;border-radius:12px;background:#dff2e8;color:#25513e;font-size:12px;word-break:break-all}}.error{{padding:12px;border-radius:12px;background:#fff1ef;color:#9d241d}}.result{{margin-top:14px}}.result h2{{margin-top:0}}dl{{display:grid;grid-template-columns:76px 1fr;gap:8px;font-size:13px}}dt{{color:var(--muted);font-weight:750}}dd{{margin:0;word-break:break-all}}
+    </style></head><body><header><div class="head"><h1>스타벅스 MD 추출</h1><p>입력한 공식 상품 상세 URL 한 건만 처리합니다.</p></div></header>
+    <main><section class="card"><form action="/extract-form" method="post"><label for="url">스타벅스 상품 상세 URL</label>
+    <input id="url" name="url" type="url" required placeholder="https://www.starbucks.co.kr/menu/product_view.do?product_cd=...">
+    <button type="submit">상품 정보와 이미지 저장</button></form>
+    <p class="path">저장 위치<br>{html_module.escape(str(SAVE_ROOT))}/상품명/</p>{error_html}</section>{result_html}</main></body></html>""".encode("utf-8")
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "StarbucksMDHelper/1.0"
 
@@ -226,6 +247,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_html(self, status: int, body: bytes) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_OPTIONS(self) -> None:
         if not self.allowed_origin():
             self.send_json(403, {"ok": False, "error": "허용되지 않은 요청입니다."})
@@ -238,12 +266,28 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:
-        if self.path == "/health":
+        if self.path == "/":
+            self.send_html(200, local_page())
+        elif self.path == "/health":
             self.send_json(200, {"ok": True, "saveRoot": str(SAVE_ROOT)})
         else:
             self.send_json(404, {"ok": False, "error": "찾을 수 없습니다."})
 
     def do_POST(self) -> None:
+        if self.path == "/extract-form":
+            try:
+                length = int(self.headers.get("Content-Length") or "0")
+                if length < 1 or length > 4096:
+                    raise ExtractionError("요청 크기가 올바르지 않습니다.")
+                values = urllib.parse.parse_qs(self.rfile.read(length).decode("utf-8"))
+                result = extract_product(str((values.get("url") or [""])[0]))
+                self.send_html(200, local_page(result=result))
+            except ExtractionError as exc:
+                self.send_html(400, local_page(error=str(exc)))
+            except Exception as exc:
+                print(f"Unexpected extraction error: {exc!r}")
+                self.send_html(500, local_page(error="저장 중 오류가 발생했습니다."))
+            return
         if self.path != "/extract":
             self.send_json(404, {"ok": False, "error": "찾을 수 없습니다."})
             return
