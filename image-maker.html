@@ -284,12 +284,13 @@
     $('contentSettingsToggle').addEventListener('click',()=>{ const panel=$('contentSettings'), open=panel.hidden; panel.hidden=!open; $('contentSettingsToggle').textContent=`설정 ${open?'접기 ▴':'펼치기 ▾'}`; $('contentSettingsToggle').setAttribute('aria-expanded',String(open)); });
     $('download').addEventListener('click',async()=>{
       await document.fonts.ready;
-      const fmt=$('format').value, output=document.createElement('canvas'), out=output.getContext('2d');
-      canvas.width=3000; canvas.height=3000; ctx.setTransform(3,0,0,3,0,0); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; render();
-      output.width=1000; output.height=1000; out.imageSmoothingEnabled=true; out.imageSmoothingQuality='high'; out.drawImage(canvas,0,0,1000,1000);
-      const a=document.createElement('a'); a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`; a.href=output.toDataURL(`image/${fmt}`,fmt==='jpeg'?1:.96); a.click();
+      render();
+      const fmt=$('format').value;
+      const a=document.createElement('a');
+      a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`;
+      a.href=canvas.toDataURL(`image/${fmt}`,fmt==='jpeg'?1:undefined);
+      a.click();
       localStorage.setItem('productInfoCare',JSON.stringify(careState));
-      canvas.width=1000; canvas.height=1000; ctx.setTransform(1,0,0,1,0,0); render();
     });
     $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('extraDescription').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
