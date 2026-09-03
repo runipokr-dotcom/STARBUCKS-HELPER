@@ -24,8 +24,8 @@ from pathlib import Path
 
 
 HOST = "127.0.0.1"
-PORT = 17832
-SAVE_ROOT = Path.home() / "Downloads" / "스타벅스MD"
+PORT = int(os.environ.get("STARBUCKS_HELPER_PORT", "17832"))
+SAVE_ROOT = Path(os.environ.get("STARBUCKS_HELPER_SAVE_ROOT", Path.home() / "Downloads" / "스타벅스MD"))
 ALLOWED_ORIGINS = {
     "https://runipokr-dotcom.github.io",
     "http://127.0.0.1:8000",
