@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import signal
+import subprocess
 import tempfile
 import urllib.error
 import urllib.parse
@@ -29,6 +30,7 @@ ALLOWED_ORIGINS = {
     "https://runipokr-dotcom.github.io",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "null",
 }
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -42,23 +44,40 @@ class ExtractionError(Exception):
     pass
 
 
-def validate_product_url(value: str) -> str:
+def validate_product_url(value: str) -> tuple[str, str]:
     try:
         parsed = urllib.parse.urlsplit(value.strip())
     except ValueError as exc:
         raise ExtractionError("올바른 URL을 입력해주세요.") from exc
-    if parsed.scheme != "https" or parsed.hostname != "www.starbucks.co.kr":
-        raise ExtractionError("스타벅스 공식 상품 상세 URL만 사용할 수 있습니다.")
-    if parsed.path != "/menu/product_view.do":
-        raise ExtractionError("상품 상세페이지 URL 형식이 아닙니다.")
-    product_codes = urllib.parse.parse_qs(parsed.query).get("product_cd", [])
-    if len(product_codes) != 1 or not re.fullmatch(r"\d+", product_codes[0]):
-        raise ExtractionError("URL의 product_cd를 확인해주세요.")
-    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
+    if parsed.scheme != "https":
+        raise ExtractionError("HTTPS 상품 주소를 입력해주세요.")
+    if parsed.hostname == "www.starbucks.co.kr":
+        if parsed.path != "/menu/product_view.do":
+            raise ExtractionError("스타벅스 상품 상세페이지 URL 형식이 아닙니다.")
+        product_codes = urllib.parse.parse_qs(parsed.query).get("product_cd", [])
+        if len(product_codes) != 1 or not re.fullmatch(r"\d+", product_codes[0]):
+            raise ExtractionError("URL의 product_cd를 확인해주세요.")
+        return "starbucks", urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
+    if parsed.hostname in {"musinsa.com", "www.musinsa.com"}:
+        match = re.fullmatch(r"/products/(\d+)/?", parsed.path)
+        if not match:
+            raise ExtractionError("무신사 상품 상세페이지 URL 형식이 아닙니다.")
+        return "musinsa", f"https://www.musinsa.com/products/{match.group(1)}"
+    raise ExtractionError("스타벅스 공식 홈페이지 또는 무신사 상품 주소만 사용할 수 있습니다.")
 
 
 def fetch_bytes(url: str, limit: int, referer: str | None = None) -> tuple[bytes, str]:
-    headers = {"User-Agent": USER_AGENT, "Accept-Language": "ko-KR,ko;q=0.9"}
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Sec-Fetch-Dest": "document" if not referer else "image",
+        "Sec-Fetch-Mode": "navigate" if not referer else "no-cors",
+        "Sec-Fetch-Site": "none" if not referer else "same-site",
+        "Upgrade-Insecure-Requests": "1",
+    }
     if referer:
         headers["Referer"] = referer
     request = urllib.request.Request(url, headers=headers)
@@ -69,9 +88,22 @@ def fetch_bytes(url: str, limit: int, referer: str | None = None) -> tuple[bytes
                 raise ExtractionError("다운로드 파일이 허용 크기를 초과했습니다.")
             return data, response.headers.get_content_type()
     except urllib.error.HTTPError as exc:
-        raise ExtractionError(f"스타벅스 서버 응답 오류: HTTP {exc.code}") from exc
+        hostname = urllib.parse.urlsplit(url).hostname
+        if exc.code == 403 and hostname in {"www.musinsa.com", "musinsa.com", "image.msscdn.net"}:
+            command = [
+                "/usr/bin/curl", "-L", "--fail", "--silent", "--show-error",
+                "--max-filesize", str(limit), "-A", USER_AGENT,
+                "-H", "Accept-Language: ko-KR,ko;q=0.9", url,
+            ]
+            if referer:
+                command[-1:-1] = ["-e", referer]
+            result = subprocess.run(command, capture_output=True, check=False)
+            if result.returncode == 0 and len(result.stdout) <= limit:
+                guessed = mimetypes.guess_type(urllib.parse.urlsplit(url).path)[0]
+                return result.stdout, guessed or "application/octet-stream"
+        raise ExtractionError(f"상품 페이지 응답 오류: HTTP {exc.code}") from exc
     except urllib.error.URLError as exc:
-        raise ExtractionError("스타벅스 서버에 연결할 수 없습니다.") from exc
+        raise ExtractionError("상품 페이지에 연결할 수 없습니다.") from exc
 
 
 def extract_balanced(source: str, marker: str, opener: str, closer: str) -> str:
@@ -140,6 +172,45 @@ def parse_product(html: str) -> tuple[str, str, list[str]]:
     return name, description, image_urls
 
 
+def musinsa_large_image(path: str) -> str:
+    if path.startswith("//"):
+        path = "https:" + path
+    elif path.startswith("/"):
+        path = "https://image.msscdn.net/thumbnails" + path
+    if not path.startswith("https://image.msscdn.net/"):
+        return ""
+    path = re.sub(r"_500(?=\.(?:jpe?g|png|webp)$)", "_big", path, flags=re.I)
+    return path + ("&" if "?" in path else "?") + "w=1200"
+
+
+def parse_musinsa_product(page_html: str) -> tuple[str, str, int, list[str]]:
+    try:
+        state = json.loads(extract_balanced(page_html, "window.__MSS_FE__.product.state", "{", "}"))
+    except json.JSONDecodeError as exc:
+        raise ExtractionError("무신사 상품 데이터를 해석할 수 없습니다.") from exc
+    name = str(state.get("goodsNm") or "").strip()
+    price_data = state.get("goodsPrice") if isinstance(state.get("goodsPrice"), dict) else {}
+    price = int(price_data.get("salePrice") or price_data.get("normalPrice") or 0)
+    brand = state.get("brandInfo") if isinstance(state.get("brandInfo"), dict) else {}
+    description = str(state.get("headDesc") or brand.get("memo") or "").strip()
+    candidates = [str(state.get("thumbnailImageUrl") or "")]
+    for item in state.get("goodsImages") or []:
+        if isinstance(item, dict):
+            candidates.append(str(item.get("imageUrl") or ""))
+    images: list[str] = []
+    for candidate in candidates:
+        image_url = musinsa_large_image(candidate)
+        if image_url and image_url not in images:
+            images.append(image_url)
+        if len(images) >= 5:
+            break
+    if not name:
+        raise ExtractionError("무신사 상품명을 찾을 수 없습니다.")
+    if not images:
+        raise ExtractionError("무신사 상품 갤러리 이미지를 찾을 수 없습니다.")
+    return name, description, price, images
+
+
 def safe_folder_name(name: str) -> str:
     cleaned = re.sub(r"[/:*?\"<>|\\\x00-\x1f]", " ", name)
     cleaned = re.sub(r"\s+", " ", cleaned).strip(" .")
@@ -167,10 +238,14 @@ def extension_for(url: str, content_type: str) -> str:
 
 
 def extract_product(url: str) -> dict[str, object]:
-    normalized_url = validate_product_url(url)
+    source, normalized_url = validate_product_url(url)
     page_bytes, _ = fetch_bytes(normalized_url, MAX_PAGE_BYTES)
     html = page_bytes.decode("utf-8", errors="replace")
-    name, description, image_urls = parse_product(html)
+    if source == "musinsa":
+        name, description, price, image_urls = parse_musinsa_product(html)
+    else:
+        name, description, image_urls = parse_product(html)
+        price = 0
     destination = available_destination(name)
     temporary = Path(tempfile.mkdtemp(prefix=".starbucks-md-", dir=SAVE_ROOT))
     try:
@@ -181,11 +256,10 @@ def extract_product(url: str) -> dict[str, object]:
             filename = f"{index:02d}{extension}"
             (temporary / filename).write_bytes(image_bytes)
             saved_files.append(filename)
-        info = (
-            f"상품명\n{name}\n\n"
-            f"하단 설명\n{description}\n\n"
-            f"원본 URL\n{normalized_url}\n"
-        )
+        info = f"상품명\n{name}\n\n"
+        if price:
+            info += f"판매가\n{price:,}원\n\n"
+        info += f"하단 설명\n{description}\n\n원본 URL\n{normalized_url}\n"
         (temporary / "상품정보.txt").write_text(info, encoding="utf-8")
         temporary.rename(destination)
     except Exception:
@@ -194,10 +268,13 @@ def extract_product(url: str) -> dict[str, object]:
     return {
         "productName": name,
         "description": description,
+        "price": price,
         "imageCount": len(saved_files),
+        "imageUrls": image_urls,
         "files": saved_files + ["상품정보.txt"],
         "folder": str(destination),
         "sourceUrl": normalized_url,
+        "source": source,
     }
 
 
@@ -214,9 +291,9 @@ def local_page(result: dict[str, object] | None = None, error: str = "") -> byte
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>스타벅스 MD 추출 | STARBUCKS HELPER</title><style>
     :root{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--green:#00754a;--dark:#063c2d;--bg:#f3f5f3;--line:#dfe5e1;--text:#18201c;--muted:#6a766f}}*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text)}}header{{padding:28px 20px 54px;background:var(--dark);color:#fff}}.head,main{{width:min(100%,720px);margin:auto}}h1{{margin:0 0 8px;font-size:34px}}header p{{margin:0;color:#c8ddd3}}main{{margin-top:-28px;padding:0 14px 30px}}.card,.result{{padding:20px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 10px 28px #122e2212}}label{{display:block;margin-bottom:9px;font-weight:800}}input,button{{width:100%;height:52px;border-radius:14px;font:inherit}}input{{border:1px solid var(--line);padding:0 14px}}button{{margin-top:12px;border:0;background:var(--green);color:#fff;font-weight:850}}.path{{padding:12px;border-radius:12px;background:#dff2e8;color:#25513e;font-size:12px;word-break:break-all}}.error{{padding:12px;border-radius:12px;background:#fff1ef;color:#9d241d}}.result{{margin-top:14px}}.result h2{{margin-top:0}}dl{{display:grid;grid-template-columns:76px 1fr;gap:8px;font-size:13px}}dt{{color:var(--muted);font-weight:750}}dd{{margin:0;word-break:break-all}}
-    </style></head><body><header><div class="head"><h1>스타벅스 MD 추출</h1><p>입력한 공식 상품 상세 URL 한 건만 처리합니다.</p></div></header>
-    <main><section class="card"><form action="/extract-form" method="post"><label for="url">스타벅스 상품 상세 URL</label>
-    <input id="url" name="url" type="url" required placeholder="https://www.starbucks.co.kr/menu/product_view.do?product_cd=...">
+    </style></head><body><header><div class="head"><h1>스타벅스 MD 추출</h1><p>스타벅스 공식 홈페이지와 무신사 상품 주소를 지원합니다.</p></div></header>
+    <main><section class="card"><form action="/extract-form" method="post"><label for="url">상품 상세 URL</label>
+    <input id="url" name="url" type="url" required placeholder="스타벅스 공식 또는 musinsa.com/products/...">
     <button type="submit">상품 정보와 이미지 저장</button></form>
     <p class="path">저장 위치<br>{html_module.escape(str(SAVE_ROOT))}/상품명/</p>{error_html}</section>{result_html}</main></body></html>""".encode("utf-8")
 
