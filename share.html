@@ -532,6 +532,152 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           id += chars[Math.floor(Math.random() * chars.length)];
         return id;
       }
+      // Draws ONLY the basket panel itself (product names, qty, line totals,
+      // totals, contact fields) onto a canvas and downloads it as a JPG.
+      // No product photos are involved, so this never touches CORS/canvas-taint.
+      function wrapCanvasText(ctx, text, maxWidth, maxLines) {
+        let words = String(text).split(/\s+/).filter(Boolean),
+          allLines = [],
+          line = "";
+        for (let w of words) {
+          let test = line ? line + " " + w : w;
+          if (line && ctx.measureText(test).width > maxWidth) {
+            allLines.push(line);
+            line = w;
+          } else {
+            line = test;
+          }
+        }
+        if (line) allLines.push(line);
+        if (allLines.length <= maxLines) return allLines;
+        let lines = allLines.slice(0, maxLines),
+          last = lines[maxLines - 1];
+        while (last.length > 1 && ctx.measureText(last + "…").width > maxWidth)
+          last = last.slice(0, -1);
+        lines[maxLines - 1] = last + "…";
+        return lines;
+      }
+      async function buildBasketImage() {
+        let includeOffer = $("#includeOffer").checked,
+          selected = shareData.products.filter((p) => p.selected),
+          unit = (p) => (includeOffer ? p.offer : p.sale),
+          rows = selected.map((p) => ({
+            name: p.name,
+            qty: p.qty || 1,
+            lineTotal: unit(p) * (p.qty || 1),
+          })),
+          total = rows.reduce((s, r) => s + r.lineTotal, 0),
+          supply = Math.round(total / 1.1),
+          vat = total - supply,
+          contact = {
+            company: $("#ctCompany").value.trim(),
+            email: $("#ctEmail").value.trim(),
+            phone: $("#ctPhone").value.trim(),
+          };
+        try {
+          await document.fonts.ready;
+        } catch (e) {}
+        const W = 640,
+          PAD = 28,
+          SCALE = 2;
+        const measure = document.createElement("canvas").getContext("2d");
+        measure.font = "700 14px Pretendard, sans-serif";
+        let rowHeights = rows.map(
+          (r) =>
+            wrapCanvasText(measure, r.name, W - PAD * 2 - 150, 2).length,
+        );
+        const ROW_BASE = 30,
+          ROW_LINE = 18;
+        let rowsH = rowHeights.reduce((s, n) => s + ROW_BASE + n * ROW_LINE, 0),
+          headerH = 56,
+          totalsH = 92,
+          contactH = 40,
+          H = headerH + rowsH + totalsH + contactH + PAD * 2;
+        const canvas = document.createElement("canvas");
+        canvas.width = W * SCALE;
+        canvas.height = H * SCALE;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(SCALE, SCALE);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, W, H);
+        let y = PAD;
+        ctx.fillStyle = "#063c2d";
+        ctx.textAlign = "left";
+        ctx.font = "800 19px Pretendard, sans-serif";
+        ctx.fillText("주문 내역", PAD, y + 18);
+        y += headerH;
+        rows.forEach((r, idx) => {
+          let lines = wrapCanvasText(measure, r.name, W - PAD * 2 - 150, 2);
+          ctx.strokeStyle = "#dfe5e1";
+          ctx.beginPath();
+          ctx.moveTo(PAD, y - 6);
+          ctx.lineTo(W - PAD, y - 6);
+          ctx.stroke();
+          ctx.font = "700 14px Pretendard, sans-serif";
+          ctx.fillStyle = "#18201c";
+          ctx.textAlign = "left";
+          lines.forEach((line, i) =>
+            ctx.fillText(line, PAD, y + 14 + i * ROW_LINE),
+          );
+          let nameH = lines.length * ROW_LINE;
+          ctx.font = "400 12px Pretendard, sans-serif";
+          ctx.fillStyle = "#6a766f";
+          ctx.fillText(`${r.qty}개`, PAD, y + 14 + nameH + 2);
+          ctx.textAlign = "right";
+          ctx.font = "800 14px Pretendard, sans-serif";
+          ctx.fillStyle = "#18201c";
+          ctx.fillText(money(r.lineTotal), W - PAD, y + 14 + nameH / 2);
+          y += ROW_BASE + nameH;
+        });
+        y += 10;
+        ctx.textAlign = "left";
+        const totalLine = (label, value, big) => {
+          ctx.font = big
+            ? "800 16px Pretendard, sans-serif"
+            : "400 13px Pretendard, sans-serif";
+          ctx.fillStyle = big ? "#18201c" : "#6a766f";
+          ctx.textAlign = "left";
+          ctx.fillText(label, PAD, y + 14);
+          ctx.textAlign = "right";
+          ctx.fillText(value, W - PAD, y + 14);
+          y += big ? 26 : 22;
+        };
+        totalLine("공급가액", money(supply));
+        totalLine("부가세", money(vat));
+        totalLine("합계", money(total), true);
+        y += 12;
+        ctx.strokeStyle = "#dfe5e1";
+        ctx.beginPath();
+        ctx.moveTo(PAD, y);
+        ctx.lineTo(W - PAD, y);
+        ctx.stroke();
+        y += 22;
+        ctx.textAlign = "left";
+        ctx.font = "400 12px Pretendard, sans-serif";
+        ctx.fillStyle = "#6a766f";
+        ctx.fillText(
+          [contact.company, contact.email, contact.phone]
+            .filter(Boolean)
+            .join("   ·   "),
+          PAD,
+          y,
+        );
+        return new Promise((resolve) =>
+          canvas.toBlob(resolve, "image/jpeg", 0.92),
+        );
+      }
+      async function downloadBasketImage() {
+        let blob = await buildBasketImage();
+        if (!blob) return;
+        let url = URL.createObjectURL(blob),
+          a = document.createElement("a");
+        a.href = url;
+        a.download = `주문내역_${new Date().toISOString().slice(0, 10)}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }
       $("#saveBtn").onclick = async () => {
         let selected = shareData.products.filter((p) => p.selected);
         if (!selected.length) return;
@@ -573,7 +719,13 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           );
           $("#editableHint").hidden = true;
           $("#saveBtn").textContent = "저장 완료";
-          toast("저장했습니다. 이미지는 제공되지 않으니 필요 시 화면을 캡처해주세요.");
+          try {
+            await downloadBasketImage();
+            toast("저장했습니다. 주문 내역 이미지가 다운로드됩니다.");
+          } catch (imgError) {
+            console.error(imgError);
+            toast("저장했습니다. (이미지 다운로드에는 실패했어요)");
+          }
         } catch (error) {
           console.error(error);
           toast("저장에 실패했습니다. 인터넷 연결을 확인해주세요");
