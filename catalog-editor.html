@@ -237,6 +237,11 @@ Fixed : mobile two-column cards / autosave after product edits
         font-size: var(--offer, 14px);
         font-weight: 800;
       }
+      .web-price {
+        margin-top: 3px;
+        font-size: 10px;
+        color: #d0392c;
+      }
       .row-actions {
         display: flex;
         gap: 4px;
@@ -836,6 +841,14 @@ Fixed : mobile two-column cards / autosave after product edits
             >마진 (예: 11% 또는 5000)
             <input id="policyMargin" type="text"
           /></label>
+          <label
+            >웹마진 (예: 5% 또는 500)
+            <input id="policyWebMargin" type="text"
+          /></label>
+          <label
+            >수수료(%)
+            <input id="policyWebFee" type="text" inputmode="decimal"
+          /></label>
         </div>
         <button class="btn primary" id="policyApply" type="button">
           전체 상품에 적용
@@ -913,7 +926,11 @@ Fixed : mobile two-column cards / autosave after product edits
         star: "0",
         tumbler: "0",
         margin: "0",
+        webMargin: "0",
+        webFee: "0",
       };
+      data.policy.webMargin = data.policy.webMargin ?? "0";
+      data.policy.webFee = data.policy.webFee ?? "0";
       data.tumblerCategories = Array.isArray(data.tumblerCategories)
         ? data.tumblerCategories
         : [];
@@ -1102,6 +1119,8 @@ Fixed : mobile two-column cards / autosave after product edits
         $("#policyStar").value = data.policy.star ?? "";
         $("#policyTumbler").value = data.policy.tumbler ?? "";
         $("#policyMargin").value = data.policy.margin ?? "";
+        $("#policyWebMargin").value = data.policy.webMargin ?? "";
+        $("#policyWebFee").value = data.policy.webFee ?? "";
       }
       function sortProducts(mode) {
         let items = visible();
@@ -1128,8 +1147,8 @@ Fixed : mobile two-column cards / autosave after product edits
       function touch(p) {
         p.updatedAt = Date.now();
       }
-      function marginValue(cost) {
-        let raw = String(data.policy.margin ?? "").trim();
+      function marginValue(cost, override) {
+        let raw = String(override ?? data.policy.margin ?? "").trim();
         if (!raw) return 0;
         if (raw.endsWith("%")) {
           let pct = parseFloat(raw);
@@ -1138,6 +1157,12 @@ Fixed : mobile two-column cards / autosave after product edits
         let n = parseFloat(raw);
         if (!isFinite(n)) return 0;
         return n >= 100 ? n : cost * (n / 100);
+      }
+      function calcWebPrice(cost) {
+        let marked = cost + marginValue(cost, data.policy.webMargin),
+          fee = Number(data.policy.webFee || 0) / 100;
+        if (fee >= 1) return marked;
+        return Math.round(marked / (1 - fee));
       }
       function calcCost(sale, category) {
         let policy = data.policy,
@@ -1219,7 +1244,7 @@ Fixed : mobile two-column cards / autosave after product edits
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><input class="field name" data-k="name" value="${esc(p.name)}"><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><select class="category-select">${data.categories.map((c) => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
+                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><input class="field name" data-k="name" value="${esc(p.name)}"><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><div class="web-price">웹판매가 ${money(calcWebPrice(p.cost))}</div><select class="category-select">${data.categories.map((c) => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
                   .map(
                     (tag) =>
                       `<button type="button" class="tag-chip ${p.tags.includes(tag) ? "active" : ""}" data-product-tag="${esc(tag)}">${esc(tag)}</button>`,
@@ -1706,20 +1731,28 @@ Fixed : mobile two-column cards / autosave after product edits
       $("#newCategory").onkeydown = (e) => {
         if (e.key === "Enter") $("#addCategory").click();
       };
-      ["policyDiscount", "policyStar", "policyTumbler", "policyMargin"].forEach(
-        (id) => {
-          $("#" + id).onchange = () => {
-            let key = {
-              policyDiscount: "discount",
-              policyStar: "star",
-              policyTumbler: "tumbler",
-              policyMargin: "margin",
-            }[id];
-            data.policy[key] = $("#" + id).value.trim();
-            autosave();
-          };
-        },
-      );
+      [
+        "policyDiscount",
+        "policyStar",
+        "policyTumbler",
+        "policyMargin",
+        "policyWebMargin",
+        "policyWebFee",
+      ].forEach((id) => {
+        $("#" + id).onchange = () => {
+          let key = {
+            policyDiscount: "discount",
+            policyStar: "star",
+            policyTumbler: "tumbler",
+            policyMargin: "margin",
+            policyWebMargin: "webMargin",
+            policyWebFee: "webFee",
+          }[id];
+          data.policy[key] = $("#" + id).value.trim();
+          autosave();
+          render();
+        };
+      });
       $("#policyApply").onclick = () => {
         data.products.forEach((p) => {
           p.cost = calcCost(p.sale, p.category);
