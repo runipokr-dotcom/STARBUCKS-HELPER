@@ -858,7 +858,7 @@ Fixed : mobile two-column cards / autosave after product edits
       <div class="basket-body" id="basketRows"></div>
       <div class="basket-foot">
         <span id="shareStatus">고객 링크: 저장하면 자동 발행됩니다</span
-        ><button class="btn primary" id="quote">고객 링크 복사</button>
+        ><button class="btn primary" id="quote">게시하기</button>
       </div>
     </aside>
     <div class="notice" id="notice"></div>
@@ -1202,6 +1202,7 @@ Fixed : mobile two-column cards / autosave after product edits
                 category: p.category,
                 tags: p.tags,
                 images: publicImages(p),
+                updatedAt: p.updatedAt || p.id,
               })),
               updatedAt: Date.now(),
             };

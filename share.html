@@ -173,11 +173,28 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         font-size: 14px;
         font-weight: 800;
       }
-      .pick-row {
+      .meta {
         display: flex;
         align-items: center;
+        gap: 7px;
+        margin-bottom: 7px;
+        color: var(--mut);
+        font-size: 12px;
+      }
+      .drag {
+        cursor: grab;
+      }
+      .selection-tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
         gap: 6px;
-        margin-top: 7px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      .selection-count {
+        margin-left: auto;
+        color: var(--mut);
         font-size: 12px;
       }
       .empty-result {
@@ -347,6 +364,33 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             표기</label
           >
         </div>
+        <div class="filter-line">
+          <b>소분류</b>
+          <div class="filter-buttons" id="tagFilters"></div>
+        </div>
+        <div class="filter-line">
+          <b>정렬</b>
+          <div class="filter-buttons" id="sortButtons">
+            <button type="button" class="filter-btn" data-sort="price">
+              가격높은순
+            </button>
+            <button type="button" class="filter-btn" data-sort="added">
+              최근추가순
+            </button>
+            <button type="button" class="filter-btn" data-sort="updated">
+              최근수정순
+            </button>
+          </div>
+        </div>
+        <div class="selection-tools">
+          <button type="button" class="filter-btn" id="selectVisible">
+            전체 선택
+          </button>
+          <button type="button" class="filter-btn" id="clearVisible">
+            전체 선택 해제
+          </button>
+          <span class="selection-count" id="filterCount"></span>
+        </div>
       </section>
       <section class="category" id="gridSection" hidden>
         <div class="grid" id="grid"></div>
@@ -417,22 +461,42 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       const shareId = params.get("id");
       let shareData = { categories: [], products: [] };
       let activeCategory = "전체";
+      let activeTag = "전체";
+      let customOrder = null; // ids, once the viewer drags/sorts locally
       let saved = false;
 
+      function tagOptions() {
+        return [...new Set(shareData.products.flatMap((p) => p.tags || []))];
+      }
+      function applyCustomOrder(products) {
+        if (!customOrder) return products;
+        let byId = new Map(products.map((p) => [p.id, p])),
+          ordered = customOrder.map((id) => byId.get(id)).filter(Boolean),
+          extra = products.filter((p) => !customOrder.includes(p.id));
+        return [...ordered, ...extra];
+      }
       function visible() {
         return shareData.products
           .map((p, i) => ({ p, i }))
           .filter(
             ({ p }) =>
-              activeCategory === "전체" || p.category === activeCategory,
+              (activeCategory === "전체" || p.category === activeCategory) &&
+              (activeTag === "전체" || (p.tags || []).includes(activeTag)),
           );
       }
       function renderFilters() {
-        let cats = ["전체", ...shareData.categories];
+        let cats = ["전체", ...shareData.categories],
+          tags = ["전체", ...tagOptions()];
         $("#categoryFilters").innerHTML = cats
           .map(
             (v) =>
               `<button type="button" class="filter-btn ${v === activeCategory ? "active" : ""}" data-cat="${esc(v)}">${esc(v)}</button>`,
+          )
+          .join("");
+        $("#tagFilters").innerHTML = tags
+          .map(
+            (v) =>
+              `<button type="button" class="filter-btn ${v === activeTag ? "active" : ""}" data-tag="${esc(v)}">${esc(v)}</button>`,
           )
           .join("");
         document.querySelectorAll("[data-cat]").forEach(
@@ -442,6 +506,34 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
               render();
             }),
         );
+        document.querySelectorAll("[data-tag]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              activeTag = b.dataset.tag;
+              render();
+            }),
+        );
+        $("#filterCount").textContent =
+          `표시 ${visible().length}개 · 선택 ${shareData.products.filter((p) => p.selected).length}개`;
+      }
+      function sortProducts(mode) {
+        let includeOffer = $("#includeOffer").checked,
+          items = visible();
+        if (items.length < 2) return;
+        let keyFn =
+          mode === "price"
+            ? (p) => (includeOffer ? p.offer : p.sale)
+            : mode === "added"
+              ? (p) => p.id
+              : (p) => p.updatedAt || p.id;
+        let sorted = [...items].sort((a, b) => keyFn(b.p) - keyFn(a.p));
+        let slots = items.map((v) => v.i).sort((a, b) => a - b);
+        sorted.forEach((item, idx) => {
+          shareData.products[slots[idx]] = item.p;
+        });
+        customOrder = shareData.products.map((p) => p.id);
+        render();
+        toast("정렬했습니다");
       }
       function render() {
         let includeOffer = $("#includeOffer").checked,
@@ -450,7 +542,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" data-i="${i}"><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[0])}" alt="${esc(p.name)}">` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div><div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(p.offer)}</div>` : ""}<label class="pick-row"><input type="checkbox" class="pick" ${p.selected ? "checked" : ""}> 선택</label></article>`,
+                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[0])}" alt="${esc(p.name)}">` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div><div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(p.offer)}</div>` : ""}</article>`,
             )
             .join("") +
           (items.length
@@ -464,6 +556,16 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             if (p.selected && !p.qty) p.qty = 1;
             renderFilters();
             renderBasket();
+          };
+          card.ondragstart = (e) => e.dataTransfer.setData("text/plain", i);
+          card.ondragover = (e) => e.preventDefault();
+          card.ondrop = (e) => {
+            e.preventDefault();
+            let from = +e.dataTransfer.getData("text/plain");
+            let [m] = shareData.products.splice(from, 1);
+            shareData.products.splice(i, 0, m);
+            customOrder = shareData.products.map((x) => x.id);
+            render();
           };
         });
         renderFilters();
@@ -502,6 +604,17 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         $("#saveBtn").disabled = !selected.length || saved;
       }
       $("#includeOffer").onchange = render;
+      document.querySelectorAll("[data-sort]").forEach(
+        (button) => (button.onclick = () => sortProducts(button.dataset.sort)),
+      );
+      $("#selectVisible").onclick = () => {
+        visible().forEach(({ p }) => (p.selected = true));
+        render();
+      };
+      $("#clearVisible").onclick = () => {
+        visible().forEach(({ p }) => (p.selected = false));
+        render();
+      };
       $("#basketFold").onclick = () => {
         let c = $("#basket").classList.toggle("closed");
         $("#basketFold").textContent = c ? "펼치기⌃" : "접기⌄";
@@ -759,11 +872,13 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
               let prevSelections = new Map(
                 shareData.products.map((p) => [p.id, { selected: p.selected, qty: p.qty }]),
               );
-              shareData.products = (incoming.products || []).map((p) => ({
-                ...p,
-                selected: prevSelections.get(p.id)?.selected || false,
-                qty: prevSelections.get(p.id)?.qty || 1,
-              }));
+              shareData.products = applyCustomOrder(
+                (incoming.products || []).map((p) => ({
+                  ...p,
+                  selected: prevSelections.get(p.id)?.selected || false,
+                  qty: prevSelections.get(p.id)?.qty || 1,
+                })),
+              );
               render();
             },
             (error) => {
