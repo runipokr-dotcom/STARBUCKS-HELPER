@@ -604,7 +604,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         ctx.fillStyle = "#063c2d";
         ctx.textAlign = "left";
         ctx.font = "800 19px Pretendard, sans-serif";
-        ctx.fillText("주문 내역", PAD, y + 18);
+        ctx.fillText("견적서", PAD, y + 18);
         y += headerH;
         rows.forEach((r, idx) => {
           let lines = wrapCanvasText(measure, r.name, W - PAD * 2 - 150, 2);
@@ -672,7 +672,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         let url = URL.createObjectURL(blob),
           a = document.createElement("a");
         a.href = url;
-        a.download = `주문내역_${new Date().toISOString().slice(0, 10)}.jpg`;
+        a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -721,7 +721,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           $("#saveBtn").textContent = "저장 완료";
           try {
             await downloadBasketImage();
-            toast("저장했습니다. 주문 내역 이미지가 다운로드됩니다.");
+            toast("저장했습니다. 견적서 이미지가 다운로드됩니다.");
           } catch (imgError) {
             console.error(imgError);
             toast("저장했습니다. (이미지 다운로드에는 실패했어요)");
