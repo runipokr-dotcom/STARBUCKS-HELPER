@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""STARBUCKS HELPER local MD downloader.
+"""STARBUCKS HELPER local MD downloader v1.1 (2026-09-03).
 
 Listens only on 127.0.0.1 and saves extracted product assets below the fixed
 Downloads/스타벅스MD directory. Uses only the Python standard library.
@@ -38,10 +38,25 @@ USER_AGENT = (
 )
 MAX_PAGE_BYTES = 5 * 1024 * 1024
 MAX_IMAGE_BYTES = 30 * 1024 * 1024
+MUSINSA_HOSTS = {"musinsa.com", "www.musinsa.com"}
+MUSINSA_SHORT_HOST = "musinsa.onelink.me"
 
 
 class ExtractionError(Exception):
     pass
+
+
+def resolve_musinsa_short_url(url: str) -> str:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            resolved = response.geturl()
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        raise ExtractionError("무신사 공유링크를 열 수 없습니다.") from exc
+    parsed = urllib.parse.urlsplit(resolved)
+    if parsed.scheme != "https" or parsed.hostname not in MUSINSA_HOSTS:
+        raise ExtractionError("무신사 공유링크의 실제 상품주소를 확인할 수 없습니다.")
+    return resolved
 
 
 def validate_product_url(value: str) -> tuple[str, str]:
@@ -51,6 +66,14 @@ def validate_product_url(value: str) -> tuple[str, str]:
         raise ExtractionError("올바른 URL을 입력해주세요.") from exc
     if parsed.scheme != "https":
         raise ExtractionError("HTTPS 상품 주소를 입력해주세요.")
+    if parsed.hostname == MUSINSA_SHORT_HOST:
+        if not re.fullmatch(r"/PvkC/[A-Za-z0-9_-]+/?", parsed.path):
+            raise ExtractionError("무신사 공유링크 형식이 아닙니다.")
+        short_url = urllib.parse.urlunsplit(
+            (parsed.scheme, parsed.netloc, parsed.path, parsed.query, "")
+        )
+        value = resolve_musinsa_short_url(short_url)
+        parsed = urllib.parse.urlsplit(value)
     if parsed.hostname == "www.starbucks.co.kr":
         if parsed.path != "/menu/product_view.do":
             raise ExtractionError("스타벅스 상품 상세페이지 URL 형식이 아닙니다.")
@@ -58,7 +81,7 @@ def validate_product_url(value: str) -> tuple[str, str]:
         if len(product_codes) != 1 or not re.fullmatch(r"\d+", product_codes[0]):
             raise ExtractionError("URL의 product_cd를 확인해주세요.")
         return "starbucks", urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
-    if parsed.hostname in {"musinsa.com", "www.musinsa.com"}:
+    if parsed.hostname in MUSINSA_HOSTS:
         match = re.fullmatch(r"/products/(\d+)/?", parsed.path)
         if not match:
             raise ExtractionError("무신사 상품 상세페이지 URL 형식이 아닙니다.")
@@ -291,15 +314,15 @@ def local_page(result: dict[str, object] | None = None, error: str = "") -> byte
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>스타벅스 MD 추출 | STARBUCKS HELPER</title><style>
     :root{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--green:#00754a;--dark:#063c2d;--bg:#f3f5f3;--line:#dfe5e1;--text:#18201c;--muted:#6a766f}}*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text)}}header{{padding:28px 20px 54px;background:var(--dark);color:#fff}}.head,main{{width:min(100%,720px);margin:auto}}h1{{margin:0 0 8px;font-size:34px}}header p{{margin:0;color:#c8ddd3}}main{{margin-top:-28px;padding:0 14px 30px}}.card,.result{{padding:20px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 10px 28px #122e2212}}label{{display:block;margin-bottom:9px;font-weight:800}}input,button{{width:100%;height:52px;border-radius:14px;font:inherit}}input{{border:1px solid var(--line);padding:0 14px}}button{{margin-top:12px;border:0;background:var(--green);color:#fff;font-weight:850}}.path{{padding:12px;border-radius:12px;background:#dff2e8;color:#25513e;font-size:12px;word-break:break-all}}.error{{padding:12px;border-radius:12px;background:#fff1ef;color:#9d241d}}.result{{margin-top:14px}}.result h2{{margin-top:0}}dl{{display:grid;grid-template-columns:76px 1fr;gap:8px;font-size:13px}}dt{{color:var(--muted);font-weight:750}}dd{{margin:0;word-break:break-all}}
-    </style></head><body><header><div class="head"><h1>스타벅스 MD 추출</h1><p>스타벅스 공식 홈페이지와 무신사 상품 주소를 지원합니다.</p></div></header>
+    </style></head><body><header><div class="head"><h1>스타벅스 MD 추출</h1><p>스타벅스 공식 홈페이지 무신사 상품 주소를 지원합니다.</p></div></header>
     <main><section class="card"><form action="/extract-form" method="post"><label for="url">상품 상세 URL</label>
-    <input id="url" name="url" type="url" required placeholder="스타벅스 공식 또는 musinsa.com/products/...">
+    <input id="url" name="url" type="url" required placeholder="스타벅스 공식 또는 무신사 상품/공유 링크">
     <button type="submit">상품 정보와 이미지 저장</button></form>
     <p class="path">저장 위치<br>{html_module.escape(str(SAVE_ROOT))}/상품명/</p>{error_html}</section>{result_html}</main></body></html>""".encode("utf-8")
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "StarbucksMDHelper/1.0"
+    server_version = "StarbucksMDHelper/1.1"
 
     def log_message(self, format: str, *args: object) -> None:
         print(f"[{self.log_date_time_string()}] {format % args}")
@@ -346,7 +369,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/":
             self.send_html(200, local_page())
         elif self.path == "/health":
-            self.send_json(200, {"ok": True, "saveRoot": str(SAVE_ROOT)})
+            self.send_json(200, {"ok": True, "version": "1.1", "saveRoot": str(SAVE_ROOT)})
         else:
             self.send_json(404, {"ok": False, "error": "찾을 수 없습니다."})
 
