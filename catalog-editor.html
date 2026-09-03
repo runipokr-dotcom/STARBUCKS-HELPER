@@ -1178,6 +1178,12 @@ Fixed : mobile two-column cards / autosave after product edits
       function shareUrl(id) {
         return `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=${id}`;
       }
+      function publicImages(p) {
+        if (p.remoteImages && p.remoteImages.length) return p.remoteImages;
+        return (p.images || []).filter(
+          (src) => /^https?:\/\//.test(src) && !src.includes("127.0.0.1"),
+        );
+      }
       async function publishShare() {
         try {
           const { db, firestore: f } = await initShareSync();
@@ -1195,10 +1201,7 @@ Fixed : mobile two-column cards / autosave after product edits
                 offer: p.offer,
                 category: p.category,
                 tags: p.tags,
-                images:
-                  p.remoteImages && p.remoteImages.length
-                    ? p.remoteImages
-                    : [],
+                images: publicImages(p),
               })),
               updatedAt: Date.now(),
             };
