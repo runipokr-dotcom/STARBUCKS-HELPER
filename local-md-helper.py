@@ -295,6 +295,7 @@ def extract_product(url: str) -> dict[str, object]:
         "imageCount": len(saved_files),
         "imageUrls": image_urls,
         "files": saved_files + ["상품정보.txt"],
+        "folderName": destination.name,
         "folder": str(destination),
         "sourceUrl": normalized_url,
         "source": source,
@@ -370,8 +371,36 @@ class Handler(BaseHTTPRequestHandler):
             self.send_html(200, local_page())
         elif self.path == "/health":
             self.send_json(200, {"ok": True, "version": "1.1", "saveRoot": str(SAVE_ROOT)})
+        elif self.path.startswith("/media/"):
+            self.serve_media()
         else:
             self.send_json(404, {"ok": False, "error": "찾을 수 없습니다."})
+
+    def serve_media(self) -> None:
+        # Serves previously downloaded product images from SAVE_ROOT so the
+        # web editor can draw them onto a <canvas> without CORS tainting
+        # (fixes Musinsa images failing to render in the JPG export).
+        try:
+            raw_path = self.path[len("/media/"):].split("?", 1)[0]
+            relative = urllib.parse.unquote(raw_path)
+            if not relative or ".." in Path(relative).parts:
+                raise FileNotFoundError
+            target = (SAVE_ROOT / relative).resolve()
+            target.relative_to(SAVE_ROOT.resolve())
+            if not target.is_file():
+                raise FileNotFoundError
+        except (FileNotFoundError, ValueError):
+            self.send_json(404, {"ok": False, "error": "이미지를 찾을 수 없습니다."})
+            return
+        content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+        data = target.read_bytes()
+        self.send_response(200)
+        self.add_cors_headers()
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+        self.end_headers()
+        self.wfile.write(data)
 
     def do_POST(self) -> None:
         if self.path == "/extract-form":
@@ -400,6 +429,12 @@ class Handler(BaseHTTPRequestHandler):
                 raise ExtractionError("요청 크기가 올바르지 않습니다.")
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
             result = extract_product(str(payload.get("url") or ""))
+            port = self.server.server_port
+            result["mediaUrls"] = [
+                f"http://{HOST}:{port}/media/{urllib.parse.quote(result['folderName'])}/{urllib.parse.quote(name)}"
+                for name in result["files"]
+                if name != "상품정보.txt"
+            ]
             self.send_json(200, {"ok": True, **result})
         except ExtractionError as exc:
             self.send_json(400, {"ok": False, "error": str(exc)})
