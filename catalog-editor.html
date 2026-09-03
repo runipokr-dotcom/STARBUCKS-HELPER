@@ -526,35 +526,6 @@ Fixed : mobile two-column cards / autosave after product edits
         color: var(--mut);
         font-size: 12px;
       }
-      .download-pop {
-        position: absolute;
-        z-index: 20;
-        right: 14px;
-        top: 100%;
-        width: 250px;
-        margin-top: 7px;
-        padding: 13px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 13px;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
-      }
-      .download-pop[hidden] {
-        display: none;
-      }
-      .download-pop label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 11px;
-        font-size: 12px;
-      }
-      .download-pop p {
-        margin: 0 0 10px;
-        color: var(--mut);
-        font-size: 11px;
-        line-height: 1.45;
-      }
       .category-select,
       .tag-input {
         width: 100%;
@@ -767,15 +738,7 @@ Fixed : mobile two-column cards / autosave after product edits
           <button class="btn filter-btn" id="selectVisible">전체 선택</button
           ><button class="btn filter-btn" id="clearVisible">
             전체 선택 해제</button
-          ><button class="btn primary filter-btn" id="downloadToggle">
-            선택 상품 JPG</button
           ><span class="selection-count" id="filterCount"></span>
-        </div>
-        <div class="download-pop" id="downloadPop" hidden>
-          <p>선택 상품을 5열 × 3줄, 페이지당 최대 15개로 나누어 저장합니다.</p>
-          <label
-            ><input type="checkbox" id="showOffer" checked /> 제안가 표시</label
-          ><button class="btn primary" id="downloadJpg">JPG 다운로드</button>
         </div>
       </section>
       <section class="settings" id="fontSettings" hidden>
@@ -894,8 +857,8 @@ Fixed : mobile two-column cards / autosave after product edits
       </div>
       <div class="basket-body" id="basketRows"></div>
       <div class="basket-foot">
-        <span>VAT 포함 · 견적서에서 공급가액/부가세 분리</span
-        ><button class="btn primary" id="quote">견적서 만들기</button>
+        <span id="shareStatus">고객 링크: 저장하면 자동 발행됩니다</span
+        ><button class="btn primary" id="quote">고객 링크 복사</button>
       </div>
     </aside>
     <div class="notice" id="notice"></div>
@@ -939,6 +902,7 @@ Fixed : mobile two-column cards / autosave after product edits
         p.tags = Array.isArray(p.tags) ? p.tags : [];
         p.cost = Number.isFinite(p.cost) ? p.cost : 0;
         p.updatedAt = p.updatedAt || p.id || Date.now();
+        p.remoteImages = Array.isArray(p.remoteImages) ? p.remoteImages : [];
       });
       data.tagOptions = [
         ...new Set([
@@ -1179,9 +1143,93 @@ Fixed : mobile two-column cards / autosave after product edits
       function calcOffer(cost) {
         return Math.round(cost + marginValue(cost));
       }
+      const FIREBASE_CONFIG = {
+          apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
+          authDomain: "starbucks-helper-f578e.firebaseapp.com",
+          projectId: "starbucks-helper-f578e",
+          storageBucket: "starbucks-helper-f578e.firebasestorage.app",
+          messagingSenderId: "1015231512258",
+          appId: "1:1015231512258:web:25bb0229b5bc90b56a455b",
+          measurementId: "G-8H2H0NCJDF",
+        },
+        SHARE_COLLECTION = "catalogShares";
+      let shareState = { db: null, firestore: null, ready: false };
+      function shortId(len = 6) {
+        let chars = "abcdefghijkmnpqrstuvwxyz23456789",
+          id = "";
+        for (let i = 0; i < len; i++)
+          id += chars[Math.floor(Math.random() * chars.length)];
+        return id;
+      }
+      async function initShareSync() {
+        if (shareState.ready) return shareState;
+        const [{ initializeApp }, f] = await Promise.all([
+          import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+          import(
+            "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+          ),
+        ]);
+        const app = initializeApp(FIREBASE_CONFIG);
+        shareState.db = f.getFirestore(app);
+        shareState.firestore = f;
+        shareState.ready = true;
+        return shareState;
+      }
+      function shareUrl(id) {
+        return `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=${id}`;
+      }
+      async function publishShare() {
+        try {
+          const { db, firestore: f } = await initShareSync();
+          if (!data.shareId) {
+            data.shareId = shortId();
+            autosave();
+          }
+          const ref = f.doc(db, SHARE_COLLECTION, data.shareId),
+            payload = {
+              categories: data.categories,
+              products: data.products.map((p) => ({
+                id: p.id,
+                name: p.name,
+                sale: p.sale,
+                offer: p.offer,
+                category: p.category,
+                tags: p.tags,
+                images:
+                  p.remoteImages && p.remoteImages.length
+                    ? p.remoteImages
+                    : [],
+              })),
+              updatedAt: Date.now(),
+            };
+          await f.setDoc(ref, payload);
+          if ($("#shareStatus"))
+            $("#shareStatus").textContent =
+              `고객 링크: 저장됨 (${new Date().toLocaleTimeString("ko-KR")} 반영)`;
+        } catch (error) {
+          console.error(error);
+          if ($("#shareStatus"))
+            $("#shareStatus").textContent =
+              "고객 링크 발행 실패 (인터넷 연결을 확인해주세요)";
+        }
+      }
+      async function copyShareLink() {
+        if (!data.shareId) {
+          toast("먼저 저장을 한 번 해주세요");
+          return;
+        }
+        let url = shareUrl(data.shareId);
+        try {
+          await navigator.clipboard.writeText(url);
+          toast("고객 링크를 복사했습니다");
+        } catch {
+          prompt("아래 링크를 복사하세요", url);
+        }
+      }
       function save() {
         autosave();
         toast("저장했습니다");
+        publishShare();
       }
       function visible() {
         return data.products
@@ -1440,6 +1488,7 @@ Fixed : mobile two-column cards / autosave after product edits
           cost: 0,
           offer: 0,
           images: [],
+          remoteImages: [],
           current: 0,
           qty: 1,
           selected: false,
@@ -1478,116 +1527,6 @@ Fixed : mobile two-column cards / autosave after product edits
             basket();
           };
         });
-      }
-      function loadImage(src) {
-        return new Promise((resolve) => {
-          if (!src) return resolve(null);
-          let img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = src;
-        });
-      }
-      function drawFit(ctx, img, x, y, w, h) {
-        if (!img) {
-          ctx.fillStyle = "#f2f3f2";
-          ctx.fillRect(x, y, w, h);
-          return;
-        }
-        let s = Math.min(w / img.width, h / img.height),
-          dw = img.width * s,
-          dh = img.height * s;
-        ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
-      }
-      function drawWrapped(
-        ctx,
-        text,
-        x,
-        y,
-        maxWidth,
-        lineHeight,
-        maxLines = 2,
-      ) {
-        let line = "",
-          lines = [];
-        for (const ch of String(text)) {
-          let next = line + ch;
-          if (line && ctx.measureText(next).width > maxWidth) {
-            lines.push(line);
-            line = ch;
-          } else line = next;
-        }
-        if (line) lines.push(line);
-        lines
-          .slice(0, maxLines)
-          .forEach((v, i) => ctx.fillText(v, x, y + i * lineHeight));
-      }
-      async function downloadSelected() {
-        let products = data.products.filter((p) => p.selected);
-        if (!products.length) return toast("다운로드할 상품을 선택해주세요");
-        let showOffer = $("#showOffer").checked,
-          pages = Math.ceil(products.length / 15);
-        $("#downloadJpg").disabled = true;
-        $("#downloadJpg").textContent = "JPG 만드는 중…";
-        try {
-          for (let page = 0; page < pages; page++) {
-            let pageItems = products.slice(page * 15, (page + 1) * 15),
-              canvas = document.createElement("canvas");
-            canvas.width = 2000;
-            canvas.height = 2400;
-            let ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#171b18";
-            ctx.font = "700 54px Pretendard, sans-serif";
-            ctx.fillText(
-              activeCategory === "전체" ? "STARBUCKS MD" : activeCategory,
-              70,
-              90,
-            );
-            ctx.fillStyle = "#66706a";
-            ctx.font = "400 22px Pretendard, sans-serif";
-            ctx.fillText("전 상품 VAT 포함", 70, 130);
-            let images = await Promise.all(
-              pageItems.map((p) => loadImage(imageSrc(p.images[0]))),
-            );
-            pageItems.forEach((p, i) => {
-              let col = i % 5,
-                row = Math.floor(i / 5),
-                x = 55 + col * 390,
-                y = 175 + row * 720;
-              drawFit(ctx, images[i], x, y, 350, 430);
-              ctx.fillStyle = "#171b18";
-              ctx.font = "700 27px Pretendard, sans-serif";
-              drawWrapped(ctx, p.name, x, y + 475, 350, 34, 2);
-              ctx.fillStyle = "#777";
-              ctx.font = "400 22px Pretendard, sans-serif";
-              ctx.fillText(`판매가 ${money(p.sale)}`, x, y + 555);
-              if (showOffer) {
-                ctx.fillStyle = "#171b18";
-                ctx.font = "700 25px Pretendard, sans-serif";
-                ctx.fillText(`제안가 ${money(p.offer)}`, x, y + 595);
-              }
-            });
-            let blob = await new Promise((resolve) =>
-              canvas.toBlob(resolve, "image/jpeg", 0.92),
-            );
-            if (!blob) throw new Error("JPG 파일을 만들지 못했습니다");
-            let a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `스타벅스MD_${String(page + 1).padStart(2, "0")}.jpg`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-          }
-          toast(`JPG ${pages}장 다운로드 완료`);
-          $("#downloadPop").hidden = true;
-        } catch (error) {
-          toast(error.message);
-        } finally {
-          $("#downloadJpg").disabled = false;
-          $("#downloadJpg").textContent = "JPG 다운로드";
-        }
       }
       $("#imageClose").onclick = $("#imageCancel").onclick = closeImageManager;
       $("#imageApply").onclick = () => {
@@ -1675,7 +1614,6 @@ Fixed : mobile two-column cards / autosave after product edits
           $(panel).hidden = true;
           $(toggle).setAttribute("aria-expanded", "false");
         });
-        $("#downloadPop").hidden = true;
       }
       function openPanel(toggleSel, panelSel, onOpen) {
         $(toggleSel).onclick = (e) => {
@@ -1766,7 +1704,6 @@ Fixed : mobile two-column cards / autosave after product edits
       document.querySelectorAll("[data-sort]").forEach(
         (button) => (button.onclick = () => sortProducts(button.dataset.sort)),
       );
-      $("#downloadPop").onclick = (e) => e.stopPropagation();
       $("#fold").onclick = () => {};
       $("#basketFold").onclick = () => {
         let c = $("#basket").classList.toggle("closed");
@@ -1780,15 +1717,9 @@ Fixed : mobile two-column cards / autosave after product edits
         visible().forEach(({ p }) => (p.selected = false));
         render();
       };
-      $("#downloadToggle").onclick = (e) => {
-        e.stopPropagation();
-        $("#downloadPop").hidden = !$("#downloadPop").hidden;
-      };
-      $("#downloadJpg").onclick = downloadSelected;
       $("#save").onclick = save;
       $("#add").onclick = add;
-      $("#quote").onclick = () =>
-        toast("서류 만들기 연결부만 준비된 상태입니다");
+      $("#quote").onclick = copyShareLink;
       $("#import").onclick = async () => {
         let u = $("#url").value.trim(),
           button = $("#import");
@@ -1814,6 +1745,7 @@ Fixed : mobile two-column cards / autosave after product edits
             images: (
               result.mediaUrls?.length ? result.mediaUrls : result.imageUrls || []
             ).slice(0, 5),
+            remoteImages: (result.imageUrls || []).slice(0, 5),
             current: 0,
             qty: 1,
             selected: false,

@@ -3,11 +3,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // STARBUCKS HELPER sync data only.
-    // NOTE: This still permits unauthenticated access to couponWork because
-    // the current GitHub Pages app does not use Firebase Authentication.
-    // Everything outside couponWork is denied.
+    // NOTE: This still permits unauthenticated access because the current
+    // GitHub Pages app does not use Firebase Authentication.
+    // Everything outside these paths is denied.
     match /couponWork/{documentId} {
       allow read, write: if true;
+    }
+
+    // Published customer-facing catalog links (share.html). The editor
+    // (catalog-editor.html) writes the catalog snapshot here on save;
+    // anyone with the link can read it.
+    match /catalogShares/{shareId} {
+      allow read, write: if true;
+
+      // Orders customers submit from share.html ("저장하기"). Anyone can
+      // create their own order, but submitted orders cannot be altered or
+      // deleted afterwards.
+      match /orders/{orderId} {
+        allow read, create: if true;
+        allow update, delete: if false;
+      }
     }
 
     match /{document=**} {
