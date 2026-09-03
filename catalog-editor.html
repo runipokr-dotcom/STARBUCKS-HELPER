@@ -991,7 +991,7 @@ Fixed : mobile two-column cards / autosave after product edits
       function cleanProductName(name) {
         return String(name || "")
           .replace(
-            /\s*\+\s*에코\s*텀블러\s*음료\s*쿠폰(?:\s*[\(\[][\s\S]*?[\)\]])?/gi,
+            /\s*\+\s*(?:에코\s*)?텀블러\s*음료\s*쿠폰(?:\s*[\(\[][\s\S]*?[\)\]])?/gi,
             "",
           )
           .replace(/\s{2,}/g, " ")

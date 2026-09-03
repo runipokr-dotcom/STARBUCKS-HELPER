@@ -69,12 +69,25 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       .filter-line {
         display: flex;
         align-items: flex-start;
+        flex-wrap: wrap;
         gap: 10px;
       }
       .filter-line b {
         flex: 0 0 48px;
         padding-top: 7px;
         font-size: 12px;
+      }
+      .offer-toggle-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        padding-top: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink);
+        white-space: nowrap;
+        cursor: pointer;
       }
       .filter-buttons {
         display: flex;
@@ -241,13 +254,6 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         font-weight: 800;
         color: var(--ink);
       }
-      .offer-toggle {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin: 10px 0;
-        font-size: 12px;
-      }
       .contact-fields {
         display: flex;
         flex-wrap: wrap;
@@ -308,10 +314,14 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         right: 16px;
         top: 70px;
         z-index: 90;
+        max-width: min(300px, calc(100vw - 32px));
         padding: 10px 12px;
         border-radius: 10px;
         background: var(--d);
         color: #fff;
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: normal;
         opacity: 0;
         pointer-events: none;
         transition: 0.2s;
@@ -332,6 +342,10 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="filter-line">
           <b>대분류</b>
           <div class="filter-buttons" id="categoryFilters"></div>
+          <label class="offer-toggle-top"
+            ><input type="checkbox" id="includeOffer" checked /> 제안가
+            표기</label
+          >
         </div>
       </section>
       <section class="category" id="gridSection" hidden>
@@ -348,10 +362,6 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="totals"><span>공급가액</span><b id="supply">0원</b></div>
         <div class="totals"><span>부가세</span><b id="vat">0원</b></div>
         <div class="totals grand"><span>합계</span><b id="grand">0원</b></div>
-        <label class="offer-toggle"
-          ><input type="checkbox" id="includeOffer" checked /> 제안가
-          포함하기</label
-        >
         <div class="contact-fields" id="contactFields">
           <label>상호명 <input id="ctCompany" /></label>
           <label>이메일 <input id="ctEmail" /></label>
@@ -475,7 +485,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           selected
             .map(
               (p) =>
-                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}<br><small>${money(unit(p))}</small></span><span class="qty"><button type="button" class="minus">−</button><b>${p.qty || 1}개</b><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
+                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}</span><span class="qty"><button type="button" class="minus">−</button><b>${p.qty || 1}개</b><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
             )
             .join("") || "<p>상품을 선택해주세요.</p>";
         document.querySelectorAll(".basket-row").forEach((r) => {
@@ -563,7 +573,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           );
           $("#editableHint").hidden = true;
           $("#saveBtn").textContent = "저장 완료";
-          toast("저장했습니다");
+          toast("저장했습니다. 이미지는 제공되지 않으니 필요 시 화면을 캡처해주세요.");
         } catch (error) {
           console.error(error);
           toast("저장에 실패했습니다. 인터넷 연결을 확인해주세요");
