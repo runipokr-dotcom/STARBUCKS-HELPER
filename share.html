@@ -148,6 +148,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         background: #f2faf6;
       }
       .photo {
+        position: relative;
         aspect-ratio: 5/6;
         display: grid;
         place-items: center;
@@ -163,6 +164,30 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       .photo.empty {
         color: var(--mut);
         font-size: 11px;
+      }
+      .photo-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+        cursor: pointer;
+      }
+      .photo-arrow.prev { left: 5px; }
+      .photo-arrow.next { right: 5px; }
+      .photo-count {
+        position: absolute;
+        right: 6px;
+        bottom: 5px;
+        padding: 2px 5px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.8);
+        font-size: 10px;
       }
       .p-name {
         margin-top: 7px;
@@ -546,7 +571,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[0])}" alt="${esc(p.name)}">` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div><div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(p.offer)}</div>` : ""}</article>`,
+                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[p.current || 0] || p.images[0])}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button type="button" class="photo-arrow prev" aria-label="이전 이미지">‹</button><button type="button" class="photo-arrow next" aria-label="다음 이미지">›</button><span class="photo-count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div><div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(p.offer)}</div>` : ""}</article>`,
             )
             .join("") +
           (items.length
@@ -560,6 +585,16 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             if (p.selected && !p.qty) p.qty = 1;
             renderFilters();
             renderBasket();
+          };
+          const prev = card.querySelector(".photo-arrow.prev");
+          const next = card.querySelector(".photo-arrow.next");
+          if (prev) prev.onclick = () => {
+            p.current = ((p.current || 0) - 1 + p.images.length) % p.images.length;
+            render();
+          };
+          if (next) next.onclick = () => {
+            p.current = ((p.current || 0) + 1) % p.images.length;
+            render();
           };
           card.ondragstart = (e) => e.dataTransfer.setData("text/plain", i);
           card.ondragover = (e) => e.preventDefault();
@@ -874,13 +909,14 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
               let incoming = snap.data();
               shareData.categories = incoming.categories || [];
               let prevSelections = new Map(
-                shareData.products.map((p) => [p.id, { selected: p.selected, qty: p.qty }]),
+                shareData.products.map((p) => [p.id, { selected: p.selected, qty: p.qty, current: p.current }]),
               );
               shareData.products = applyCustomOrder(
                 (incoming.products || []).map((p) => ({
                   ...p,
                   selected: prevSelections.get(p.id)?.selected || false,
                   qty: prevSelections.get(p.id)?.qty || 1,
+                  current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, (p.images || []).length - 1)),
                 })),
               );
               render();

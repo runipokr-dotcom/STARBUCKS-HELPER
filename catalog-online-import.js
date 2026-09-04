@@ -75,6 +75,9 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
 
   function addImportedProduct(result) {
     const productName = cleanProductName(result.productName);
+    if (typeof isDuplicateProduct === "function" && isDuplicateProduct(productName, result.price, result.sourceUrl)) {
+      return false;
+    }
     const fallbackCategory = activeCategory === "전체" ? data.categories[0] || "" : activeCategory;
     const category = typeof categoryForProductName === "function"
       ? categoryForProductName(productName, fallbackCategory)
@@ -97,12 +100,14 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
       qty: 1,
       selected: false,
       source: result.source === "musinsa" ? "무신사" : "스타벅스 공식",
+      sourceUrl: result.sourceUrl,
       downloadFolder: result.folder,
       category,
       tags: activeTag === "전체" ? [] : [activeTag],
     });
     autosave();
     render();
+    return true;
   }
 
   function install() {
@@ -123,9 +128,13 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
       button.textContent = "온라인 추출 중…";
       try {
         const result = await extractOnline(url);
-        addImportedProduct(result);
-        input.value = "";
-        toastSafe(`상품을 추가했습니다 · 이미지 ${result.imageUrls.length}장`);
+        const added = addImportedProduct(result);
+        if (added) {
+          input.value = "";
+          toastSafe(`상품을 추가했습니다 · 이미지 ${result.imageUrls.length}장`);
+        } else {
+          toastSafe("이미 등록된 상품입니다");
+        }
       } catch (error) {
         console.error("[catalog-online-import]", error);
         toastSafe(error?.message || "상품을 가져오지 못했습니다");

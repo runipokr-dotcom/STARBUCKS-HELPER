@@ -1020,6 +1020,15 @@ Fixed : mobile two-column cards / autosave after product edits
         if (/머그/i.test(value) && data.categories.includes("머그")) return "머그";
         return fallback;
       }
+      function isDuplicateProduct(name, sale, sourceUrl = "") {
+        const clean = cleanProductName(name).toLowerCase();
+        let sourceId = String(sourceUrl || "").match(/\/products\/(\d+)/)?.[1] || "";
+        return data.products.some((p) => {
+          let existingId = String(p.sourceUrl || "").match(/\/products\/(\d+)/)?.[1] || "";
+          if (sourceId && existingId && sourceId === existingId) return true;
+          return cleanProductName(p.name).toLowerCase() === clean && Number(p.sale || 0) === Number(sale || 0);
+        });
+      }
       function tagOptions() {
         return data.tagOptions || [];
       }
@@ -1775,11 +1784,15 @@ Fixed : mobile two-column cards / autosave after product edits
         try {
           let result = await extractFromHelper(u);
           const productName = cleanProductName(result.productName);
+          const sale = Number(result.price || 0);
+          if (isDuplicateProduct(productName, sale, result.sourceUrl || u)) {
+            toast("이미 등록된 상품입니다");
+            return;
+          }
           let category = categoryForProductName(productName,
               activeCategory === "전체"
                 ? data.categories[0] || ""
                 : activeCategory),
-            sale = Number(result.price || 0),
             cost = calcCost(sale, category),
             offer = calcOffer(cost, sale, category);
           data.products.push({
@@ -1797,6 +1810,7 @@ Fixed : mobile two-column cards / autosave after product edits
             qty: 1,
             selected: false,
             source: result.source === "musinsa" ? "무신사" : "스타벅스 공식",
+            sourceUrl: result.sourceUrl || u,
             downloadFolder: result.folder,
             category,
             tags: activeTag === "전체" ? [] : [activeTag],
