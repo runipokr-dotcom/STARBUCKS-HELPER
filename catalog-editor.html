@@ -1145,11 +1145,14 @@ Fixed : mobile two-column cards / autosave after product edits
         if (!isFinite(n)) return 0;
         return n >= 100 ? n : cost * (n / 100);
       }
+      function roundWon(value) {
+        return Math.round(Number(value || 0) / 10) * 10;
+      }
       function calcWebPrice(cost) {
         let marked = cost + marginValue(cost, data.policy.webMargin),
           fee = Number(data.policy.webFee || 0) / 100;
-        if (fee >= 1) return marked;
-        return Math.round(marked / (1 - fee));
+        if (fee >= 1) return roundWon(marked);
+        return roundWon(marked / (1 - fee));
       }
       function calcCost(sale, category) {
         let policy = data.policy,
@@ -1161,13 +1164,13 @@ Fixed : mobile two-column cards / autosave after product edits
           sale * discount -
           (useTumbler ? tumbler : 0) -
           (star / 8) * (sale / 10000);
-        return Math.round(cost);
+        return roundWon(cost);
       }
       function calcOffer(cost, sale, category) {
         const hasCategoryPolicy = (data.tumblerCategories || []).includes(category);
         if (!hasCategoryPolicy && Number.isFinite(Number(sale)))
-          return Math.round(Number(sale) * 0.93);
-        return Math.round(cost + marginValue(cost));
+          return roundWon(Number(sale) * 0.93);
+        return roundWon(cost + marginValue(cost));
       }
       function applyPricingRules(products = data.products) {
         products.forEach((p) => {
