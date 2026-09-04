@@ -123,6 +123,7 @@ Purpose : Cross-device catalog sync + mobile link queue.
       const next = normalizeIncomingData(incoming);
       for (const key of Object.keys(data)) delete data[key];
       Object.assign(data, next);
+      if (typeof applyPricingRules === "function") applyPricingRules(data.products);
       localStorage.setItem(KEY, JSON.stringify(data));
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp || now()));
       if (typeof render === "function") render();

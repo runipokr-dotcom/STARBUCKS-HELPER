@@ -1169,6 +1169,14 @@ Fixed : mobile two-column cards / autosave after product edits
           return Math.round(Number(sale) * 0.93);
         return Math.round(cost + marginValue(cost));
       }
+      function applyPricingRules(products = data.products) {
+        products.forEach((p) => {
+          p.cost = calcCost(Number(p.sale || 0), p.category);
+          p.offer = calcOffer(p.cost, Number(p.sale || 0), p.category);
+        });
+      }
+      applyPricingRules();
+      autosave();
       const FIREBASE_CONFIG = {
           apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
           authDomain: "starbucks-helper-f578e.firebaseapp.com",
@@ -1815,6 +1823,6 @@ Fixed : mobile two-column cards / autosave after product edits
       render();
     </script>
     <script src="catalog-online-import.js?v=20260904-4"></script>
-    <script src="catalog-sync.js?v=20260904-3"></script>
+    <script src="catalog-sync.js?v=20260904-4"></script>
   </body>
 </html>
