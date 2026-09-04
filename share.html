@@ -1,7 +1,7 @@
 <!--
 STARBUCKS HELPER
 File : share.html
-Version : 1.1
+Version : 1.2
 Updated : 2026-09-04
 Purpose : Read-only customer-facing catalog page, backed by Firestore.
           Published from catalog-editor.html's "저장" button.
@@ -891,7 +891,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         lines[maxLines - 1] = last + "…";
         return lines;
       }
-      async function buildBasketImage() {
+      function buildBasketImageDataUrl() {
         let includeOffer = $("#includeOffer").checked,
           selected = shareData.products.filter((p) => p.selected),
           unit = (p) => (includeOffer ? p.offer : p.sale),
@@ -908,9 +908,6 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             email: $("#ctEmail").value.trim(),
             phone: $("#ctPhone").value.trim(),
           };
-        try {
-          await document.fonts.ready;
-        } catch (e) {}
         const W = 640,
           PAD = 28,
           SCALE = 2;
@@ -996,21 +993,19 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           PAD,
           y,
         );
-        return new Promise((resolve) =>
-          canvas.toBlob(resolve, "image/jpeg", 0.92),
-        );
+        return canvas.toDataURL("image/jpeg", 0.92);
       }
-      async function downloadBasketImage() {
-        let blob = await buildBasketImage();
-        if (!blob) return;
-        let url = URL.createObjectURL(blob),
-          a = document.createElement("a");
-        a.href = url;
+      function downloadBasketImage() {
+        const dataUrl = buildBasketImageDataUrl();
+        if (!dataUrl) return false;
+        const a = document.createElement("a");
+        a.href = dataUrl;
         a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;
+        a.style.display = "none";
         document.body.appendChild(a);
         a.click();
         a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        return true;
       }
       $("#saveBtn").onclick = async () => {
         let selected = shareData.products.filter((p) => p.selected);
@@ -1033,6 +1028,12 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           };
         $("#saveBtn").disabled = true;
         $("#saveBtn").textContent = "저장 중…";
+        let downloaded = false;
+        try {
+          downloaded = downloadBasketImage();
+        } catch (imgError) {
+          console.error(imgError);
+        }
         try {
           const { db, firestore: f } = await initShareSync();
           await f.setDoc(
@@ -1053,13 +1054,11 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           );
           $("#editableHint").hidden = true;
           $("#saveBtn").textContent = "저장 완료";
-          try {
-            await downloadBasketImage();
-            toast("저장했습니다. 견적서 이미지가 다운로드됩니다.");
-          } catch (imgError) {
-            console.error(imgError);
-            toast("저장했습니다. (이미지 다운로드에는 실패했어요)");
-          }
+          toast(
+            downloaded
+              ? "저장했습니다. 견적서 이미지 다운로드를 시작했습니다."
+              : "저장했습니다. (이미지 다운로드에는 실패했어요)",
+          );
         } catch (error) {
           console.error(error);
           toast("저장에 실패했습니다. 인터넷 연결을 확인해주세요");
