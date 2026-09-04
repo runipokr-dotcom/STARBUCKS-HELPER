@@ -992,6 +992,28 @@ Fixed : mobile two-column cards / autosave after product edits
       function imageSrc(ref) {
         return imageCache.get(ref) || ref || "";
       }
+      function imageIdentity(src) {
+        try {
+          const url = new URL(src);
+          return url.pathname.replace(/^\/thumbnails/, "").replace(/_(?:500|big)(?=\.(?:jpe?g|png|webp)$)/i, "");
+        } catch {
+          return String(src || "");
+        }
+      }
+      function deduplicateImages(images) {
+        const seen = new Set();
+        return (Array.isArray(images) ? images : []).filter((src) => {
+          const key = imageIdentity(src);
+          if (!src || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+      function normalizeProductImages(p) {
+        p.images = deduplicateImages(p.images);
+        p.remoteImages = deduplicateImages(p.remoteImages);
+        p.current = Math.min(Number(p.current || 0), Math.max(0, p.images.length - 1));
+      }
       async function hydrateAll() {
         await Promise.all(
           data.products.flatMap((p) => (p.images || []).map(hydrateImage)),
@@ -1245,17 +1267,7 @@ Fixed : mobile two-column cards / autosave after product edits
         const images = p.remoteImages && p.remoteImages.length ? p.remoteImages : (p.images || []).filter(
           (src) => /^https?:\/\//.test(src) && !src.includes("127.0.0.1"),
         );
-        const seen = new Set();
-        return images.filter((src) => {
-          let key = src;
-          try {
-            const url = new URL(src);
-            key = url.pathname.replace(/^\/thumbnails/, "").replace(/_(?:500|big)(?=\.(?:jpe?g|png|webp)$)/i, "");
-          } catch {}
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        }).slice(0, 5);
+        return deduplicateImages(images).slice(0, 5);
       }
       async function publishShare() {
         try {
@@ -1352,6 +1364,7 @@ Fixed : mobile two-column cards / autosave after product edits
           `표시 ${visible().length}개 · 선택 ${data.products.filter((p) => p.selected).length}개`;
       }
       function render() {
+        data.products.forEach(normalizeProductImages);
         document.documentElement.style.setProperty(
           "--name",
           data.sizes.name + "px",
