@@ -1,7 +1,7 @@
 /*
 STARBUCKS HELPER
 File : catalog-online-import.js
-Version : 1.0
+Version : 1.1
 Updated : 2026-09-04
 Purpose : Mobile-first online Musinsa import through Vercel API.
 
@@ -37,10 +37,14 @@ Purpose : Mobile-first online Musinsa import through Vercel API.
   }
 
   async function extractOnline(url) {
-    const endpoint = `${API}?url=${encodeURIComponent(url)}`;
     let response;
     try {
-      response = await fetch(endpoint, { method: "GET", cache: "no-store" });
+      response = await fetch(API, {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
     } catch {
       throw new Error("온라인 추출 서버에 연결하지 못했습니다");
     }
