@@ -1,23 +1,73 @@
 /*
 STARBUCKS HELPER
 File : catalog-online-import.js
-Version : 1.2
+Version : 1.3
 Updated : 2026-09-04
-Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
+Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + catalog name classification rules.
 
 - Runs before catalog-sync.js so mobile import does not fall into the PC queue.
 - Supports Musinsa product URLs / Musinsa OneLink / Starbucks official product URLs.
 - Keeps the existing editor data shape and calculation functions.
-- PC behavior is untouched.
+- Classification rules run on PC/mobile: cold cup + water bottle -> tumbler/thermos, glass -> mug.
 */
 (() => {
   if (window.__starbucksCatalogOnlineImportLoaded) return;
   window.__starbucksCatalogOnlineImportLoaded = true;
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (!isMobile) return;
-
   const API = "https://starbucks-helper.vercel.app/api/extract";
+
+  function preferredCategoryForName(name, fallback) {
+    const value = String(name || "");
+    if (/콜드\s*컵|콜드컵|워터\s*보틀|워터보틀|텀블러|보온병/i.test(value)) {
+      return data?.categories?.includes("텀블러/보온병") ? "텀블러/보온병" : fallback;
+    }
+    if (/글라스|머그/i.test(value)) {
+      return data?.categories?.includes("머그") ? "머그" : fallback;
+    }
+    return fallback;
+  }
+
+  // Extend the editor's built-in classifier for both PC and mobile imports.
+  try {
+    const originalCategoryForProductName =
+      typeof categoryForProductName === "function" ? categoryForProductName : null;
+    categoryForProductName = function (name, fallback) {
+      const preferred = preferredCategoryForName(name, "");
+      if (preferred) return preferred;
+      return originalCategoryForProductName
+        ? originalCategoryForProductName(name, fallback)
+        : fallback;
+    };
+  } catch (error) {
+    console.warn("[catalog-online-import] classifier hook", error);
+  }
+
+  // Repair already-registered products that match the explicit naming rules.
+  try {
+    let changed = false;
+    if (data && Array.isArray(data.products)) {
+      data.products.forEach((product) => {
+        const nextCategory = preferredCategoryForName(product.name, product.category);
+        if (nextCategory && nextCategory !== product.category) {
+          product.category = nextCategory;
+          if (typeof calcCost === "function")
+            product.cost = calcCost(Number(product.sale || 0), product.category);
+          if (typeof calcOffer === "function")
+            product.offer = calcOffer(Number(product.cost || 0), Number(product.sale || 0), product.category);
+          changed = true;
+        }
+      });
+    }
+    if (changed) {
+      if (typeof autosave === "function") autosave();
+      if (typeof render === "function") render();
+    }
+  } catch (error) {
+    console.warn("[catalog-online-import] category repair", error);
+  }
+
+  if (!isMobile) return;
 
   function toastSafe(message) {
     try {
