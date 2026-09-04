@@ -1,11 +1,12 @@
 /*
 STARBUCKS HELPER
 File : catalog-online-import.js
-Version : 1.1
+Version : 1.2
 Updated : 2026-09-04
-Purpose : Mobile-first online Musinsa import through Vercel API.
+Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
 
 - Runs before catalog-sync.js so mobile import does not fall into the PC queue.
+- Supports Musinsa product URLs / Musinsa OneLink / Starbucks official product URLs.
 - Keeps the existing editor data shape and calculation functions.
 - PC behavior is untouched.
 */
@@ -25,12 +26,19 @@ Purpose : Mobile-first online Musinsa import through Vercel API.
     alert(message);
   }
 
-  function validMusinsaLink(raw) {
+  function validOnlineLink(raw) {
     try {
       const u = new URL(String(raw || "").trim());
       const host = u.hostname.toLowerCase();
+
       if (host === "musinsa.onelink.me") return true;
-      return (host === "www.musinsa.com" || host === "musinsa.com") && /^\/products\/\d+\/?$/.test(u.pathname);
+      if ((host === "www.musinsa.com" || host === "musinsa.com") && /^\/products\/\d+\/?$/.test(u.pathname)) return true;
+
+      if (host === "www.starbucks.co.kr" && u.pathname === "/menu/product_view.do") {
+        return /^\d+$/.test(u.searchParams.get("product_cd") || "");
+      }
+
+      return false;
     } catch {
       return false;
     }
@@ -57,7 +65,7 @@ Purpose : Mobile-first online Musinsa import through Vercel API.
     }
 
     if (!response.ok || !result?.ok) {
-      throw new Error(result?.error || "무신사 상품을 가져오지 못했습니다");
+      throw new Error(result?.error || "상품을 가져오지 못했습니다");
     }
     if (!Array.isArray(result.imageUrls) || !result.imageUrls.length) {
       throw new Error("상품 이미지를 찾지 못했습니다");
@@ -101,7 +109,7 @@ Purpose : Mobile-first online Musinsa import through Vercel API.
     button.dataset.onlineImportHook = "1";
     button.addEventListener("click", async (event) => {
       const url = input.value.trim();
-      if (!validMusinsaLink(url)) return;
+      if (!validOnlineLink(url)) return;
 
       event.preventDefault();
       event.stopImmediatePropagation();
