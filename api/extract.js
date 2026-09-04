@@ -1,5 +1,6 @@
-// STARBUCKS HELPER online extractor v1.0 (2026-09-04)
+// STARBUCKS HELPER online extractor v1.1 (2026-09-04)
 // Vercel serverless function. Returns product metadata only; PC-local file saving remains in local-md-helper.py.
+// v1.1: Musinsa gallery fallback also collects product-specific prd_img images.
 
 const ALLOWED_ORIGIN = "https://runipokr-dotcom.github.io";
 const MUSINSA_HOSTS = new Set(["musinsa.com", "www.musinsa.com"]);
@@ -44,6 +45,7 @@ function extractBalanced(source, marker, opener, closer) {
 
 function musinsaLargeImage(path) {
   if (!path) return "";
+  path = String(path).replace(/\\u002F/gi, "/").replace(/\\\//g, "/");
   if (path.startsWith("//")) path = "https:" + path;
   else if (path.startsWith("/")) path = "https://image.msscdn.net/thumbnails" + path;
   if (!path.startsWith("https://image.msscdn.net/")) return "";
@@ -51,7 +53,27 @@ function musinsaLargeImage(path) {
   return path + (path.includes("?") ? "&" : "?") + "w=1200";
 }
 
-function parseMusinsaProduct(html) {
+function collectMusinsaGalleryFallback(html, productId) {
+  if (!productId) return [];
+  const normalized = String(html || "")
+    .replace(/\\u002F/gi, "/")
+    .replace(/\\\//g, "/")
+    .replace(/&amp;/g, "&");
+  const escapedId = String(productId).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `https://image\\.msscdn\\.net/thumbnails/images/(?:goods_img|prd_img)/[^"'<>\\s]+/${escapedId}/[^"'<>\\s]+?\\.(?:jpe?g|png|webp)`,
+    "gi",
+  );
+  const out = [];
+  for (const match of normalized.matchAll(pattern)) {
+    const image = musinsaLargeImage(match[0].replace(/[),;]+$/, ""));
+    if (image && !out.includes(image)) out.push(image);
+    if (out.length >= 5) break;
+  }
+  return out;
+}
+
+function parseMusinsaProduct(html, sourceUrl = "") {
   const state = JSON.parse(extractBalanced(html, "window.__MSS_FE__.product.state", "{", "}"));
   const name = String(state.goodsNm || "").trim();
   const priceData = state.goodsPrice && typeof state.goodsPrice === "object" ? state.goodsPrice : {};
@@ -62,6 +84,9 @@ function parseMusinsaProduct(html) {
   for (const item of Array.isArray(state.goodsImages) ? state.goodsImages : []) {
     if (item && typeof item === "object") candidates.push(String(item.imageUrl || ""));
   }
+  const productId = String(state.goodsNo || "").trim() || String(sourceUrl).match(/\/products\/(\d+)/)?.[1] || "";
+  candidates.push(...collectMusinsaGalleryFallback(html, productId));
+
   const images = [];
   for (const candidate of candidates) {
     const image = musinsaLargeImage(candidate);
@@ -164,7 +189,9 @@ export default async function handler(req, res) {
     const { url } = req.body || {};
     const normalized = await normalizeUrl(url);
     const page = await fetchText(normalized.url);
-    const result = normalized.source === "musinsa" ? parseMusinsaProduct(page.text) : parseStarbucksProduct(page.text);
+    const result = normalized.source === "musinsa"
+      ? parseMusinsaProduct(page.text, normalized.url)
+      : parseStarbucksProduct(page.text);
     send(res, 200, {
       ok: true,
       ...result,
