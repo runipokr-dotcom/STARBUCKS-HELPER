@@ -1,14 +1,14 @@
 /*
 STARBUCKS HELPER
 File : catalog-online-import.js
-Version : 1.3
+Version : 1.4
 Updated : 2026-09-04
-Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + catalog name classification rules.
+Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + catalog category repair.
 
 - Runs before catalog-sync.js so mobile import does not fall into the PC queue.
 - Supports Musinsa product URLs / Musinsa OneLink / Starbucks official product URLs.
 - Keeps the existing editor data shape and calculation functions.
-- Classification rules run on PC/mobile: cold cup + water bottle -> tumbler/thermos, glass -> mug.
+- Repairs existing product categories by product-name rules on both PC and mobile.
 */
 (() => {
   if (window.__starbucksCatalogOnlineImportLoaded) return;
@@ -17,55 +17,43 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + ca
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const API = "https://starbucks-helper.vercel.app/api/extract";
 
-  function preferredCategoryForName(name, fallback) {
-    const value = String(name || "");
+  function classifyProductName(name, fallback) {
+    const value = String(name || "").trim();
     if (/콜드\s*컵|콜드컵|워터\s*보틀|워터보틀|텀블러|보온병/i.test(value)) {
-      return data?.categories?.includes("텀블러/보온병") ? "텀블러/보온병" : fallback;
+      return "텀블러/보온병";
     }
     if (/글라스|머그/i.test(value)) {
-      return data?.categories?.includes("머그") ? "머그" : fallback;
+      return "머그";
     }
     return fallback;
   }
 
-  // Extend the editor's built-in classifier for both PC and mobile imports.
-  try {
-    const originalCategoryForProductName =
-      typeof categoryForProductName === "function" ? categoryForProductName : null;
-    categoryForProductName = function (name, fallback) {
-      const preferred = preferredCategoryForName(name, "");
-      if (preferred) return preferred;
-      return originalCategoryForProductName
-        ? originalCategoryForProductName(name, fallback)
-        : fallback;
-    };
-  } catch (error) {
-    console.warn("[catalog-online-import] classifier hook", error);
+  function repairExistingCategories() {
+    try {
+      if (typeof data !== "object" || !Array.isArray(data.products)) return;
+      let changed = false;
+      for (const product of data.products) {
+        const next = classifyProductName(product.name, product.category);
+        if (!next || next === product.category) continue;
+        product.category = next;
+        if (typeof calcCost === "function") {
+          product.cost = calcCost(Number(product.sale || 0), product.category);
+        }
+        if (typeof calcOffer === "function") {
+          product.offer = calcOffer(Number(product.cost || 0), Number(product.sale || 0), product.category);
+        }
+        changed = true;
+      }
+      if (!changed) return;
+      if (typeof autosave === "function") autosave();
+      else if (typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(data));
+      if (typeof render === "function") render();
+    } catch (error) {
+      console.warn("[catalog-online-import] category repair", error);
+    }
   }
 
-  // Repair already-registered products that match the explicit naming rules.
-  try {
-    let changed = false;
-    if (data && Array.isArray(data.products)) {
-      data.products.forEach((product) => {
-        const nextCategory = preferredCategoryForName(product.name, product.category);
-        if (nextCategory && nextCategory !== product.category) {
-          product.category = nextCategory;
-          if (typeof calcCost === "function")
-            product.cost = calcCost(Number(product.sale || 0), product.category);
-          if (typeof calcOffer === "function")
-            product.offer = calcOffer(Number(product.cost || 0), Number(product.sale || 0), product.category);
-          changed = true;
-        }
-      });
-    }
-    if (changed) {
-      if (typeof autosave === "function") autosave();
-      if (typeof render === "function") render();
-    }
-  } catch (error) {
-    console.warn("[catalog-online-import] category repair", error);
-  }
+  repairExistingCategories();
 
   if (!isMobile) return;
 
@@ -129,9 +117,12 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + ca
       return false;
     }
     const fallbackCategory = activeCategory === "전체" ? data.categories[0] || "" : activeCategory;
-    const category = typeof categoryForProductName === "function"
-      ? categoryForProductName(productName, fallbackCategory)
-      : fallbackCategory;
+    const category = classifyProductName(
+      productName,
+      typeof categoryForProductName === "function"
+        ? categoryForProductName(productName, fallbackCategory)
+        : fallbackCategory,
+    );
     const sale = Number(result.price || 0);
     const cost = calcCost(sale, category);
     const offer = calcOffer(cost, sale, category);
@@ -195,7 +186,5 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + ca
     }, true);
   }
 
-  // This file is loaded after the editor's inline script, so install now.
-  // Registering synchronously guarantees this capture listener precedes catalog-sync.js.
   install();
 })();
