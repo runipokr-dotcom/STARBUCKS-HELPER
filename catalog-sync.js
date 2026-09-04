@@ -1,9 +1,9 @@
 /*
 STARBUCKS HELPER
 File : catalog-sync.js
-Version : 1.2
+Version : 1.3
 Updated : 2026-09-04
-Purpose : Cross-device catalog sync + mobile link queue + category-priority sorting.
+Purpose : Cross-device catalog sync + mobile link queue + category-priority sorting + source image repair.
 
 - PC keeps the existing localhost extractor.
 - Mobile sends product links to a shared Firestore queue instead of localhost.
@@ -11,6 +11,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
 - Product metadata is mirrored so PC/mobile see the same catalog.
 - First sync protects an existing non-empty local catalog from an empty cloud copy.
 - Catalog order is grouped by category priority before price/added/updated sorting.
+- Image recheck uses each product sourceUrl and only fills missing source images.
 */
 (() => {
   if (window.__starbucksCatalogSyncLoaded) return;
@@ -30,6 +31,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   const WORKSPACE_ID = "work-k4m8q2x7n9v3c6p5r8t1";
   const SYNC_STAMP_KEY = "starbucks-helper-catalog-cloud-stamp-v1";
   const DEVICE_ID_KEY = "starbucks-helper-catalog-device-v1";
+  const IMAGE_RECHECK_API = "https://starbucks-helper.vercel.app/api/extract";
   const CATEGORY_PRIORITY = [
     "텀블러/보온병",
     "머그",
@@ -56,6 +58,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   let applyingRemote = false;
   let writeTimer = null;
   let queueBusy = false;
+  let imageRecheckBusy = false;
   let latestQueue = [];
 
   const deviceId = (() => {
@@ -276,12 +279,17 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     panel.id = "catalogSyncPanel";
     panel.style.cssText = "margin:-4px 0 16px;padding:11px 13px;background:#fff;border:1px solid var(--line,#dfe5e1);border-radius:13px;font-size:12px;";
     panel.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap">
         <strong>기기 동기화</strong>
-        <span id="catalogSyncBadge" style="color:#6a766f">연결 중</span>
+        <div style="display:flex;align-items:center;gap:7px">
+          <button id="catalogImageRecheck" class="btn filter-btn" type="button" style="padding:6px 9px">이미지 재검수</button>
+          <span id="catalogSyncBadge" style="color:#6a766f">연결 중</span>
+        </div>
       </div>
+      <div id="catalogImageRecheckStatus" style="margin-top:7px;color:#6a766f"></div>
       <div id="catalogQueue" style="margin-top:8px;color:#6a766f"></div>`;
     importSection.insertAdjacentElement("afterend", panel);
+    document.getElementById("catalogImageRecheck")?.addEventListener("click", recheckCatalogImages);
   }
 
   function updateSyncBadge(text, state) {
@@ -290,6 +298,124 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     if (!el) return;
     el.textContent = text;
     el.style.color = state === "error" ? "#b3261e" : state === "ok" ? "#00754a" : "#6a766f";
+  }
+
+  function updateImageRecheckStatus(text) {
+    ensureSyncUi();
+    const el = document.getElementById("catalogImageRecheckStatus");
+    if (el) el.textContent = text || "";
+  }
+
+  function canonicalSourceKey(url) {
+    try {
+      const u = new URL(String(url || "").trim());
+      if (u.hostname === "www.musinsa.com" || u.hostname === "musinsa.com") {
+        const id = u.pathname.match(/^\/products\/(\d+)\/?$/)?.[1];
+        return id ? `musinsa:${id}` : "";
+      }
+      if (u.hostname === "www.starbucks.co.kr" && u.pathname === "/menu/product_view.do") {
+        const code = u.searchParams.get("product_cd");
+        return code ? `starbucks:${code}` : "";
+      }
+    } catch {}
+    return "";
+  }
+
+  function cleanNameForMatch(value) {
+    try {
+      if (typeof cleanProductName === "function") return cleanProductName(value).toLowerCase();
+    } catch {}
+    return String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+  }
+
+  async function fetchSourceProduct(url) {
+    const response = await fetch(IMAGE_RECHECK_API, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("추출 서버 응답 오류");
+    }
+    if (!response.ok || !result?.ok) throw new Error(result?.error || "원본 재추출 실패");
+    return result;
+  }
+
+  function sourceResultMatches(product, result) {
+    const expectedKey = canonicalSourceKey(product.sourceUrl);
+    const resultKey = canonicalSourceKey(result.sourceUrl);
+    if (expectedKey && resultKey) return expectedKey === resultKey;
+    const sameName = cleanNameForMatch(product.name) === cleanNameForMatch(result.productName);
+    if (!sameName) return false;
+    const resultPrice = Number(result.price || 0);
+    return !resultPrice || !Number(product.sale || 0) || resultPrice === Number(product.sale || 0);
+  }
+
+  function mergeSourceImages(product, fetchedImages) {
+    const remote = [...new Set(safeArray(fetchedImages).filter((url) => /^https?:\/\//i.test(url)))].slice(0, 5);
+    if (!remote.length) return false;
+    const currentRemote = safeArray(product.remoteImages).filter((url) => /^https?:\/\//i.test(url));
+    const mergedRemote = [...new Set([...remote, ...currentRemote])].slice(0, 5);
+    const manualLocal = safeArray(product.images).filter((url) => !/^https?:\/\//i.test(url));
+    const nextImages = [...manualLocal, ...mergedRemote].slice(0, 5);
+    const beforeRemote = JSON.stringify(currentRemote.slice(0, 5));
+    const beforeImages = JSON.stringify(safeArray(product.images).slice(0, 5));
+    product.remoteImages = mergedRemote;
+    product.images = nextImages;
+    product.current = Math.min(Number(product.current || 0), Math.max(0, nextImages.length - 1));
+    return beforeRemote !== JSON.stringify(mergedRemote) || beforeImages !== JSON.stringify(nextImages);
+  }
+
+  async function recheckCatalogImages() {
+    if (imageRecheckBusy) return;
+    const button = document.getElementById("catalogImageRecheck");
+    const targets = safeArray(data.products).filter((p) => validProductLink(p.sourceUrl));
+    const skipped = safeArray(data.products).length - targets.length;
+    if (!targets.length) return toastSafe("원본 링크가 저장된 상품이 없습니다");
+
+    imageRecheckBusy = true;
+    if (button) button.disabled = true;
+    let checked = 0;
+    let repaired = 0;
+    let unchanged = 0;
+    let mismatch = 0;
+    let failed = 0;
+
+    try {
+      for (const product of targets) {
+        checked++;
+        updateImageRecheckStatus(`이미지 재검수 ${checked}/${targets.length} · ${product.name}`);
+        try {
+          const result = await fetchSourceProduct(product.sourceUrl);
+          if (!sourceResultMatches(product, result)) {
+            mismatch++;
+            continue;
+          }
+          if (mergeSourceImages(product, result.imageUrls)) repaired++;
+          else unchanged++;
+        } catch (error) {
+          failed++;
+          console.warn("[catalog-sync] image recheck", product.name, error);
+        }
+        if (checked < targets.length) await sleep(80);
+      }
+
+      if (repaired) {
+        localStorage.setItem(KEY, JSON.stringify(data));
+        if (typeof render === "function") render();
+        scheduleCatalogPush();
+      }
+      const summary = `완료 · 검사 ${checked} · 보강 ${repaired} · 정상 ${unchanged} · 매칭불일치 ${mismatch} · 실패 ${failed}${skipped ? ` · 원본링크없음 ${skipped}` : ""}`;
+      updateImageRecheckStatus(summary);
+      toastSafe(summary);
+    } finally {
+      imageRecheckBusy = false;
+      if (button) button.disabled = false;
+    }
   }
 
   function escapeHtml(value) {
@@ -366,8 +492,6 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     if (!isMobile) return;
     const button = document.getElementById("import");
     const input = document.querySelector(".import input");
-    // The online importer owns supported mobile links. Keep the old queue only as
-    // a compatibility fallback when that script genuinely failed to load.
     if (!button || !input || button.dataset.onlineImportHook === "1" || button.dataset.cloudQueueHook === "1") return;
     button.dataset.cloudQueueHook = "1";
     button.addEventListener("click", async (event) => {
@@ -461,10 +585,6 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       initialized = true;
       updateSyncBadge("연결됨", "ok");
 
-      // First-sync safety:
-      // 1) Never replace a non-empty local catalog with an empty cloud catalog.
-      // 2) Empty local device adopts a non-empty cloud catalog.
-      // 3) When both contain products, normal timestamp sync takes over.
       if (localCount > 0 && cloudCount === 0) {
         await pushCatalog();
       } else if (localCount === 0 && cloudCount > 0) {
@@ -487,7 +607,6 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
         if (remote.catalogData && remoteStamp > localKnown && remote.lastWriter !== deviceId) {
           const incomingCount = safeArray(remote.catalogData.products).length;
           const currentCount = safeArray(data.products).length;
-          // Same protection also applies to live updates.
           if (!(currentCount > 0 && incomingCount === 0)) {
             applyRemoteCatalog(remote.catalogData, remoteStamp);
           }
