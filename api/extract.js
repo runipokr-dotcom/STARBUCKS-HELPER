@@ -98,11 +98,13 @@ function parseMusinsaProduct(html, sourceUrl = "") {
   return { productName: name, description, price, imageUrls: images, source: "musinsa" };
 }
 
-function parseStarbucksProduct(html) {
+function parseStarbucksProduct(html, isFood = false) {
   const view = JSON.parse(extractBalanced(html, "view: remapView", "{", "}"));
   const files = JSON.parse(extractBalanced(html, "file: remapFile", "[", "]"));
   const name = String(view.PRODUCT_NM || "").trim();
-  const description = String(view.RECOMMEND || "").replace(/\\r\\n/g, "\n").trim();
+  const recommend = String(view.RECOMMEND || "").replace(/\\r\\n/g, "\n").trim();
+  const content = String(view.CONTENT || "").replace(/\\r\\n/g, "\n").trim();
+  const description = isFood ? [content, recommend].filter(Boolean).join("\n\n") : recommend || content;
   if (!name) throw new Error("상품명을 찾을 수 없습니다.");
   const ordered = [...files].sort((a, b) => Number(a.IMG_ORDER || 999999) - Number(b.IMG_ORDER || 999999));
   const images = [];
@@ -167,7 +169,9 @@ async function normalizeUrl(raw) {
   }
 
   if (parsed.hostname === "www.starbucks.co.kr") {
-    if (parsed.pathname !== "/menu/product_view.do") throw new Error("스타벅스 상품 상세페이지 URL 형식이 아닙니다.");
+    if (!["/menu/product_view.do", "/menu/food_view.do"].includes(parsed.pathname)) {
+      throw new Error("스타벅스 상품 또는 푸드 상세페이지 URL 형식이 아닙니다.");
+    }
     const code = parsed.searchParams.get("product_cd");
     if (!/^\d+$/.test(code || "")) throw new Error("URL의 product_cd를 확인해주세요.");
     return { source: "starbucks", url: parsed.toString() };
@@ -191,7 +195,7 @@ export default async function handler(req, res) {
     const page = await fetchText(normalized.url);
     const result = normalized.source === "musinsa"
       ? parseMusinsaProduct(page.text, normalized.url)
-      : parseStarbucksProduct(page.text);
+      : parseStarbucksProduct(page.text, new URL(normalized.url).pathname === "/menu/food_view.do");
     send(res, 200, {
       ok: true,
       ...result,

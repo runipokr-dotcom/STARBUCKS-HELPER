@@ -313,9 +313,10 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
         const id = u.pathname.match(/^\/products\/(\d+)\/?$/)?.[1];
         return id ? `musinsa:${id}` : "";
       }
-      if (u.hostname === "www.starbucks.co.kr" && u.pathname === "/menu/product_view.do") {
+      if (u.hostname === "www.starbucks.co.kr" && ["/menu/product_view.do", "/menu/food_view.do"].includes(u.pathname)) {
         const code = u.searchParams.get("product_cd");
-        return code ? `starbucks:${code}` : "";
+        const type = u.pathname === "/menu/food_view.do" ? "food" : "product";
+        return code ? `starbucks:${type}:${code}` : "";
       }
     } catch {}
     return "";

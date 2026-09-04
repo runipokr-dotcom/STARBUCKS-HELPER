@@ -75,8 +75,8 @@ def validate_product_url(value: str) -> tuple[str, str]:
         value = resolve_musinsa_short_url(short_url)
         parsed = urllib.parse.urlsplit(value)
     if parsed.hostname == "www.starbucks.co.kr":
-        if parsed.path != "/menu/product_view.do":
-            raise ExtractionError("스타벅스 상품 상세페이지 URL 형식이 아닙니다.")
+        if parsed.path not in {"/menu/product_view.do", "/menu/food_view.do"}:
+            raise ExtractionError("스타벅스 상품 또는 푸드 상세페이지 URL 형식이 아닙니다.")
         product_codes = urllib.parse.parse_qs(parsed.query).get("product_cd", [])
         if len(product_codes) != 1 or not re.fullmatch(r"\d+", product_codes[0]):
             raise ExtractionError("URL의 product_cd를 확인해주세요.")
@@ -160,7 +160,7 @@ def extract_balanced(source: str, marker: str, opener: str, closer: str) -> str:
     raise ExtractionError("상품 데이터 끝점을 찾을 수 없습니다.")
 
 
-def parse_product(html: str) -> tuple[str, str, list[str]]:
+def parse_product(html: str, is_food: bool = False) -> tuple[str, str, list[str]]:
     try:
         view = json.loads(extract_balanced(html, "view: remapView", "{", "}"))
         files = json.loads(extract_balanced(html, "file: remapFile", "[", "]"))
@@ -168,7 +168,12 @@ def parse_product(html: str) -> tuple[str, str, list[str]]:
         raise ExtractionError("상품 데이터를 해석할 수 없습니다.") from exc
 
     name = str(view.get("PRODUCT_NM") or "").strip()
-    description = str(view.get("RECOMMEND") or "").replace("\r\n", "\n").strip()
+    recommend = str(view.get("RECOMMEND") or "").replace("\r\n", "\n").strip()
+    content = str(view.get("CONTENT") or "").replace("\r\n", "\n").strip()
+    if is_food:
+        description = "\n\n".join(part for part in (content, recommend) if part)
+    else:
+        description = recommend or content
     if not name:
         raise ExtractionError("상품명을 찾을 수 없습니다.")
     if not description:
@@ -297,7 +302,8 @@ def extract_product(url: str) -> dict[str, object]:
     if source == "musinsa":
         name, description, price, image_urls = parse_musinsa_product(html, normalized_url)
     else:
-        name, description, image_urls = parse_product(html)
+        is_food = urllib.parse.urlsplit(normalized_url).path == "/menu/food_view.do"
+        name, description, image_urls = parse_product(html, is_food=is_food)
         price = 0
     destination = available_destination(name)
     temporary = Path(tempfile.mkdtemp(prefix=".starbucks-md-", dir=SAVE_ROOT))

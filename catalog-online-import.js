@@ -6,7 +6,7 @@ Updated : 2026-09-04
 Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + catalog category repair.
 
 - Runs before catalog-sync.js so mobile import does not fall into the PC queue.
-- Supports Musinsa product URLs / Musinsa OneLink / Starbucks official product URLs.
+- Supports Musinsa product URLs / Musinsa OneLink / Starbucks official product and food URLs.
 - Keeps the existing editor data shape and calculation functions.
 - Repairs existing product categories by product-name rules on both PC and mobile.
 */
@@ -72,7 +72,7 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + ca
       if (host === "musinsa.onelink.me") return true;
       if ((host === "www.musinsa.com" || host === "musinsa.com") && /^\/products\/\d+\/?$/.test(u.pathname)) return true;
 
-      if (host === "www.starbucks.co.kr" && u.pathname === "/menu/product_view.do") {
+      if (host === "www.starbucks.co.kr" && ["/menu/product_view.do", "/menu/food_view.do"].includes(u.pathname)) {
         return /^\d+$/.test(u.searchParams.get("product_cd") || "");
       }
 
