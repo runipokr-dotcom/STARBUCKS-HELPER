@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""STARBUCKS HELPER local MD downloader v1.1 (2026-09-03).
+"""STARBUCKS HELPER local MD downloader v1.2 (2026-09-04).
 
 Listens only on 127.0.0.1 and saves extracted product assets below the fixed
 Downloads/스타벅스MD directory. Uses only the Python standard library.
@@ -196,6 +196,7 @@ def parse_product(html: str) -> tuple[str, str, list[str]]:
 
 
 def musinsa_large_image(path: str) -> str:
+    path = str(path or "").replace("\\u002F", "/").replace("\\/", "/")
     if path.startswith("//"):
         path = "https:" + path
     elif path.startswith("/"):
@@ -206,7 +207,31 @@ def musinsa_large_image(path: str) -> str:
     return path + ("&" if "?" in path else "?") + "w=1200"
 
 
-def parse_musinsa_product(page_html: str) -> tuple[str, str, int, list[str]]:
+def collect_musinsa_gallery_fallback(page_html: str, product_id: str) -> list[str]:
+    if not product_id:
+        return []
+    normalized = (
+        str(page_html or "")
+        .replace("\\u002F", "/")
+        .replace("\\/", "/")
+        .replace("&amp;", "&")
+    )
+    escaped_id = re.escape(str(product_id))
+    pattern = re.compile(
+        rf'https://image\.msscdn\.net/thumbnails/images/(?:goods_img|prd_img)/[^"\'<>\s]+/{escaped_id}/[^"\'<>\s]+?\.(?:jpe?g|png|webp)',
+        re.I,
+    )
+    images: list[str] = []
+    for match in pattern.finditer(normalized):
+        image_url = musinsa_large_image(match.group(0).rstrip("),;"))
+        if image_url and image_url not in images:
+            images.append(image_url)
+        if len(images) >= 5:
+            break
+    return images
+
+
+def parse_musinsa_product(page_html: str, source_url: str = "") -> tuple[str, str, int, list[str]]:
     try:
         state = json.loads(extract_balanced(page_html, "window.__MSS_FE__.product.state", "{", "}"))
     except json.JSONDecodeError as exc:
@@ -220,6 +245,11 @@ def parse_musinsa_product(page_html: str) -> tuple[str, str, int, list[str]]:
     for item in state.get("goodsImages") or []:
         if isinstance(item, dict):
             candidates.append(str(item.get("imageUrl") or ""))
+    product_id = str(state.get("goodsNo") or "").strip()
+    if not product_id:
+        match = re.search(r"/products/(\d+)", source_url)
+        product_id = match.group(1) if match else ""
+    candidates.extend(collect_musinsa_gallery_fallback(page_html, product_id))
     images: list[str] = []
     for candidate in candidates:
         image_url = musinsa_large_image(candidate)
@@ -265,7 +295,7 @@ def extract_product(url: str) -> dict[str, object]:
     page_bytes, _ = fetch_bytes(normalized_url, MAX_PAGE_BYTES)
     html = page_bytes.decode("utf-8", errors="replace")
     if source == "musinsa":
-        name, description, price, image_urls = parse_musinsa_product(html)
+        name, description, price, image_urls = parse_musinsa_product(html, normalized_url)
     else:
         name, description, image_urls = parse_product(html)
         price = 0
@@ -323,7 +353,7 @@ def local_page(result: dict[str, object] | None = None, error: str = "") -> byte
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "StarbucksMDHelper/1.1"
+    server_version = "StarbucksMDHelper/1.2"
 
     def log_message(self, format: str, *args: object) -> None:
         print(f"[{self.log_date_time_string()}] {format % args}")
@@ -370,16 +400,13 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/":
             self.send_html(200, local_page())
         elif self.path == "/health":
-            self.send_json(200, {"ok": True, "version": "1.1", "saveRoot": str(SAVE_ROOT)})
+            self.send_json(200, {"ok": True, "version": "1.2", "saveRoot": str(SAVE_ROOT)})
         elif self.path.startswith("/media/"):
             self.serve_media()
         else:
             self.send_json(404, {"ok": False, "error": "찾을 수 없습니다."})
 
     def serve_media(self) -> None:
-        # Serves previously downloaded product images from SAVE_ROOT so the
-        # web editor can draw them onto a <canvas> without CORS tainting
-        # (fixes Musinsa images failing to render in the JPG export).
         try:
             raw_path = self.path[len("/media/"):].split("?", 1)[0]
             relative = urllib.parse.unquote(raw_path)
