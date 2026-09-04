@@ -1,4 +1,4 @@
-const VERSION = "starbucks-helper-pwa-v3";
+const VERSION = "starbucks-helper-pwa-v4";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
@@ -25,7 +25,7 @@ self.addEventListener("fetch", event => {
     if (!html.includes("catalog-online-import.js")) {
       html = html.replace(
         /<\/body>/i,
-        '<script src="catalog-online-import.js?v=20260904-1"></script>\n<script src="catalog-sync.js?v=20260904-2"></script>\n</body>'
+        '<script src="catalog-online-import.js?v=20260904-2"></script>\n<script src="catalog-sync.js?v=20260904-2"></script>\n</body>'
       );
     }
 
