@@ -1,15 +1,16 @@
 /*
 STARBUCKS HELPER
 File : catalog-sync.js
-Version : 1.1
+Version : 1.2
 Updated : 2026-09-04
-Purpose : Cross-device catalog sync + mobile link queue.
+Purpose : Cross-device catalog sync + mobile link queue + category-priority sorting.
 
 - PC keeps the existing localhost extractor.
 - Mobile sends product links to a shared Firestore queue instead of localhost.
 - PC processes queued links through the existing import button.
 - Product metadata is mirrored so PC/mobile see the same catalog.
 - First sync protects an existing non-empty local catalog from an empty cloud copy.
+- Catalog order is grouped by category priority before price/added/updated sorting.
 */
 (() => {
   if (window.__starbucksCatalogSyncLoaded) return;
@@ -29,6 +30,23 @@ Purpose : Cross-device catalog sync + mobile link queue.
   const WORKSPACE_ID = "work-k4m8q2x7n9v3c6p5r8t1";
   const SYNC_STAMP_KEY = "starbucks-helper-catalog-cloud-stamp-v1";
   const DEVICE_ID_KEY = "starbucks-helper-catalog-device-v1";
+  const CATEGORY_PRIORITY = [
+    "텀블러/보온병",
+    "머그",
+    "액세서리",
+    "티바나(차)",
+    "시럽",
+    "우산",
+    "비아",
+    "원두",
+    "리유저블",
+  ];
+  const CATEGORY_ALIASES = new Map([
+    ["텀블러", "텀블러/보온병"],
+    ["악세사리", "액세서리"],
+    ["악세서리", "액세서리"],
+    ["티바나", "티바나(차)"],
+  ]);
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   let f = null;
@@ -52,6 +70,76 @@ Purpose : Cross-device catalog sync + mobile link queue.
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const now = () => Date.now();
   const safeArray = (value) => (Array.isArray(value) ? value : []);
+  const normalizeCategoryName = (value) => {
+    const name = String(value || "").trim();
+    return CATEGORY_ALIASES.get(name) || name;
+  };
+  const categoryRank = (category) => {
+    const index = CATEGORY_PRIORITY.indexOf(normalizeCategoryName(category));
+    return index === -1 ? CATEGORY_PRIORITY.length : index;
+  };
+
+  function normalizeCatalogCategories(target) {
+    if (!target || typeof target !== "object") return target;
+
+    const existing = safeArray(target.categories)
+      .map(normalizeCategoryName)
+      .filter(Boolean);
+    const extras = existing.filter((category) => !CATEGORY_PRIORITY.includes(category));
+    target.categories = [...new Set([...CATEGORY_PRIORITY, ...extras])];
+
+    target.products = safeArray(target.products).map((product) => {
+      product.category = normalizeCategoryName(product.category);
+      if (!product.category) product.category = target.categories[0] || "";
+      return product;
+    });
+
+    target.tumblerCategories = safeArray(target.tumblerCategories)
+      .map(normalizeCategoryName)
+      .filter(Boolean);
+    if (!target.tumblerCategories.includes("텀블러/보온병"))
+      target.tumblerCategories.push("텀블러/보온병");
+    target.tumblerCategories = [...new Set(target.tumblerCategories)];
+
+    return target;
+  }
+
+  function applyCategoryPriorityOrder() {
+    if (!data || !Array.isArray(data.products) || data.products.length < 2) return;
+    data.products = data.products
+      .map((product, index) => ({ product, index }))
+      .sort((a, b) => categoryRank(a.product.category) - categoryRank(b.product.category) || a.index - b.index)
+      .map(({ product }) => product);
+  }
+
+  function installPrioritySortHook() {
+    if (typeof sortProducts !== "function" || sortProducts.__categoryPriorityWrapped) return;
+    const wrapped = function (mode) {
+      normalizeCatalogCategories(data);
+      const keyFn =
+        mode === "price"
+          ? (p) => Number(p.offer || 0)
+          : mode === "added"
+            ? (p) => Number(p.id || 0)
+            : (p) => Number(p.updatedAt || p.id || 0);
+
+      data.products = data.products
+        .map((product, index) => ({ product, index }))
+        .sort((a, b) => {
+          const categoryDiff = categoryRank(a.product.category) - categoryRank(b.product.category);
+          if (categoryDiff) return categoryDiff;
+          const keyDiff = keyFn(b.product) - keyFn(a.product);
+          return keyDiff || a.index - b.index;
+        })
+        .map(({ product }) => product);
+
+      autosave();
+      render();
+      toastSafe("카테고리 우선순위로 정렬했습니다");
+    };
+    wrapped.__categoryPriorityWrapped = true;
+    sortProducts = wrapped;
+  }
 
   function toastSafe(message) {
     try {
@@ -86,7 +174,7 @@ Purpose : Cross-device catalog sync + mobile link queue.
 
   function cloudSafeData() {
     try {
-      const clone = JSON.parse(JSON.stringify(data));
+      const clone = normalizeCatalogCategories(JSON.parse(JSON.stringify(data)));
       clone.products = safeArray(clone.products).map(cloudSafeProduct);
       return clone;
     } catch (error) {
@@ -96,7 +184,7 @@ Purpose : Cross-device catalog sync + mobile link queue.
   }
 
   function normalizeIncomingData(incoming) {
-    const next = JSON.parse(JSON.stringify(incoming || {}));
+    const next = normalizeCatalogCategories(JSON.parse(JSON.stringify(incoming || {})));
     next.products = safeArray(next.products).map((p) => {
       p.images = safeArray(p.images).filter((url) => /^https?:\/\//i.test(url));
       p.remoteImages = safeArray(p.remoteImages).filter((url) => /^https?:\/\//i.test(url));
@@ -123,6 +211,7 @@ Purpose : Cross-device catalog sync + mobile link queue.
       const next = normalizeIncomingData(incoming);
       for (const key of Object.keys(data)) delete data[key];
       Object.assign(data, next);
+      applyCategoryPriorityOrder();
       if (typeof applyPricingRules === "function") applyPricingRules(data.products);
       localStorage.setItem(KEY, JSON.stringify(data));
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp || now()));
@@ -343,6 +432,11 @@ Purpose : Cross-device catalog sync + mobile link queue.
   }
 
   async function init() {
+    normalizeCatalogCategories(data);
+    applyCategoryPriorityOrder();
+    localStorage.setItem(KEY, JSON.stringify(data));
+    if (typeof render === "function") render();
+    installPrioritySortHook();
     ensureSyncUi();
     installAutosaveHook();
     installMobileImportHook();
