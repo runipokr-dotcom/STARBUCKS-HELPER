@@ -237,9 +237,12 @@ def collect_musinsa_gallery_fallback(page_html: str, product_id: str) -> list[st
         re.I,
     )
     images: list[str] = []
+    seen_images: set[str] = set()
     for match in pattern.finditer(normalized):
         image_url = musinsa_large_image(match.group(0).rstrip("),;"))
-        if image_url and image_url not in images:
+        image_key = musinsa_image_key(image_url)
+        if image_url and image_key not in seen_images:
+            seen_images.add(image_key)
             images.append(image_url)
         if len(images) >= 5:
             break

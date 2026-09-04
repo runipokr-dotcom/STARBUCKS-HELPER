@@ -78,9 +78,14 @@ function collectMusinsaGalleryFallback(html, productId) {
     "gi",
   );
   const out = [];
+  const seen = new Set();
   for (const match of normalized.matchAll(pattern)) {
     const image = musinsaLargeImage(match[0].replace(/[),;]+$/, ""));
-    if (image && !out.includes(image)) out.push(image);
+    const key = musinsaImageKey(image);
+    if (image && !seen.has(key)) {
+      seen.add(key);
+      out.push(image);
+    }
     if (out.length >= 5) break;
   }
   return out;
