@@ -74,16 +74,20 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
   }
 
   function addImportedProduct(result) {
-    const category = activeCategory === "전체" ? data.categories[0] || "" : activeCategory;
+    const productName = cleanProductName(result.productName);
+    const fallbackCategory = activeCategory === "전체" ? data.categories[0] || "" : activeCategory;
+    const category = typeof categoryForProductName === "function"
+      ? categoryForProductName(productName, fallbackCategory)
+      : fallbackCategory;
     const sale = Number(result.price || 0);
     const cost = calcCost(sale, category);
-    const offer = calcOffer(cost);
+    const offer = calcOffer(cost, sale, category);
     const images = (result.imageUrls || []).slice(0, 5);
 
     data.products.push({
       id: Date.now(),
       updatedAt: Date.now(),
-      name: cleanProductName(result.productName),
+      name: productName,
       sale,
       cost,
       offer,
@@ -132,9 +136,7 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API.
     }, true);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", install, { once: true });
-  } else {
-    install();
-  }
+  // This file is loaded after the editor's inline script, so install now.
+  // Registering synchronously guarantees this capture listener precedes catalog-sync.js.
+  install();
 })();

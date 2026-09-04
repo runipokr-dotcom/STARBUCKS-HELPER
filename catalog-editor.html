@@ -225,6 +225,13 @@ Fixed : mobile two-column cards / autosave after product edits
         font-size: var(--name, 16px);
         font-weight: 750;
       }
+      textarea.name {
+        min-height: 2.8em;
+        line-height: 1.35;
+        resize: vertical;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
       .sale {
         font-size: var(--sale, 13px);
         color: var(--mut);
@@ -784,7 +791,7 @@ Fixed : mobile two-column cards / autosave after product edits
       </section>
       <section class="settings policy-settings" id="policySettings" hidden>
         <small style="color:var(--mut);">
-          클릭된 대분류만 텀블러쿠폰이 적용됩니다.
+          텀블러/보온병은 아래 쿠폰·마진 정책을 적용하고, 나머지는 제안가만 정가에서 7% 할인으로 고정됩니다.
         </small>
         <div class="filter-buttons policy-cats" id="policyCats"></div>
         <div class="setting-grid policy-grid">
@@ -865,7 +872,7 @@ Fixed : mobile two-column cards / autosave after product edits
     <script>
       const KEY = "starbucks-helper-web-catalog-v1";
       const DEFAULT_CATEGORIES = [
-          "텀블러",
+          "텀블러/보온병",
           "머그",
           "우산",
           "티바나(차)",
@@ -884,6 +891,10 @@ Fixed : mobile two-column cards / autosave after product edits
         Array.isArray(data.categories) && data.categories.length
           ? data.categories
           : [...DEFAULT_CATEGORIES];
+      data.categories = data.categories.map((category) =>
+        category === "텀블러" ? "텀블러/보온병" : category,
+      );
+      data.categories = [...new Set(data.categories)];
       data.policy = data.policy || {
         discount: "100",
         star: "0",
@@ -895,9 +906,14 @@ Fixed : mobile two-column cards / autosave after product edits
       data.policy.webMargin = data.policy.webMargin ?? "0";
       data.policy.webFee = data.policy.webFee ?? "0";
       data.tumblerCategories = Array.isArray(data.tumblerCategories)
-        ? data.tumblerCategories
-        : [];
+        ? data.tumblerCategories.map((category) =>
+            category === "텀블러" ? "텀블러/보온병" : category,
+          )
+        : ["텀블러/보온병"];
+      if (!data.tumblerCategories.includes("텀블러/보온병"))
+        data.tumblerCategories.push("텀블러/보온병");
       data.products.forEach((p) => {
+        if (p.category === "텀블러") p.category = "텀블러/보온병";
         p.category = p.category || data.categories[0] || "";
         p.tags = Array.isArray(p.tags) ? p.tags : [];
         p.cost = Number.isFinite(p.cost) ? p.cost : 0;
@@ -991,11 +1007,18 @@ Fixed : mobile two-column cards / autosave after product edits
       function cleanProductName(name) {
         return String(name || "")
           .replace(
-            /\s*\+\s*(?:에코\s*)?텀블러\s*음료\s*쿠폰(?:\s*[\(\[][\s\S]*?[\)\]])?/gi,
+            /\s*\+\s*\*{0,2}\s*(?:에코\s*)?텀블러\s*음료\s*쿠폰(?:\s*[\(\[][\s\S]*?[\)\]])?\s*\*{0,2}/gi,
             "",
           )
           .replace(/\s{2,}/g, " ")
           .trim();
+      }
+      function categoryForProductName(name, fallback) {
+        const value = String(name || "");
+        if (/텀블러|보온병/i.test(value) && data.categories.includes("텀블러/보온병"))
+          return "텀블러/보온병";
+        if (/머그/i.test(value) && data.categories.includes("머그")) return "머그";
+        return fallback;
       }
       function tagOptions() {
         return data.tagOptions || [];
@@ -1140,7 +1163,10 @@ Fixed : mobile two-column cards / autosave after product edits
           (star / 8) * (sale / 10000);
         return Math.round(cost);
       }
-      function calcOffer(cost) {
+      function calcOffer(cost, sale, category) {
+        const hasCategoryPolicy = (data.tumblerCategories || []).includes(category);
+        if (!hasCategoryPolicy && Number.isFinite(Number(sale)))
+          return Math.round(Number(sale) * 0.93);
         return Math.round(cost + marginValue(cost));
       }
       const FIREBASE_CONFIG = {
@@ -1296,7 +1322,7 @@ Fixed : mobile two-column cards / autosave after product edits
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><input class="field name" data-k="name" value="${esc(p.name)}"><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><div class="web-price">웹판매가 ${money(calcWebPrice(p.cost))}</div><select class="category-select">${data.categories.map((c) => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
+                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><textarea class="field name" data-k="name" rows="2">${esc(p.name)}</textarea><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><div class="web-price">웹판매가 ${money(calcWebPrice(p.cost))}</div><select class="category-select">${data.categories.map((c) => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
                   .map(
                     (tag) =>
                       `<button type="button" class="tag-chip ${p.tags.includes(tag) ? "active" : ""}" data-product-tag="${esc(tag)}">${esc(tag)}</button>`,
@@ -1344,24 +1370,29 @@ Fixed : mobile two-column cards / autosave after product edits
           card.querySelectorAll(".field").forEach(
             (f) =>
               (f.onchange = () => {
-                if (f.dataset.k === "name") p.name = f.value;
+                if (f.dataset.k === "name") {
+                  p.name = f.value;
+                  p.category = categoryForProductName(p.name, p.category);
+                  p.cost = calcCost(p.sale, p.category);
+                  p.offer = calcOffer(p.cost, p.sale, p.category);
+                }
                 else p[f.dataset.k] = Number(f.value.replace(/\D/g, ""));
                 if (f.dataset.k === "sale") {
                   p.cost = calcCost(p.sale, p.category);
-                  p.offer = calcOffer(p.cost);
+                  p.offer = calcOffer(p.cost, p.sale, p.category);
                 } else if (f.dataset.k === "cost") {
-                  p.offer = calcOffer(p.cost);
+                  p.offer = calcOffer(p.cost, p.sale, p.category);
                 }
                 touch(p);
                 autosave();
-                if (f.dataset.k === "sale" || f.dataset.k === "cost") render();
+                if (f.dataset.k === "name" || f.dataset.k === "sale" || f.dataset.k === "cost") render();
                 else basket();
               }),
           );
           card.querySelector(".category-select").onchange = (e) => {
             p.category = e.target.value;
             p.cost = calcCost(p.sale, p.category);
-            p.offer = calcOffer(p.cost);
+            p.offer = calcOffer(p.cost, p.sale, p.category);
             touch(p);
             autosave();
             render();
@@ -1698,7 +1729,7 @@ Fixed : mobile two-column cards / autosave after product edits
       $("#policyApply").onclick = () => {
         data.products.forEach((p) => {
           p.cost = calcCost(p.sale, p.category);
-          p.offer = calcOffer(p.cost);
+          p.offer = calcOffer(p.cost, p.sale, p.category);
           p.updatedAt = Date.now();
         });
         autosave();
@@ -1732,17 +1763,18 @@ Fixed : mobile two-column cards / autosave after product edits
         button.textContent = "다운로드 중…";
         try {
           let result = await extractFromHelper(u);
-          let category =
+          const productName = cleanProductName(result.productName);
+          let category = categoryForProductName(productName,
               activeCategory === "전체"
                 ? data.categories[0] || ""
-                : activeCategory,
+                : activeCategory),
             sale = Number(result.price || 0),
             cost = calcCost(sale, category),
-            offer = calcOffer(cost);
+            offer = calcOffer(cost, sale, category);
           data.products.push({
             id: Date.now(),
             updatedAt: Date.now(),
-            name: cleanProductName(result.productName),
+            name: productName,
             sale,
             cost,
             offer,
@@ -1782,5 +1814,7 @@ Fixed : mobile two-column cards / autosave after product edits
       };
       render();
     </script>
+    <script src="catalog-online-import.js?v=20260904-4"></script>
+    <script src="catalog-sync.js?v=20260904-3"></script>
   </body>
 </html>

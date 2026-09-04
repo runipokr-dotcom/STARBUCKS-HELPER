@@ -276,7 +276,9 @@ Purpose : Cross-device catalog sync + mobile link queue.
     if (!isMobile) return;
     const button = document.getElementById("import");
     const input = document.querySelector(".import input");
-    if (!button || !input || button.dataset.cloudQueueHook === "1") return;
+    // The online importer owns supported mobile links. Keep the old queue only as
+    // a compatibility fallback when that script genuinely failed to load.
+    if (!button || !input || button.dataset.onlineImportHook === "1" || button.dataset.cloudQueueHook === "1") return;
     button.dataset.cloudQueueHook = "1";
     button.addEventListener("click", async (event) => {
       event.preventDefault();
