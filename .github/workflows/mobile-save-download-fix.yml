@@ -20,39 +20,24 @@ jobs:
           from pathlib import Path
           p = Path('share.html')
           s = p.read_text(encoding='utf-8')
-
           s = s.replace('Version : 1.1', 'Version : 1.2', 1)
-
-          s = s.replace(
-              '      async function buildBasketImage() {',
-              '      function buildBasketImageDataUrl() {',
-              1,
-          )
-
-          s = s.replace(
-'''        try {\n          await document.fonts.ready;\n        } catch (e) {}\n''',
-'',
-              1,
-          )
-
-          s = s.replace(
-'''        return new Promise((resolve) =>\n          canvas.toBlob(resolve, "image/jpeg", 0.92),\n        );\n      }\n      async function downloadBasketImage() {\n        let blob = await buildBasketImage();\n        if (!blob) return;\n        let url = URL.createObjectURL(blob),\n          a = document.createElement("a");\n        a.href = url;\n        a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n        setTimeout(() => URL.revokeObjectURL(url), 4000);\n      }\n''',
-'''        return canvas.toDataURL("image/jpeg", 0.92);\n      }\n      function downloadBasketImage() {\n        const dataUrl = buildBasketImageDataUrl();\n        if (!dataUrl) return false;\n        const a = document.createElement("a");\n        a.href = dataUrl;\n        a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;\n        a.style.display = "none";\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n        return true;\n      }\n''',
-              1,
-          )
-
-          old = '''        $("#saveBtn").disabled = true;\n        $("#saveBtn").textContent = "저장 중…";\n        try {\n          const { db, firestore: f } = await initShareSync();\n'''
-          new = '''        $("#saveBtn").disabled = true;\n        $("#saveBtn").textContent = "저장 중…";\n        let downloaded = false;\n        try {\n          downloaded = downloadBasketImage();\n        } catch (imgError) {\n          console.error(imgError);\n        }\n        try {\n          const { db, firestore: f } = await initShareSync();\n'''
-          if old not in s:
+          s = s.replace('      async function buildBasketImage() {', '      function buildBasketImageDataUrl() {', 1)
+          s = s.replace('        try {\n          await document.fonts.ready;\n        } catch (e) {}\n', '', 1)
+          old_return = '        return new Promise((resolve) =>\n          canvas.toBlob(resolve, "image/jpeg", 0.92),\n        );\n      }\n      async function downloadBasketImage() {\n        let blob = await buildBasketImage();\n        if (!blob) return;\n        let url = URL.createObjectURL(blob),\n          a = document.createElement("a");\n        a.href = url;\n        a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n        setTimeout(() => URL.revokeObjectURL(url), 4000);\n      }\n'
+          new_return = '        return canvas.toDataURL("image/jpeg", 0.92);\n      }\n      function downloadBasketImage() {\n        const dataUrl = buildBasketImageDataUrl();\n        if (!dataUrl) return false;\n        const a = document.createElement("a");\n        a.href = dataUrl;\n        a.download = `견적서_${new Date().toISOString().slice(0, 10)}.jpg`;\n        a.style.display = "none";\n        document.body.appendChild(a);\n        a.click();\n        a.remove();\n        return true;\n      }\n'
+          if old_return not in s:
+              raise SystemExit('download function anchor not found')
+          s = s.replace(old_return, new_return, 1)
+          old_save = '        $("#saveBtn").disabled = true;\n        $("#saveBtn").textContent = "저장 중…";\n        try {\n          const { db, firestore: f } = await initShareSync();\n'
+          new_save = '        $("#saveBtn").disabled = true;\n        $("#saveBtn").textContent = "저장 중…";\n        let downloaded = false;\n        try {\n          downloaded = downloadBasketImage();\n        } catch (imgError) {\n          console.error(imgError);\n        }\n        try {\n          const { db, firestore: f } = await initShareSync();\n'
+          if old_save not in s:
               raise SystemExit('save handler anchor not found')
-          s = s.replace(old, new, 1)
-
-          old2 = '''          try {\n            await downloadBasketImage();\n            toast("저장했습니다. 견적서 이미지가 다운로드됩니다.");\n          } catch (imgError) {\n            console.error(imgError);\n            toast("저장했습니다. (이미지 다운로드에는 실패했어요)");\n          }\n'''
-          new2 = '''          toast(\n            downloaded\n              ? "저장했습니다. 견적서 이미지 다운로드를 시작했습니다."\n              : "저장했습니다. (이미지 다운로드에는 실패했어요)",\n          );\n'''
-          if old2 not in s:
-              raise SystemExit('old post-save download block not found')
-          s = s.replace(old2, new2, 1)
-
+          s = s.replace(old_save, new_save, 1)
+          old_post = '          try {\n            await downloadBasketImage();\n            toast("저장했습니다. 견적서 이미지가 다운로드됩니다.");\n          } catch (imgError) {\n            console.error(imgError);\n            toast("저장했습니다. (이미지 다운로드에는 실패했어요)");\n          }\n'
+          new_post = '          toast(\n            downloaded\n              ? "저장했습니다. 견적서 이미지 다운로드를 시작했습니다."\n              : "저장했습니다. (이미지 다운로드에는 실패했어요)",\n          );\n'
+          if old_post not in s:
+              raise SystemExit('post-save download anchor not found')
+          s = s.replace(old_post, new_post, 1)
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit patch
