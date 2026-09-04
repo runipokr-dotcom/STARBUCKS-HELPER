@@ -209,7 +209,17 @@ def musinsa_large_image(path: str) -> str:
     if not path.startswith("https://image.msscdn.net/"):
         return ""
     path = re.sub(r"_500(?=\.(?:jpe?g|png|webp)$)", "_big", path, flags=re.I)
-    return path + ("&" if "?" in path else "?") + "w=1200"
+    parsed = urllib.parse.urlsplit(path)
+    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+    query = [(key, value) for key, value in query if key != "w"]
+    query.append(("w", "1200"))
+    return urllib.parse.urlunsplit(parsed._replace(query=urllib.parse.urlencode(query)))
+
+
+def musinsa_image_key(path: str) -> str:
+    parsed = urllib.parse.urlsplit(str(path or ""))
+    clean_path = re.sub(r"^/thumbnails", "", parsed.path)
+    return re.sub(r"_(?:500|big)(?=\.(?:jpe?g|png|webp)$)", "", clean_path, flags=re.I)
 
 
 def collect_musinsa_gallery_fallback(page_html: str, product_id: str) -> list[str]:
@@ -256,9 +266,12 @@ def parse_musinsa_product(page_html: str, source_url: str = "") -> tuple[str, st
         product_id = match.group(1) if match else ""
     candidates.extend(collect_musinsa_gallery_fallback(page_html, product_id))
     images: list[str] = []
+    seen_images: set[str] = set()
     for candidate in candidates:
         image_url = musinsa_large_image(candidate)
-        if image_url and image_url not in images:
+        image_key = musinsa_image_key(image_url)
+        if image_url and image_key not in seen_images:
+            seen_images.add(image_key)
             images.append(image_url)
         if len(images) >= 5:
             break

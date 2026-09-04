@@ -1242,10 +1242,20 @@ Fixed : mobile two-column cards / autosave after product edits
         return `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=${id}`;
       }
       function publicImages(p) {
-        if (p.remoteImages && p.remoteImages.length) return p.remoteImages;
-        return (p.images || []).filter(
+        const images = p.remoteImages && p.remoteImages.length ? p.remoteImages : (p.images || []).filter(
           (src) => /^https?:\/\//.test(src) && !src.includes("127.0.0.1"),
         );
+        const seen = new Set();
+        return images.filter((src) => {
+          let key = src;
+          try {
+            const url = new URL(src);
+            key = url.pathname.replace(/^\/thumbnails/, "").replace(/_(?:500|big)(?=\.(?:jpe?g|png|webp)$)/i, "");
+          } catch {}
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        }).slice(0, 5);
       }
       async function publishShare() {
         try {

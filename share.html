@@ -627,6 +627,20 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         renderFilters();
         renderBasket();
       }
+
+      function uniqueProductImages(images) {
+        const seen = new Set();
+        return (images || []).filter((src) => {
+          let key = src;
+          try {
+            const url = new URL(src);
+            key = url.pathname.replace(/^\/thumbnails/, "").replace(/_(?:500|big)(?=\.(?:jpe?g|png|webp)$)/i, "");
+          } catch {}
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
       function renderBasket() {
         let includeOffer = $("#includeOffer").checked,
           selected = shareData.products.filter((p) => p.selected),
@@ -931,9 +945,10 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
               shareData.products = applyCustomOrder(
                 (incoming.products || []).map((p) => ({
                   ...p,
+                  images: uniqueProductImages(p.images),
                   selected: prevSelections.get(p.id)?.selected || false,
                   qty: prevSelections.get(p.id)?.qty || 1,
-                  current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, (p.images || []).length - 1)),
+                  current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, uniqueProductImages(p.images).length - 1)),
                 })),
               );
               render();

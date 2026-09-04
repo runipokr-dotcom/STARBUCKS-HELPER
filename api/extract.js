@@ -50,7 +50,20 @@ function musinsaLargeImage(path) {
   else if (path.startsWith("/")) path = "https://image.msscdn.net/thumbnails" + path;
   if (!path.startsWith("https://image.msscdn.net/")) return "";
   path = path.replace(/_500(?=\.(?:jpe?g|png|webp)$)/i, "_big");
-  return path + (path.includes("?") ? "&" : "?") + "w=1200";
+  const url = new URL(path);
+  url.searchParams.set("w", "1200");
+  return url.toString();
+}
+
+function musinsaImageKey(path) {
+  try {
+    const url = new URL(path);
+    return url.pathname
+      .replace(/^\/thumbnails/, "")
+      .replace(/_(?:500|big)(?=\.(?:jpe?g|png|webp)$)/i, "");
+  } catch {
+    return String(path || "");
+  }
 }
 
 function collectMusinsaGalleryFallback(html, productId) {
@@ -88,9 +101,14 @@ function parseMusinsaProduct(html, sourceUrl = "") {
   candidates.push(...collectMusinsaGalleryFallback(html, productId));
 
   const images = [];
+  const seenImages = new Set();
   for (const candidate of candidates) {
     const image = musinsaLargeImage(candidate);
-    if (image && !images.includes(image)) images.push(image);
+    const key = musinsaImageKey(image);
+    if (image && !seenImages.has(key)) {
+      seenImages.add(key);
+      images.push(image);
+    }
     if (images.length >= 5) break;
   }
   if (!name) throw new Error("무신사 상품명을 찾을 수 없습니다.");
