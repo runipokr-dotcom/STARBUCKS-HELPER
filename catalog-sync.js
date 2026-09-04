@@ -1,15 +1,15 @@
 /*
 STARBUCKS HELPER
 File : catalog-sync.js
-Version : 1.0
+Version : 1.1
 Updated : 2026-09-04
-Purpose : Cross-device catalog sync + mobile link queue using existing Firestore catalogShares access.
+Purpose : Cross-device catalog sync + mobile link queue.
 
-Important:
-- PC keeps using the existing local extractor (127.0.0.1:17833/17832).
-- Mobile never tries to call the PC localhost. It stores links in the shared queue.
-- When a PC opens catalog-editor.html, pending links are fed into the existing import button.
-- Catalog data is mirrored so PC/mobile can see the same product list.
+- PC keeps the existing localhost extractor.
+- Mobile sends product links to a shared Firestore queue instead of localhost.
+- PC processes queued links through the existing import button.
+- Product metadata is mirrored so PC/mobile see the same catalog.
+- First sync protects an existing non-empty local catalog from an empty cloud copy.
 */
 (() => {
   if (window.__starbucksCatalogSyncLoaded) return;
@@ -25,8 +25,6 @@ Important:
     measurementId: "G-8H2H0NCJDF",
   };
 
-  // Uses the already-permitted catalogShares collection. This is an internal,
-  // opaque workspace id, separate from customer-facing share ids.
   const COLLECTION = "catalogShares";
   const WORKSPACE_ID = "work-k4m8q2x7n9v3c6p5r8t1";
   const SYNC_STAMP_KEY = "starbucks-helper-catalog-cloud-stamp-v1";
@@ -41,7 +39,6 @@ Important:
   let writeTimer = null;
   let queueBusy = false;
   let latestQueue = [];
-  let unsubscribe = null;
 
   const deviceId = (() => {
     let id = localStorage.getItem(DEVICE_ID_KEY);
@@ -55,12 +52,13 @@ Important:
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const now = () => Date.now();
   const safeArray = (value) => (Array.isArray(value) ? value : []);
-  const toastSafe = (message) => {
+
+  function toastSafe(message) {
     try {
       if (typeof toast === "function") return toast(message);
     } catch {}
     console.log("[catalog-sync]", message);
-  };
+  }
 
   function validProductLink(raw) {
     try {
@@ -97,16 +95,6 @@ Important:
     }
   }
 
-  function productFingerprint() {
-    try {
-      return JSON.stringify(
-        safeArray(data.products).map((p) => [p.name, p.sale, p.source, p.updatedAt]),
-      );
-    } catch {
-      return String(safeArray(data.products).length);
-    }
-  }
-
   function normalizeIncomingData(incoming) {
     const next = JSON.parse(JSON.stringify(incoming || {}));
     next.products = safeArray(next.products).map((p) => {
@@ -118,13 +106,21 @@ Important:
     return next;
   }
 
+  function productFingerprint() {
+    try {
+      return JSON.stringify(
+        safeArray(data.products).map((p) => [p.name, p.sale, p.source, p.updatedAt]),
+      );
+    } catch {
+      return String(safeArray(data.products).length);
+    }
+  }
+
   function applyRemoteCatalog(incoming, stamp) {
     if (!incoming || typeof incoming !== "object") return;
     applyingRemote = true;
     try {
       const next = normalizeIncomingData(incoming);
-      // Preserve the existing object binding because the editor's handlers
-      // close over it. Replace fields rather than re-declaring the variable.
       for (const key of Object.keys(data)) delete data[key];
       Object.assign(data, next);
       localStorage.setItem(KEY, JSON.stringify(data));
@@ -186,18 +182,15 @@ Important:
     if (document.getElementById("catalogSyncPanel")) return;
     const importSection = document.querySelector(".import");
     if (!importSection) return;
-
     const panel = document.createElement("section");
     panel.id = "catalogSyncPanel";
-    panel.style.cssText =
-      "margin:-4px 0 16px;padding:11px 13px;background:#fff;border:1px solid var(--line,#dfe5e1);border-radius:13px;font-size:12px;";
+    panel.style.cssText = "margin:-4px 0 16px;padding:11px 13px;background:#fff;border:1px solid var(--line,#dfe5e1);border-radius:13px;font-size:12px;";
     panel.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
         <strong>기기 동기화</strong>
         <span id="catalogSyncBadge" style="color:#6a766f">연결 중</span>
       </div>
-      <div id="catalogQueue" style="margin-top:8px;color:#6a766f"></div>
-    `;
+      <div id="catalogQueue" style="margin-top:8px;color:#6a766f"></div>`;
     importSection.insertAdjacentElement("afterend", panel);
   }
 
@@ -207,6 +200,15 @@ Important:
     if (!el) return;
     el.textContent = text;
     el.style.color = state === "error" ? "#b3261e" : state === "ok" ? "#00754a" : "#6a766f";
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function shortUrl(url) {
@@ -230,21 +232,10 @@ Important:
         : "모바일에서 전달된 상품 링크가 없습니다.";
       return;
     }
-    box.innerHTML = active
-      .map((q) => {
-        const status = q.status === "processing" ? "처리 중" : q.status === "waiting" ? "PC 추출기 대기" : "대기";
-        return `<div style="display:flex;gap:7px;align-items:center;padding:4px 0;border-top:1px solid #eef1ef"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#18201c">${escapeHtml(shortUrl(q.url))}</span><b style="font-size:10px;color:#00754a">${status}</b></div>`;
-      })
-      .join("");
-  }
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+    box.innerHTML = active.map((q) => {
+      const status = q.status === "processing" ? "처리 중" : q.status === "waiting" ? "PC 추출기 대기" : "대기";
+      return `<div style="display:flex;gap:7px;align-items:center;padding:4px 0;border-top:1px solid #eef1ef"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#18201c">${escapeHtml(shortUrl(q.url))}</span><b style="font-size:10px;color:#00754a">${status}</b></div>`;
+    }).join("");
   }
 
   async function mutateQueue(mutator) {
@@ -267,28 +258,18 @@ Important:
     if (!validProductLink(clean)) throw new Error("지원하지 않는 상품 링크입니다");
     const id = `${now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
     await mutateQueue((queue) => {
-      const duplicate = queue.find((item) => item && item.url === clean && item.status !== "done");
-      if (duplicate) return queue;
-      queue.push({
-        id,
-        url: clean,
-        status: "pending",
-        createdAt: now(),
-        createdBy: deviceId,
-      });
+      if (queue.some((item) => item && item.url === clean && item.status !== "done")) return queue;
+      queue.push({ id, url: clean, status: "pending", createdAt: now(), createdBy: deviceId });
       return queue;
     });
-    return id;
   }
 
   async function setQueueStatus(id, status) {
-    await mutateQueue((queue) =>
-      queue.map((item) =>
-        item && item.id === id
-          ? { ...item, status, statusAt: now(), handledBy: deviceId }
-          : item,
-      ),
-    );
+    await mutateQueue((queue) => queue.map((item) =>
+      item && item.id === id
+        ? { ...item, status, statusAt: now(), handledBy: deviceId }
+        : item,
+    ));
   }
 
   function installMobileImportHook() {
@@ -297,33 +278,26 @@ Important:
     const input = document.querySelector(".import input");
     if (!button || !input || button.dataset.cloudQueueHook === "1") return;
     button.dataset.cloudQueueHook = "1";
-
-    // Capture phase runs before the editor's localhost importer. On mobile we
-    // intentionally stop that path and enqueue the link for the PC instead.
-    button.addEventListener(
-      "click",
-      async (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const url = input.value.trim();
-        if (!url) return toastSafe("상품 링크를 입력해주세요");
-        if (!initialized) return toastSafe("기기 동기화 연결 중입니다. 다시 눌러주세요");
-        button.disabled = true;
-        const oldText = button.textContent;
-        button.textContent = "PC로 전송 중…";
-        try {
-          await enqueueLink(url);
-          input.value = "";
-          toastSafe("상품 링크를 PC 작업목록에 추가했습니다");
-        } catch (error) {
-          toastSafe(error.message || "상품 링크를 전송하지 못했습니다");
-        } finally {
-          button.disabled = false;
-          button.textContent = oldText;
-        }
-      },
-      true,
-    );
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const url = input.value.trim();
+      if (!url) return toastSafe("상품 링크를 입력해주세요");
+      if (!initialized) return toastSafe("기기 동기화 연결 중입니다. 다시 눌러주세요");
+      button.disabled = true;
+      const oldText = button.textContent;
+      button.textContent = "PC로 전송 중…";
+      try {
+        await enqueueLink(url);
+        input.value = "";
+        toastSafe("상품 링크를 PC 작업목록에 추가했습니다");
+      } catch (error) {
+        toastSafe(error.message || "상품 링크를 전송하지 못했습니다");
+      } finally {
+        button.disabled = false;
+        button.textContent = oldText;
+      }
+    }, true);
   }
 
   async function runExistingImporter(url) {
@@ -333,8 +307,6 @@ Important:
     const before = productFingerprint();
     input.value = url;
     button.click();
-
-    // Existing async click handler disables the button while extracting.
     for (let i = 0; i < 180; i++) {
       await sleep(250);
       if (!button.disabled) break;
@@ -345,11 +317,10 @@ Important:
 
   async function processPendingQueue(queue) {
     if (isMobile || queueBusy || !initialized) return;
-    const pending = safeArray(queue).find(
-      (item) => item && (item.status === "pending" || item.status === "waiting"),
+    const pending = safeArray(queue).find((item) =>
+      item && (item.status === "pending" || item.status === "waiting"),
     );
     if (!pending) return;
-
     queueBusy = true;
     try {
       await setQueueStatus(pending.id, "processing");
@@ -362,9 +333,7 @@ Important:
       }
     } catch (error) {
       console.error("[catalog-sync] queue processing", error);
-      try {
-        await setQueueStatus(pending.id, "waiting");
-      } catch {}
+      try { await setQueueStatus(pending.id, "waiting"); } catch {}
     } finally {
       queueBusy = false;
     }
@@ -389,37 +358,49 @@ Important:
       const cloud = first.exists() ? first.data() : null;
       const localStamp = Number(localStorage.getItem(SYNC_STAMP_KEY) || 0);
       const cloudStamp = Number(cloud?.catalogUpdatedAt || 0);
+      const localCount = safeArray(data.products).length;
+      const cloudCount = safeArray(cloud?.catalogData?.products).length;
 
       initialized = true;
       updateSyncBadge("연결됨", "ok");
 
-      if (cloud?.catalogData && cloudStamp > localStamp) {
+      // First-sync safety:
+      // 1) Never replace a non-empty local catalog with an empty cloud catalog.
+      // 2) Empty local device adopts a non-empty cloud catalog.
+      // 3) When both contain products, normal timestamp sync takes over.
+      if (localCount > 0 && cloudCount === 0) {
+        await pushCatalog();
+      } else if (localCount === 0 && cloudCount > 0) {
         applyRemoteCatalog(cloud.catalogData, cloudStamp);
-      } else if (!cloud?.catalogData || safeArray(data.products).length) {
+      } else if (localCount > 0 && cloudCount > 0) {
+        if (cloudStamp > localStamp) applyRemoteCatalog(cloud.catalogData, cloudStamp);
+        else await pushCatalog();
+      } else if (!cloud?.catalogData) {
         await pushCatalog();
       }
 
       renderQueue(cloud?.pendingLinks || []);
 
-      unsubscribe = f.onSnapshot(
-        ref,
-        (snap) => {
-          if (!snap.exists()) return;
-          const remote = snap.data();
-          const remoteStamp = Number(remote.catalogUpdatedAt || 0);
-          const localKnown = Number(localStorage.getItem(SYNC_STAMP_KEY) || 0);
-          renderQueue(remote.pendingLinks || []);
-          if (remote.catalogData && remoteStamp > localKnown && remote.lastWriter !== deviceId) {
+      f.onSnapshot(ref, (snap) => {
+        if (!snap.exists()) return;
+        const remote = snap.data();
+        const remoteStamp = Number(remote.catalogUpdatedAt || 0);
+        const localKnown = Number(localStorage.getItem(SYNC_STAMP_KEY) || 0);
+        renderQueue(remote.pendingLinks || []);
+        if (remote.catalogData && remoteStamp > localKnown && remote.lastWriter !== deviceId) {
+          const incomingCount = safeArray(remote.catalogData.products).length;
+          const currentCount = safeArray(data.products).length;
+          // Same protection also applies to live updates.
+          if (!(currentCount > 0 && incomingCount === 0)) {
             applyRemoteCatalog(remote.catalogData, remoteStamp);
           }
-          processPendingQueue(remote.pendingLinks || []);
-          updateSyncBadge("동기화됨", "ok");
-        },
-        (error) => {
-          console.error("[catalog-sync] snapshot", error);
-          updateSyncBadge("동기화 오류", "error");
-        },
-      );
+        }
+        processPendingQueue(remote.pendingLinks || []);
+        updateSyncBadge("동기화됨", "ok");
+      }, (error) => {
+        console.error("[catalog-sync] snapshot", error);
+        updateSyncBadge("동기화 오류", "error");
+      });
 
       window.addEventListener("focus", () => processPendingQueue(latestQueue));
       document.addEventListener("visibilitychange", () => {
@@ -432,7 +413,5 @@ Important:
     }
   }
 
-  // catalog-editor's own script has already executed because this file is
-  // injected immediately before </body> by sw.js.
   init();
 })();
