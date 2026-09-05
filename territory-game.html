@@ -1,0 +1,53 @@
+<!--
+STARBUCKS HELPER · SECRET TERRITORY GAME
+File : territory-game.html
+Version : 0.1.0
+Updated : 2026-09-05
+Rule : no ads / no login / no gacha / gameplay shown = gameplay delivered
+-->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0d1713">
+<title>DOCUMENT PREVIEW</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--bg:#0d1713;--panel:#14231c;--line:#294236;--me:#33d17a;--enemy:#ff5a66;--neutral:#8b9891;--text:#eef7f2;--muted:#92a39a}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);overflow:hidden;touch-action:none}body{min-width:320px}.top{position:fixed;z-index:5;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) 14px 10px;background:linear-gradient(#0d1713 80%,rgba(13,23,19,0));pointer-events:none}.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:760px;margin:auto}.title{font-size:14px;font-weight:900;letter-spacing:.08em}.stats{display:flex;gap:8px;font-size:11px;color:var(--muted);font-weight:800}.pill{padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(20,35,28,.85)}canvas{display:block;width:100vw;height:100vh}.bottom{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(13,23,19,0),#0d1713 35%)}.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;max-width:760px;margin:auto}.btn{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);padding:12px 8px;font:inherit;font-size:12px;font-weight:900}.btn:active{transform:scale(.98)}.hint{max-width:760px;margin:0 auto 8px;text-align:center;color:var(--muted);font-size:11px;font-weight:700}.modal{position:fixed;z-index:9;inset:0;display:none;place-items:center;padding:20px;background:rgba(5,10,7,.72);backdrop-filter:blur(6px)}.modal.show{display:grid}.card{width:min(92vw,360px);padding:22px;border:1px solid var(--line);border-radius:22px;background:#15251d;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35)}.card h1{margin:0 0 7px;font-size:27px}.card p{margin:0 0 18px;color:var(--muted);font-size:13px;line-height:1.5}.card button{width:100%;border:0;border-radius:14px;background:var(--me);color:#07120c;padding:13px;font:inherit;font-weight:950}</style>
+</head>
+<body>
+<div class="top"><div class="bar"><div class="title">TERRITORY // 0.1</div><div class="stats"><span class="pill" id="mine">내 거점 0</span><span class="pill" id="enemy">적 거점 0</span></div></div></div>
+<canvas id="game"></canvas>
+<div class="bottom"><div class="hint" id="hint">내 거점을 누르고 → 목표 거점을 누르면 병력 절반이 이동</div><div class="controls"><button class="btn" id="restart">새 게임</button><button class="btn" id="speed">속도 ×1</button><button class="btn" id="home">서류로</button></div></div>
+<div class="modal" id="modal"><div class="card"><h1 id="result">승리</h1><p id="resultSub">영토를 전부 점령했습니다.</p><button id="again">다시 하기</button></div></div>
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const COLORS={me:'#33d17a',enemy:'#ff5a66',neutral:'#8b9891'};
+let nodes=[],units=[],selected=null,last=performance.now(),aiClock=0,speed=1,ended=false;
+const rand=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function resize(){const dpr=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);if(!nodes.length)reset()}
+function makeNode(id,x,y,owner,count,r=27){return{id,x,y,owner,count,r,rate:owner==='neutral'?0:1}}
+function reset(){ended=false;selected=null;units=[];document.getElementById('modal').classList.remove('show');const w=innerWidth,h=innerHeight,top=95,bottom=h-135;nodes=[];const pts=[
+ [0.14,0.22],[0.38,0.16],[0.68,0.20],[0.86,0.34],[0.64,0.42],[0.34,0.39],[0.16,0.55],[0.43,0.62],[0.73,0.61],[0.88,0.74],[0.56,0.80],[0.24,0.78]
+ ];pts.forEach((p,i)=>{let owner='neutral',count=Math.floor(rand(7,20));if(i===0||i===6){owner='me';count=18}if(i===3||i===9){owner='enemy';count=18}nodes.push(makeNode(i,w*p[0],top+(bottom-top)*p[1],owner,count,27))});last=performance.now();aiClock=0;updateStats()}
+function send(from,to,owner){const amount=Math.max(1,Math.floor(from.count/2));if(amount<1)return;from.count-=amount;const d=dist(from,to),duration=Math.max(.45,d/210);units.push({from:from.id,to:to.id,owner,count:amount,t:0,duration,x:from.x,y:from.y})}
+function arrive(u){const target=nodes[u.to];if(target.owner===u.owner)target.count+=u.count;else if(u.count>target.count){target.count=u.count-target.count;target.owner=u.owner;target.rate=1}else{target.count-=u.count;if(target.count===0)target.owner='neutral'}updateStats();checkEnd()}
+function ai(){const mine=nodes.filter(n=>n.owner==='enemy');if(!mine.length)return;const from=mine.sort((a,b)=>b.count-a.count)[0];if(from.count<10)return;const targets=nodes.filter(n=>n.owner!=='enemy').sort((a,b)=>(a.count+dist(from,a)/80)-(b.count+dist(from,b)/80));if(targets[0])send(from,targets[0],'enemy')}
+function update(dt){if(ended)return;for(const n of nodes)if(n.owner!=='neutral'){n._grow=(n._grow||0)+dt*n.rate*speed;if(n._grow>=1){const add=Math.floor(n._grow);n.count+=add;n._grow-=add}}
+ aiClock+=dt*speed;if(aiClock>1.25){aiClock=0;ai()}
+ for(let i=units.length-1;i>=0;i--){const u=units[i];u.t+=dt*speed;const f=nodes[u.from],t=nodes[u.to],p=Math.min(1,u.t/u.duration),ease=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;u.x=f.x+(t.x-f.x)*ease;u.y=f.y+(t.y-f.y)*ease;if(p>=1){arrive(u);units.splice(i,1)}}}
+function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);ctx.fillStyle='#0d1713';ctx.fillRect(0,0,innerWidth,innerHeight);ctx.lineWidth=1;ctx.strokeStyle='rgba(116,159,136,.12)';for(const a of nodes)for(const b of nodes)if(a.id<b.id&&dist(a,b)<innerWidth*.36){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+ for(const n of nodes){const c=COLORS[n.owner];ctx.beginPath();ctx.arc(n.x,n.y,n.r+7,0,Math.PI*2);ctx.fillStyle=n===selected?'rgba(255,255,255,.13)':'rgba(255,255,255,.035)';ctx.fill();ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle=c;ctx.globalAlpha=n.owner==='neutral'?.52:.92;ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=n.owner==='neutral'?'#172019':'#08120d';ctx.font='900 16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(Math.floor(n.count),n.x,n.y)}
+ for(const u of units){ctx.beginPath();ctx.arc(u.x,u.y,9,0,Math.PI*2);ctx.fillStyle=COLORS[u.owner];ctx.fill();ctx.fillStyle='#08120d';ctx.font='900 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(u.count,u.x,u.y)}}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop)}
+function hit(x,y){return nodes.find(n=>Math.hypot(n.x-x,n.y-y)<=n.r+12)}
+function tap(x,y){if(ended)return;const n=hit(x,y);if(!n){selected=null;return}if(!selected){if(n.owner==='me')selected=n;return}if(n===selected){selected=null;return}if(selected.owner==='me'){send(selected,n,'me');selected=null}else selected=null}
+function point(e){const r=canvas.getBoundingClientRect(),t=e.changedTouches?e.changedTouches[0]:e;tap(t.clientX-r.left,t.clientY-r.top)}
+canvas.addEventListener('pointerup',point);
+function updateStats(){const m=nodes.filter(n=>n.owner==='me').length,e=nodes.filter(n=>n.owner==='enemy').length;document.getElementById('mine').textContent=`내 거점 ${m}`;document.getElementById('enemy').textContent=`적 거점 ${e}`}
+function checkEnd(){const m=nodes.some(n=>n.owner==='me'),e=nodes.some(n=>n.owner==='enemy');if(m&&e)return;ended=true;const win=m&&!e;document.getElementById('result').textContent=win?'승리':'패배';document.getElementById('resultSub').textContent=win?'영토를 전부 점령했습니다.':'적에게 모든 거점을 빼앗겼습니다.';setTimeout(()=>document.getElementById('modal').classList.add('show'),350)}
+document.getElementById('restart').onclick=reset;document.getElementById('again').onclick=reset;document.getElementById('home').onclick=()=>location.href='quotation.html';document.getElementById('speed').onclick=()=>{speed=speed===1?1.7:1;document.getElementById('speed').textContent=speed===1?'속도 ×1':'속도 ×1.7'};
+addEventListener('resize',resize);resize();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
