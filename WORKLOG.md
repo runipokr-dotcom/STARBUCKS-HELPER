@@ -12,6 +12,47 @@ STARBUCKS HELPER 저장소 작업 기록. 코덱스(로컬)와 클로드(클라�
 
 ---
 
+## 2026-09-06 — ChatGPT (쿠폰 259건 서버 미반영 배치)
+
+### [작업완료일지]
+
+**작업지시서**
+- 원본: Google Drive `259.zip` / 259장.
+- 선택 작업: Coupon No.(17자리) + 등록코드(8자리) + 사용 유효기간 시작일 전수 추출 및 원본 재대조.
+- 서버 정책: **미반영**. `coupons1.json` / `coupons2.json` 등 GitHub 서버 JSON 수정 금지.
+- 최종 보관: Google Drive에 CSV + 원본대조 크롭 ZIP만 저장.
+
+**실제 처리 / 검수**
+- 원본 ZIP 내부 이미지 수 259장 확인.
+- 259건 전체를 원본 이미지 기준으로 2-pass 재추출/대조하고, 1차·2차 결과가 다른 항목은 더 넓은 원본 영역으로 재검수.
+- 최종 충돌/불확실 항목은 원본 확대 확인으로 확정.
+- 최종 건수: 259 / 259.
+- Coupon No. 259개 모두 17자리, 중복 0, 누락 0.
+- 등록코드 259개 모두 8자리, 중복 0, 누락 0.
+- 최종 no 1~259 순서 유지.
+- 유효기간 시작일 범위: **2026-08-07 ~ 2026-08-12** → 파일명 `260807~260812`.
+- CSV 필드는 `no / coupon_number / registration_code`만 저장. 유효기간 필드 없음.
+- 원본대조 크롭 259장 생성, `001.jpg` ~ `259.jpg`로 no와 1:1 대응 확인.
+
+**최종 산출물**
+- CSV: `259_260906_260807~260812.csv`
+- 원본대조 ZIP: `259_260906_260807~260812_verified.zip`
+- Google Drive CSV ID: `19D6OwCOUEjrTbe5qa9k3P5L5ooFKwBOP`
+- Google Drive verified ZIP ID: `1PslIP1tOBV7mH0J0tVIdj0cmMNySO-rc`
+- GitHub 서버 JSON: **미반영 / 수정 없음**.
+
+**종료 전 최종검수**
+- CSV 행수 259 확인.
+- Coupon No. unique 259 / 등록코드 unique 259 확인.
+- ZIP 내부 파일 259개 확인, 첫 파일 `001.jpg`, 마지막 `259.jpg` 확인.
+- 작업지시서의 서버 미반영 조건 준수.
+- Google Drive에 CSV와 verified ZIP 업로드 성공 확인.
+
+**주의 / 남은 정리**
+- Drive 업로드 과정에서 verified ZIP이 한 번 중복 업로드되어 두 번째 파일은 `DUPLICATE_DELETE_ME_259_260906_260807~260812_verified.zip`으로 명확히 이름 변경함. 커넥터의 영구삭제 안전 차단으로 자동 삭제는 못 했으므로 필요 시 해당 파일만 삭제할 것. 정상 보관본 ID는 `1PslIP1tOBV7mH0J0tVIdj0cmMNySO-rc`.
+
+---
+
 ## 2026-09-06 — ChatGPT (이미지 추출기 v2.5→v2.8 / WORKLOG 절차 강화)
 
 ### [작업완료일지]
