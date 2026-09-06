@@ -30,7 +30,14 @@ STARBUCKS HELPER 전체의 **공용 업데이트·업무 작업일지**. ChatGPT
 - 완료 조건: 실제 공개 HELPER에서 v2.9 작업지시서 툴이 열리는 상태를 확인하고, 필요 시 캐시버스터 또는 링크를 수정한 뒤 재확인한다.
 
 ### 작업 후 기록
-- 진행 중.
+- GitHub `main`의 `image-extractor.html` 자체는 이미 **v2.9**이며 `이어붙이기 / 전체 통으로 교체` UI와 작업지시서 v2.4 로직이 정상 존재하는 것을 READBACK으로 확인.
+- `index.html`이 기존에는 `image-extractor.html`을 버전 파라미터 없이 연결하고 있어 모바일/PWA 환경에서 이전 페이지가 보일 가능성을 줄이기 위해 `image-extractor.html?v=2.9-260906`으로 캐시버스터를 추가.
+- HELPER 메인 `index.html` 버전을 **v4.8 → v4.9**로 올리고 Updated를 2026-09-06으로 갱신. 기존 대시보드/쿠폰/카탈로그/계산기/기타 링크와 기능은 유지.
+- PWA service worker를 `starbucks-helper-pwa-v6 → v7`로 올리고, 메인에서 `sw.js?v=7`을 등록하도록 변경하여 기존 워커/캐시가 최신 페이지 전환을 방해할 가능성을 낮춤.
+- 수정 파일/커밋: `index.html` → `0d34fab2a40e5286ed31daa7b59610225f7de7f9`, `sw.js` → `235189274887be27cfcea104f315ad8126553a21`.
+- GitHub Pages `pages build and deployment` run 185가 head SHA `235189274887be27cfcea104f315ad8126553a21` 기준 **completed / success**로 완료된 것을 확인.
+- `image-extractor.html` 내용 자체는 이번 점검에서 재작성하지 않았고 v2.9 로직을 그대로 보존. 데이터/쿠폰 서버 JSON 영향 없음.
+- 모바일에서 HELPER 메인 → 이미지 추출기를 다시 열면 버전 파라미터가 붙은 최신 v2.9 경로로 진입하도록 조치 완료.
 
 ---
 
