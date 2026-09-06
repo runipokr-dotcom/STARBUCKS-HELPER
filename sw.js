@@ -1,4 +1,4 @@
-const VERSION = "starbucks-helper-pwa-v6";
+const VERSION = "starbucks-helper-pwa-v7";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", event => event.waitUntil((async () => {
@@ -10,7 +10,7 @@ self.addEventListener("activate", event => event.waitUntil((async () => {
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
-  // Assets are always network-fetched; the editor now includes its scripts directly.
-  // Avoid HTML rewriting so an older service worker cannot change listener order.
+  // Always use the network for HELPER pages/assets so versioned tool links
+  // and current HTML are not replaced by stale PWA cache entries.
   event.respondWith(fetch(event.request, { cache: "no-store" }));
 });
