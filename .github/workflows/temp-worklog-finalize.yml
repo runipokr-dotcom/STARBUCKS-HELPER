@@ -1,0 +1,57 @@
+name: temp-worklog-finalize
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Finalize worklog
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('WORKLOG.md')
+          s = p.read_text(encoding='utf-8')
+          title = '## 2026-09-07 — ChatGPT (서류만들기 → 이미지 배열 / PNG 전용 최종 반영)'
+          if title not in s:
+              entry = '''## 2026-09-07 — ChatGPT (서류만들기 → 이미지 배열 / PNG 전용 최종 반영)
+
+### 작업 전 기록
+- Google Drive의 `0001-image-arrange-feature.patch`, `0002-worklog-update.patch`를 확인하고 당시 최신 `main`과 충돌 여부를 대조함.
+- 사용자 최종 확정: 기존 `quotation.html`과 그 안의 `territory-game.html` 숨은 진입점은 제거. 단, `territory-game.html`, `TERRITORY_GAME_PLAN.md`, `TERRITORY_GAME_WORKLOG.md` 파일 자체는 유지.
+- 새 `image-arrange.html`은 이미지 여러 장 업로드 → 순서 변경 → 열 개수/간격 조절 → 860px 고정폭 PNG 저장만 제공. ZIP 다운로드와 JSZip 의존성은 최종 요구에 따라 제거.
+- 쿠폰/카탈로그/공유/계산기 등 다른 HELPER 페이지와 데이터는 변경하지 않음.
+
+### 작업 후 기록
+- `image-arrange.html` 신규 추가: 다중 이미지 업로드, 드래그 및 ◀/▶ 버튼 순서 변경, 개별 삭제, 열 1~8개 조절, 간격 0~60px 조절, 860px 고정폭 캔버스 미리보기, PNG 다운로드 구현. ZIP/JSZip 코드는 제거.
+- `index.html`: 기존 `서류 만들기`(`quotation.html`) 카드 1개만 `이미지 배열`(`image-arrange.html`) 카드로 교체. 다른 업무도구 및 판매처 링크는 유지.
+- `quotation.html` 삭제. 이에 따라 해당 페이지 내부의 숨은 territory-game 진입점도 함께 제거됨.
+- 게임 본체/문서 3종(`territory-game.html`, `TERRITORY_GAME_PLAN.md`, `TERRITORY_GAME_WORKLOG.md`)은 수정/삭제하지 않음.
+- 기능 반영 커밋: `60ab4f929c0f5d95a68809669e15448d10aef331`(image-arrange 추가), `3138b1c985b30dcbac734b4a74e043eb43958a0a`(index 카드 교체), `7c4a171be38ea4695e28051d30ef858c6dd0656b`(quotation 삭제).
+- 데이터/Firebase/쿠폰 서버 JSON 영향 없음. 기존 쿠폰/카탈로그/공유/계산기 파일 수정 없음.
+- 남은 확인: 실제 모바일 브라우저에서 이미지 선택 → 배열 → PNG 저장 동작을 실사용 확인하면 됨. ZIP 관련 확인은 기능을 제거했으므로 불필요.
+
+---
+
+'''
+              marker = '---\n\n'
+              pos = s.find(marker)
+              if pos < 0:
+                  raise SystemExit('WORKLOG marker not found')
+              pos += len(marker)
+              p.write_text(s[:pos] + entry + s[pos:], encoding='utf-8')
+          PY
+          rm .github/workflows/temp-worklog-finalize.yml
+          git config user.name "ChatGPT"
+          git config user.email "noreply@openai.com"
+          git add -A
+          git commit -m "Finalize image arrangement worklog"
+          git push origin main
