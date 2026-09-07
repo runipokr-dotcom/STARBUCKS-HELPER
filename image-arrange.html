@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#063c2d">
+<title>이미지 배열 | STARBUCKS HELPER</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--green:#00754a;--deep:#063c2d;--pale:#e3f2ea;--bg:#f3f5f3;--line:#dce4df;--text:#18201c;--muted:#68756d;--red:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text)}
+header{padding:calc(18px + env(safe-area-inset-top)) 16px 30px;background:var(--deep);color:#fff}
+.head,main{width:min(100%,860px);margin:auto}
+.back{color:#cde1d7;text-decoration:none;font-size:13px;font-weight:800}
+h1{margin:17px 0 6px;font-size:28px;letter-spacing:-.04em}
+.sub{margin:0;color:#c7d5ce;font-size:13px;line-height:1.5}
+main{margin-top:-18px;padding:0 12px calc(30px + env(safe-area-inset-bottom))}
+.card{margin-bottom:12px;padding:16px;border:1px solid rgba(9,54,39,.09);border-radius:20px;background:#fff;box-shadow:0 8px 24px rgba(13,48,35,.06)}
+h2{margin:0 0 12px;font-size:16px}
+.drop{display:grid;place-items:center;gap:6px;padding:26px 12px;border:1.5px dashed #9eb9aa;border-radius:16px;background:#f6fbf8;color:var(--green);font-weight:800;font-size:13px;text-align:center;cursor:pointer}
+.drop input{display:none}
+.drop small{color:var(--muted);font-weight:600}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px}
+.thumb{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fafbfa;touch-action:pan-y}
+.thumb img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.thumb .no{position:absolute;left:6px;top:6px;padding:2px 7px;border-radius:999px;background:rgba(6,60,45,.82);color:#fff;font-size:11px;font-weight:800}
+.thumb .rm{position:absolute;right:5px;top:5px;width:22px;height:22px;border:0;border-radius:999px;background:rgba(6,60,45,.72);color:#fff;font-size:14px;line-height:1;font-weight:800}
+.thumb .mv{position:absolute;left:0;right:0;bottom:0;display:flex;gap:1px;background:rgba(6,60,45,.72)}
+.thumb .mv button{flex:1;border:0;background:transparent;color:#fff;padding:6px 0;font-size:12px;font-weight:900}
+.thumb .mv button:disabled{opacity:.3}
+.thumb .drag{position:absolute;left:6px;bottom:30px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);font-size:14px;cursor:grab}
+.empty-hint{margin:10px 2px 0;color:var(--muted);font-size:12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.row-between{display:flex;align-items:center;justify-content:space-between}
+label{color:var(--muted);font-size:11px;font-weight:800}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#fbfcfb;font-size:16px;font-weight:900;color:var(--deep)}
+.stepper span{min-width:28px;text-align:center;font-size:16px;font-weight:900}
+input[type=range]{width:100%;accent-color:var(--green)}
+.gapval{font-weight:900;color:var(--deep)}
+.fixed-note{padding:9px 11px;border-radius:12px;background:#f4f7f5;color:var(--muted);font-size:11px;font-weight:700}
+.preview-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:repeating-conic-gradient(#f0f2f0 0% 25%,#fff 0% 50%) 50%/16px 16px}
+#canvas{display:block;width:100%;height:auto}
+.actions{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+.btn{border:0;border-radius:14px;padding:14px 10px;font:inherit;font-size:13.5px;font-weight:900}
+.primary{background:var(--green);color:#fff}
+.btn:disabled{opacity:.4}
+.toast{position:fixed;left:50%;bottom:24px;z-index:3;transform:translate(-50%,20px);padding:11px 15px;border-radius:999px;background:#15221c;color:#fff;font-size:12px;font-weight:800;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <a class="back" href="index.html">← 헬퍼 홈</a>
+    <h1>이미지 배열</h1>
+    <p class="sub">상품 이미지를 순서/열 개수/간격에 맞춰 배열하고, 860px 고정폭 PNG로 저장합니다.</p>
+  </div>
+</header>
+<main>
+
+  <section class="card">
+    <h2>1. 이미지 업로드</h2>
+    <label class="drop" for="fileInput">
+      + 이미지를 눌러서 선택하거나 이 영역에 끌어다 놓으세요
+      <small>여러 장 한번에 선택 가능 · 원본 파일은 그대로 보존됩니다</small>
+      <input id="fileInput" type="file" accept="image/*" multiple>
+    </label>
+    <div id="thumbs" class="thumbs"></div>
+    <p id="emptyHint" class="empty-hint">아직 추가된 이미지가 없어요.</p>
+  </section>
+
+  <section class="card">
+    <h2>2. 배열 설정</h2>
+    <div class="field">
+      <div class="row-between"><label>가로 몇 개씩 배치할지 (열 개수)</label></div>
+      <div class="stepper">
+        <button type="button" id="colsMinus">−</button>
+        <span id="colsVal">2</span>
+        <button type="button" id="colsPlus">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="row-between"><label>이미지 사이 간격</label><span class="gapval" id="gapVal">12px</span></div>
+      <input id="gapRange" type="range" min="0" max="60" step="2" value="12">
+    </div>
+    <div class="field">
+      <label>출력 가로 폭</label>
+      <div class="fixed-note">860px 고정 (스마트스토어·쿠팡 상세페이지 표준 폭)</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>3. 미리보기</h2>
+    <div class="preview-wrap"><canvas id="canvas" width="860" height="200"></canvas></div>
+    <div class="actions">
+      <button id="downloadPng" class="btn primary" type="button" disabled>PNG로 합쳐서 다운로드</button>
+    </div>
+  </section>
+
+</main>
+<div id="toast" class="toast"></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const OUTPUT_WIDTH = 860;
+
+let items = []; // {id, file, img, url}
+let cols = 2;
+let gap = 12;
+let uid = 0;
+
+function toast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1800);}
+
+function loadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>resolve({id: ++uid, file, img, url});
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function addFiles(fileList){
+  const files = [...fileList].filter(f=>f.type.startsWith("image/"));
+  if(!files.length) return;
+  for(const f of files){
+    try{ items.push(await loadImageFile(f)); }
+    catch(e){ toast(`${f.name} 을(를) 불러오지 못했어요`); }
+  }
+  renderThumbs();
+  renderPreview();
+}
+
+function renderThumbs(){
+  const wrap = $("thumbs");
+  $("emptyHint").style.display = items.length ? "none" : "block";
+  wrap.innerHTML = items.map((it,i)=>`
+    <div class="thumb" draggable="true" data-i="${i}">
+      <span class="drag">☷</span>
+      <span class="no">${i+1}</span>
+      <button type="button" class="rm" data-act="rm" data-i="${i}" aria-label="삭제">×</button>
+      <img src="${it.url}" alt="${i+1}번 이미지">
+      <div class="mv">
+        <button type="button" data-act="up" data-i="${i}" ${i===0?"disabled":""}>◀ 순서</button>
+        <button type="button" data-act="down" data-i="${i}" ${i===items.length-1?"disabled":""}>순서 ▶</button>
+      </div>
+    </div>`).join("");
+
+  wrap.querySelectorAll("[data-act]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const i = +btn.dataset.i, act = btn.dataset.act;
+      if(act==="rm"){ URL.revokeObjectURL(items[i].url); items.splice(i,1); }
+      else if(act==="up" && i>0){ [items[i-1],items[i]] = [items[i],items[i-1]]; }
+      else if(act==="down" && i<items.length-1){ [items[i+1],items[i]] = [items[i],items[i+1]]; }
+      renderThumbs(); renderPreview();
+    };
+  });
+
+  wrap.querySelectorAll(".thumb").forEach(el=>{
+    el.ondragstart = (e)=> e.dataTransfer.setData("text/plain", el.dataset.i);
+    el.ondragover = (e)=> e.preventDefault();
+    el.ondrop = (e)=>{
+      e.preventDefault();
+      const from = +e.dataTransfer.getData("text/plain");
+      const to = +el.dataset.i;
+      if(from===to) return;
+      const [moved] = items.splice(from,1);
+      items.splice(to,0,moved);
+      renderThumbs(); renderPreview();
+    };
+  });
+}
+
+function computeLayout(){
+  const n = items.length;
+  const rows = Math.max(1, Math.ceil(n/cols));
+  const colWidth = (OUTPUT_WIDTH - gap*(cols-1)) / cols;
+  const cellRows = [];
+  for(let r=0; r<rows; r++){
+    const rowItems = items.slice(r*cols, r*cols+cols);
+    const scaled = rowItems.map(it=>({
+      it, w: colWidth, h: it.img.naturalHeight * (colWidth / it.img.naturalWidth)
+    }));
+    const rowHeight = scaled.length ? Math.max(...scaled.map(s=>s.h)) : 0;
+    cellRows.push({scaled, rowHeight});
+  }
+  const totalHeight = cellRows.reduce((s,row)=>s+row.rowHeight,0) + gap*Math.max(0,rows-1);
+  return {cellRows, totalHeight: Math.max(1, Math.round(totalHeight))};
+}
+
+function renderPreview(){
+  const canvas = $("canvas");
+  const ctx = canvas.getContext("2d");
+  const hasImages = items.length>0;
+  $("downloadPng").disabled = !hasImages;
+
+  if(!hasImages){
+    canvas.width = OUTPUT_WIDTH; canvas.height = 200;
+    ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#b7c2bc"; ctx.font="600 13px Pretendard,sans-serif"; ctx.textAlign="center";
+    ctx.fillText("이미지를 추가하면 여기에 미리보기가 표시돼요", canvas.width/2, canvas.height/2);
+    return;
+  }
+
+  const {cellRows, totalHeight} = computeLayout();
+  canvas.width = OUTPUT_WIDTH;
+  canvas.height = totalHeight;
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  let y = 0;
+  for(const row of cellRows){
+    let x = 0;
+    for(const cell of row.scaled){
+      ctx.drawImage(cell.it.img, x, y, cell.w, cell.h);
+      x += cell.w + gap;
+    }
+    y += row.rowHeight + gap;
+  }
+}
+
+function updateColsLabel(){ $("colsVal").textContent = cols; }
+function updateGapLabel(){ $("gapVal").textContent = gap + "px"; }
+
+$("fileInput").onchange = (e)=> addFiles(e.target.files).then(()=>{ e.target.value=""; });
+
+const dropEl = document.querySelector(".drop");
+["dragover","dragenter"].forEach(ev=> dropEl.addEventListener(ev, e=>{ e.preventDefault(); }));
+dropEl.addEventListener("drop", e=>{
+  e.preventDefault();
+  if(e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
+});
+
+$("colsMinus").onclick = ()=>{ if(cols>1){ cols--; updateColsLabel(); renderPreview(); } };
+$("colsPlus").onclick  = ()=>{ if(cols<8){ cols++; updateColsLabel(); renderPreview(); } };
+$("gapRange").oninput  = (e)=>{ gap = +e.target.value; updateGapLabel(); renderPreview(); };
+
+$("downloadPng").onclick = ()=>{
+  if(!items.length) return;
+  renderPreview();
+  $("canvas").toBlob((blob)=>{
+    if(!blob) return toast("PNG 생성에 실패했어요");
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,10).replace(/-/g,"");
+    a.href = url; a.download = `이미지배열_${stamp}.png`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  }, "image/png");
+};
+
+updateColsLabel(); updateGapLabel(); renderPreview();
+</script>
+</body>
+</html>
