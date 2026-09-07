@@ -28,7 +28,9 @@ STARBUCKS HELPER 전체의 **공용 업데이트·업무 작업일지**. ChatGPT
 - 대상 파일: `image-arrange.html`, `WORKLOG.md`. 다른 HELPER 기능과 보호 대상 게임 파일은 변경하지 않음.
 
 ### 작업 후 기록
-- 작업 및 검증 후 갱신 예정.
+- `image-arrange.html` 배치 설정에 `2개` 버튼을 추가해 이미지형에서 상품을 2열씩 출력할 수 있게 함. 기존 자동/3/4/5/6열은 그대로 유지.
+- JavaScript 문법, 변경 공백, 2열 옵션 존재 여부, 보호 대상 게임 파일 미변경 검사를 통과함.
+- 기능 커밋: `664aef2`. WORKLOG 최종화 커밋은 본 커밋. GitHub `main` 푸시 예정.
 
 ---
 
