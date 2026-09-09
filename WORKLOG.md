@@ -35,7 +35,7 @@ STARBUCKS HELPER 전체의 **공용 업데이트·업무 작업일지**. ChatGPT
 - 유지/제외: 공식 목록의 나머지 21개와 카탈로그의 불일치·과거·세트 상품은 추정하지 않아 미변경. 전체 250개 상품의 이름/가격/분류/태그/정렬/ID와 공유 ID, UI 및 저장·공유 기능은 유지. 공개 공유본에는 내부 관리용 `remoteImages`/`sourceUrl` 필드를 추가하지 않아 기존 문서 구조를 유지.
 - 검증: 반영 후 두 Firestore 문서를 다시 읽어 19개 전체의 이미지 배열과 공식 URL 일치, 250개 상품 수 유지, 대상 이미지/출처 외 상품 데이터 불변을 확인. 공식 이미지 93개 모두 HTTP 이미지 응답 정상. 실제 공개 공유 화면에서 250개 로드 및 변경 상품의 1/3~1/10 이미지 이동 버튼/카운터 노출을 확인.
 - PC/모바일 영향: 데이터만 변경되어 레이아웃과 조작 방식 변화 없음. 공개 페이지는 같은 URL에서 즉시 새 이미지를 읽음.
-- 데이터/배포 상태: 운영 Firestore 작업본과 `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=c6xxh9`에 반영 완료. 변경 전 REST 문서는 작업 중 임시 백업으로 보관. 저장소 코드 변경 없음. WORKLOG 커밋 SHA는 본 기록 커밋, 원격 `main` 반영 예정.
+- 데이터/배포 상태: 운영 Firestore 작업본과 `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=c6xxh9`에 반영 완료. 변경 전 REST 문서는 작업 중 임시 백업으로 보관. 저장소 코드 변경 없음. 작업 기록 커밋 `97d36eb`은 원격 `codex/starbucks-mug-image-unification` 브랜치에 게시했으며, 원격 `main` 직접 반영은 자동 승인 검토에서 보류됨.
 - 남은 문제: 이번 요청에서 제공된 머그 카테고리만 대조. 다른 공식 카테고리는 별도 대조가 필요함.
 
 ---
