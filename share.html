@@ -542,6 +542,23 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
   }
 }
 
+      .company-field { display:flex; align-items:center; gap:4px; }
+      .company-field #ctCompany { width:115px; }
+      .profile-picker { width:30px; padding:3px 0; border:1px solid var(--line); border-radius:6px; background:white; font:inherit; }
+      .profile-settings { padding:3px 6px; border:1px solid var(--line); border-radius:6px; background:white; cursor:pointer; }
+      .qty input { width:54px; padding:3px; text-align:center; border:1px solid var(--line); border-radius:6px; font:inherit; }
+      .search-field { flex:1; min-width:120px; max-width:250px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+      #issuerDialog { width:min(460px, calc(100% - 24px)); max-height:85vh; overflow:auto; padding:20px; border:1px solid var(--line); border-radius:16px; color:var(--ink); }
+      #issuerDialog::backdrop { background:#0006; }
+      #issuerDialog h2 { margin:0 0 14px; font-size:18px; }
+      .issuer-fields { display:grid; gap:10px; }
+      .issuer-fields label { display:grid; gap:4px; font-size:12px; }
+      .issuer-fields input:not([type=checkbox]) { width:100%; padding:7px; border:1px solid var(--line); border-radius:6px; }
+      .issuer-options { display:flex; flex-wrap:wrap; gap:8px 12px; padding:10px; border:1px solid var(--line); border-radius:8px; }
+      .issuer-options label { display:flex; align-items:center; gap:4px; }
+      #stampPreview { max-width:100px; max-height:80px; object-fit:contain; }
+      .issuer-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:16px; }
+      #issuerStatus { font-size:12px; color:var(--mut); }
     </style>
   </head>
   <body>
@@ -585,6 +602,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           <button type="button" class="filter-btn" id="clearVisible">
             전체 선택 해제
           </button>
+          <input class="search-field" id="productSearch" type="search" aria-label="상품 검색" placeholder="상품 검색 (1글자부터)" />
           <span class="selection-count" id="filterCount"></span>
         </div>
       </section>
@@ -603,7 +621,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="totals"><span>부가세</span><b id="vat">0원</b></div>
         <div class="totals grand"><span>합계</span><b id="grand">0원</b></div>
         <div class="contact-fields" id="contactFields">
-          <label>상호명 <input id="ctCompany" /></label>
+          <div class="company-field"><label>상호명 <input id="ctCompany" /></label><select id="issuerProfiles" class="profile-picker" aria-label="발행자 프로필 불러오기" title="발행자 프로필 불러오기"><option value=""> </option></select><button type="button" id="issuerSettings" class="profile-settings" aria-label="발행자 상세정보" title="발행자 상세정보">⚙</button></div>
           <label>이메일 <input id="ctEmail" /></label>
           <label>연락처 <input id="ctPhone" /></label>
           <small id="editableHint">*수정가능</small>
@@ -612,6 +630,32 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       </div>
     </aside>
     <button class="scroll-top" id="scrollTop" type="button" aria-label="화면 최상단으로 이동">↑</button>
+    <dialog id="issuerDialog" aria-labelledby="issuerTitle">
+      <form id="issuerForm">
+        <h2 id="issuerTitle">발행자 상세정보</h2>
+        <div class="issuer-fields">
+          <label>프로필 이름 <input id="issuerName" maxlength="80" placeholder="예: 디스이스마인" /></label>
+          <label>사업자등록번호 <input id="issuerBusiness" maxlength="40" /></label>
+          <label>주소 <input id="issuerAddress" maxlength="300" /></label>
+          <label>은행 <input id="issuerBank" maxlength="60" /></label>
+          <label>계좌번호 <input id="issuerAccount" maxlength="80" /></label>
+          <label>예금주 <input id="issuerHolder" maxlength="80" /></label>
+          <label>직인 이미지 <input type="file" id="issuerStamp" accept="image/png,image/jpeg,image/webp" /></label>
+          <div><img id="stampPreview" alt="직인 미리보기" hidden /><button class="btn mini" type="button" id="removeStamp">직인 삭제</button></div>
+          <fieldset class="issuer-options"><legend>견적서 표시</legend>
+            <label><input type="checkbox" data-issuer-show="company" />상호명</label>
+            <label><input type="checkbox" data-issuer-show="email" />이메일</label>
+            <label><input type="checkbox" data-issuer-show="phone" />연락처</label>
+            <label><input type="checkbox" data-issuer-show="business" />사업자번호</label>
+            <label><input type="checkbox" data-issuer-show="address" />주소</label>
+            <label><input type="checkbox" data-issuer-show="account" />계좌정보</label>
+            <label><input type="checkbox" data-issuer-show="stamp" />직인</label>
+          </fieldset>
+        </div>
+        <p id="issuerStatus" role="status">프로필은 이 브라우저에 저장됩니다.</p>
+        <div class="issuer-actions"><button class="btn mini" type="button" id="issuerCancel">취소</button><button class="btn mini" type="button" id="issuerApply">이번 견적에 적용</button><button class="btn primary mini" type="submit" id="issuerSave">프로필 저장·적용</button></div>
+      </form>
+    </dialog>
     <div class="notice" id="notice"></div>
     <script>
       const FIREBASE_CONFIG = {
@@ -660,7 +704,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       let activeCategory = "전체";
       let activeTag = "전체";
       let customOrder = null; // ids, once the viewer drags/sorts locally
-      let saved = false;
+      let saved = false, saving = false;
 
       function tagOptions() {
         return [...new Set(shareData.products.flatMap((p) => p.tags || []))];
@@ -678,7 +722,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           .filter(
             ({ p }) =>
               (activeCategory === "전체" || p.category === activeCategory) &&
-              (activeTag === "전체" || (p.tags || []).includes(activeTag)),
+              (activeTag === "전체" || (p.tags || []).includes(activeTag)) &&
+              [p.name, p.category, ...(p.tags || [])].join(" ").toLocaleLowerCase().includes($("#productSearch").value.trim().toLocaleLowerCase()),
           );
       }
       function renderFilters() {
@@ -808,22 +853,33 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           selected
             .map(
               (p) =>
-                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}</span><span class="qty"><button type="button" class="minus">−</button><b>${p.qty || 1}개</b><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
+                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}</span><span class="qty"><button type="button" class="minus">−</button><input class="qty-input" type="number" min="1" step="1" max="999999" inputmode="numeric" aria-label="${esc(p.name)} 수량" value="${p.qty || 1}" /><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
             )
             .join("") || "<p>상품을 선택해주세요.</p>";
         document.querySelectorAll(".basket-row").forEach((r) => {
           let p = shareData.products.find((x) => x.id == r.dataset.id);
+          r.querySelector(".qty-input").onchange = (e) => {
+            const qty = Number(e.target.value);
+            if (!Number.isSafeInteger(qty) || qty < 1 || qty > 999999) {
+              e.target.value = p.qty || 1;
+              toast("수량은 1~999999 사이의 정수로 입력해주세요");
+              return;
+            }
+            p.qty = qty;
+            renderBasket();
+          };
           r.querySelector(".minus").onclick = () => {
             p.qty = Math.max(1, (p.qty || 1) - 1);
             renderBasket();
           };
           r.querySelector(".plus").onclick = () => {
-            p.qty = (p.qty || 1) + 1;
+            p.qty = Math.min(999999, (p.qty || 1) + 1);
             renderBasket();
           };
         });
-        $("#saveBtn").disabled = !selected.length || saved;
+        $("#saveBtn").disabled = !selected.length || saved || saving;
       }
+      $("#productSearch").oninput = render;
       $("#includeOffer").onchange = render;
       document.querySelectorAll("[data-sort]").forEach(
         (button) => (button.onclick = () => sortProducts(button.dataset.sort)),
@@ -844,6 +900,159 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         let key = ["company", "email", "phone"][i];
         $("#" + id).value = DEFAULT_CONTACT[key];
       });
+      const ISSUER_KEY = "starbucks-helper-issuer-profiles-v1";
+      const detailFields = { business: "issuerBusiness", address: "issuerAddress", bank: "issuerBank", account: "issuerAccount", holder: "issuerHolder" };
+      const showDefaults = { company: true, email: true, phone: true, business: false, address: false, account: false, stamp: false };
+      function normalizeIssuer(value = {}) {
+        const source = value && typeof value === "object" ? value : {};
+        const result = { show: {}, stamp: "", includeOffer: source.includeOffer !== false };
+        for (const key of ["name", "company", "email", "phone", ...Object.keys(detailFields)]) {
+          result[key] = typeof source[key] === "string" ? source[key].slice(0, 300) : "";
+        }
+        for (const key of Object.keys(showDefaults)) result.show[key] = typeof source.show?.[key] === "boolean" ? source.show[key] : showDefaults[key];
+        if (typeof source.stamp === "string" && source.stamp.length < 600000 && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(source.stamp)) result.stamp = source.stamp;
+        return result;
+      }
+      let issuer = normalizeIssuer(), issuerStore = { profiles: [], last: "" }, issuerDraft, stampJob = 0;
+      function currentIssuer() {
+        return normalizeIssuer({ ...issuer, company: $("#ctCompany").value.trim(), email: $("#ctEmail").value.trim(), phone: $("#ctPhone").value.trim(), includeOffer: $("#includeOffer").checked });
+      }
+      function renderIssuerProfiles() {
+        const select = $("#issuerProfiles");
+        select.replaceChildren(new Option(" ", ""));
+        issuerStore.profiles.forEach(p => select.add(new Option(p.name, p.name)));
+        select.value = "";
+      }
+      function applyIssuer(profile) {
+        issuer = normalizeIssuer(profile);
+        ["company", "email", "phone"].forEach((key, i) => { $("#" + ["ctCompany", "ctEmail", "ctPhone"][i]).value = issuer[key]; });
+        $("#includeOffer").checked = issuer.includeOffer;
+      }
+      try {
+        const stored = JSON.parse(localStorage.getItem(ISSUER_KEY) || "null");
+        if (stored && Array.isArray(stored.profiles)) {
+          issuerStore.profiles = stored.profiles.map(normalizeIssuer).filter(p => p.name);
+          issuerStore.last = typeof stored.last === "string" ? stored.last : "";
+          const last = issuerStore.profiles.find(p => p.name === issuerStore.last);
+          if (last) applyIssuer(last);
+        }
+      } catch { toast("저장된 프로필을 읽지 못했습니다. 현재 정보로 계속 사용할 수 있습니다."); }
+      renderIssuerProfiles();
+      $("#issuerProfiles").onchange = (e) => {
+        const profile = issuerStore.profiles.find(p => p.name === e.target.value);
+        if (!profile || saved || saving) return;
+        applyIssuer(profile);
+        const next = { ...issuerStore, last: profile.name };
+        try { localStorage.setItem(ISSUER_KEY, JSON.stringify(next)); issuerStore = next; }
+        catch { toast("프로필을 불러왔지만 마지막 선택은 저장하지 못했습니다."); }
+        renderIssuerProfiles();
+        render();
+      };
+      function updateStampPreview() {
+        const image = $("#stampPreview");
+        image.hidden = !issuerDraft.stamp;
+        if (issuerDraft.stamp) image.src = issuerDraft.stamp;
+        else image.removeAttribute("src");
+      }
+      $("#issuerSettings").onclick = () => {
+        if (saved || saving) return;
+        issuerDraft = currentIssuer();
+        $("#issuerName").value = issuerDraft.name || issuerDraft.company;
+        Object.entries(detailFields).forEach(([key, id]) => { $("#" + id).value = issuerDraft[key]; });
+        document.querySelectorAll("[data-issuer-show]").forEach(el => { el.checked = issuerDraft.show[el.dataset.issuerShow]; });
+        $("#issuerStamp").value = "";
+        $("#issuerStatus").textContent = "프로필은 이 브라우저에 저장됩니다. 같은 이름으로 저장하면 기존 프로필을 갱신합니다.";
+        updateStampPreview();
+        $("#issuerDialog").showModal();
+      };
+      $("#issuerCancel").onclick = () => $("#issuerDialog").close();
+      $("#issuerDialog").addEventListener("close", () => { stampJob++; setStampBusy(false); });
+      function setStampBusy(busy) {
+        ["issuerSave", "issuerApply"].forEach(id => { $("#" + id).disabled = busy; });
+      }
+      function loadIssuerImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("직인 이미지를 읽지 못했습니다"));
+          img.src = src;
+        });
+      }
+      $("#issuerStamp").onchange = async (event) => {
+        const file = event.target.files[0], job = ++stampJob;
+        if (!file) return;
+        if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+          $("#issuerStatus").textContent = "5MB 이하 PNG, JPG, WebP 이미지를 선택해주세요.";
+          event.target.value = "";
+          setStampBusy(false);
+          return;
+        }
+        setStampBusy(true);
+        const url = URL.createObjectURL(file);
+        try {
+          const img = await loadIssuerImage(url);
+          const scale = Math.min(1, 320 / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+          if (job !== stampJob) return;
+          issuerDraft.stamp = canvas.toDataURL("image/png");
+          updateStampPreview();
+          $("#issuerStatus").textContent = "직인을 준비했습니다. ‘직인’ 표시를 선택하고 적용해주세요.";
+        } catch {
+          if (job === stampJob) $("#issuerStatus").textContent = "이미지를 읽지 못했습니다. 다른 파일을 선택해주세요.";
+        } finally {
+          URL.revokeObjectURL(url);
+          if (job === stampJob) setStampBusy(false);
+        }
+      };
+      $("#removeStamp").onclick = () => {
+        stampJob++; setStampBusy(false);
+        issuerDraft.stamp = "";
+        $("#issuerStamp").value = "";
+        updateStampPreview();
+      };
+      function commitIssuer(persist) {
+        if ($("#issuerApply").disabled || saved || saving) return;
+        const draft = normalizeIssuer({ ...issuerDraft, name: $("#issuerName").value.trim() });
+        Object.entries(detailFields).forEach(([key, id]) => { draft[key] = $("#" + id).value.trim(); });
+        document.querySelectorAll("[data-issuer-show]").forEach(el => { draft.show[el.dataset.issuerShow] = el.checked; });
+        if (persist) {
+          if (!draft.name) { $("#issuerStatus").textContent = "프로필 이름을 입력해주세요."; $("#issuerName").focus(); return; }
+          const next = { profiles: issuerStore.profiles.filter(p => p.name !== draft.name).concat(draft), last: draft.name };
+          try { localStorage.setItem(ISSUER_KEY, JSON.stringify(next)); }
+          catch { $("#issuerStatus").textContent = "저장 공간이 부족하거나 저장이 차단되어 있습니다. ‘이번 견적에 적용’으로 계속할 수 있습니다."; return; }
+          issuerStore = next;
+          renderIssuerProfiles();
+        }
+        applyIssuer(draft);
+        $("#issuerDialog").close();
+        render();
+        toast(persist ? "프로필을 저장하고 적용했습니다" : "이번 견적에 적용했습니다");
+      }
+      $("#issuerForm").onsubmit = (event) => { event.preventDefault(); commitIssuer(true); };
+      $("#issuerApply").onclick = () => commitIssuer(false);
+      function issuerFooterLines(contact) {
+        const lines = [];
+        const base = ["company", "email", "phone"].filter(key => issuer.show[key]).map(key => contact[key]).filter(Boolean).join("   ·   ");
+        if (base) lines.push(base);
+        if (issuer.show.business && issuer.business) lines.push("사업자등록번호  " + issuer.business);
+        if (issuer.show.address && issuer.address) lines.push("주소  " + issuer.address);
+        const account = [issuer.bank, issuer.account, issuer.holder && "예금주 " + issuer.holder].filter(Boolean).join("  ");
+        if (issuer.show.account && account) lines.push("계좌  " + account);
+        return lines;
+      }
+      function wrapIssuerText(ctx, text, width) {
+        const lines = []; let line = "";
+        for (const char of String(text)) {
+          if (char === "\n" || (line && ctx.measureText(line + char).width > width)) { lines.push(line); line = ""; }
+          if (char !== "\n") line += char;
+        }
+        if (line) lines.push(line);
+        return lines;
+      }
+
       let shareState = { db: null, firestore: null, ready: false };
       async function initShareSync() {
         if (shareState.ready) return shareState;
@@ -868,7 +1077,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       // Draws ONLY the basket panel itself (product names, qty, line totals,
       // totals, contact fields) onto a canvas and downloads it as a JPG.
-      // No product photos are involved, so this never touches CORS/canvas-taint.
+      // Product photos stay out of the canvas; stamps are locally normalized PNGs.
       function wrapCanvasText(ctx, text, maxWidth, maxLines) {
         let words = String(text).split(/\s+/).filter(Boolean),
           allLines = [],
@@ -891,7 +1100,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         lines[maxLines - 1] = last + "…";
         return lines;
       }
-      function buildBasketImageDataUrl() {
+      async function buildBasketImageDataUrl() {
         let includeOffer = $("#includeOffer").checked,
           selected = shareData.products.filter((p) => p.selected),
           unit = (p) => (includeOffer ? p.offer : p.sale),
@@ -908,6 +1117,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             email: $("#ctEmail").value.trim(),
             phone: $("#ctPhone").value.trim(),
           };
+        const stamp = issuer.show.stamp && issuer.stamp ? await loadIssuerImage(issuer.stamp) : null;
         const W = 640,
           PAD = 28,
           SCALE = 2;
@@ -917,12 +1127,15 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           (r) =>
             wrapCanvasText(measure, r.name, W - PAD * 2 - 150, 2).length,
         );
+        measure.font = "400 12px Pretendard, sans-serif";
+        const footerLines = issuerFooterLines(contact).flatMap(text => wrapIssuerText(measure, text, W - PAD * 2 - (stamp ? 92 : 0)));
+        measure.font = "700 14px Pretendard, sans-serif";
         const ROW_BASE = 30,
           ROW_LINE = 18;
         let rowsH = rowHeights.reduce((s, n) => s + ROW_BASE + n * ROW_LINE, 0),
           headerH = 56,
           totalsH = 92,
-          contactH = 40,
+          contactH = Math.max(40, footerLines.length * 18 + 22, stamp ? 104 : 0),
           H = headerH + rowsH + totalsH + contactH + PAD * 2;
         const canvas = document.createElement("canvas");
         canvas.width = W * SCALE;
@@ -986,17 +1199,15 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         ctx.textAlign = "left";
         ctx.font = "400 12px Pretendard, sans-serif";
         ctx.fillStyle = "#6a766f";
-        ctx.fillText(
-          [contact.company, contact.email, contact.phone]
-            .filter(Boolean)
-            .join("   ·   "),
-          PAD,
-          y,
-        );
+        footerLines.forEach((line, i) => ctx.fillText(line, PAD, y + i * 18));
+        if (stamp) {
+          const ratio = Math.min(80 / stamp.width, 80 / stamp.height);
+          ctx.drawImage(stamp, W - PAD - stamp.width * ratio, y - 12, stamp.width * ratio, stamp.height * ratio);
+        }
         return canvas.toDataURL("image/jpeg", 0.92);
       }
-      function downloadBasketImage() {
-        const dataUrl = buildBasketImageDataUrl();
+      async function downloadBasketImage() {
+        const dataUrl = await buildBasketImageDataUrl();
         if (!dataUrl) return false;
         const a = document.createElement("a");
         a.href = dataUrl;
@@ -1009,7 +1220,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       $("#saveBtn").onclick = async () => {
         let selected = shareData.products.filter((p) => p.selected);
-        if (!selected.length) return;
+        if (!selected.length || saved || saving) return;
         let includeOffer = $("#includeOffer").checked,
           unit = (p) => (includeOffer ? p.offer : p.sale),
           items = selected.map((p) => ({
@@ -1026,11 +1237,14 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             email: $("#ctEmail").value.trim(),
             phone: $("#ctPhone").value.trim(),
           };
+        saving = true;
+        $("#issuerSettings").disabled = true;
+        $("#issuerProfiles").disabled = true;
         $("#saveBtn").disabled = true;
         $("#saveBtn").textContent = "저장 중…";
         let downloaded = false;
         try {
-          downloaded = downloadBasketImage();
+          downloaded = await downloadBasketImage();
         } catch (imgError) {
           console.error(imgError);
         }
@@ -1052,6 +1266,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           ["ctCompany", "ctEmail", "ctPhone"].forEach(
             (id) => ($("#" + id).disabled = true),
           );
+          $("#issuerSettings").disabled = true;
+          $("#issuerProfiles").disabled = true;
           $("#editableHint").hidden = true;
           $("#saveBtn").textContent = "저장 완료";
           toast(
@@ -1064,6 +1280,10 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           toast("저장에 실패했습니다. 인터넷 연결을 확인해주세요");
           $("#saveBtn").disabled = false;
           $("#saveBtn").textContent = "저장하기";
+          $("#issuerSettings").disabled = false;
+          $("#issuerProfiles").disabled = false;
+        } finally {
+          saving = false;
         }
       };
       async function boot() {
