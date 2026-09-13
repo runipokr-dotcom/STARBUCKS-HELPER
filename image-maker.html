@@ -112,6 +112,7 @@
         <label for="description">본문 내용</label><textarea id="description" placeholder="상품의 주요 설명을 입력하세요"></textarea>
         <label for="extraDescription">추가 설명 내용</label><textarea id="extraDescription" placeholder="주의사항 등 덜 중요한 내용을 입력하세요"></textarea>
         <label class="section-check" for="targetMaterial"><input id="targetMaterial" type="checkbox">재질</label>
+        <label for="materialTitle">항목 제목</label><input id="materialTitle" value="재질" placeholder="예: 원재료, 소재">
         <div class="material-presets" aria-label="자주 쓰는 재질">
           <button type="button" data-part="몸체">몸체</button>
           <button type="button" data-part="뚜껑">뚜껑</button>
@@ -125,11 +126,16 @@
         </div>
         <textarea id="material" placeholder="부위와 재질 버튼을 순서대로 눌러주세요"></textarea>
         <label class="section-check" for="targetSize"><input id="targetSize" type="checkbox">크기 (cm)</label>
-        <div class="size-row"><input id="sizeWidth" inputmode="decimal" placeholder="가로"><input id="sizeDepth" inputmode="decimal" placeholder="세로"><input id="sizeHeight" inputmode="decimal" placeholder="높이"></div>
+        <label for="sizeTitle">항목 제목</label><input id="sizeTitle" value="크기" placeholder="예: 용량, 중량">
+        <label for="sizeMode">내용 입력 방식</label><select id="sizeMode"><option value="dimensions">가로 × 세로 × 높이 (cm)</option><option value="custom">직접 입력</option></select>
+        <label for="sizeCustom" id="sizeCustomLabel" hidden>내용</label><textarea id="sizeCustom" hidden placeholder="예: 250g / 원두 100%"></textarea>
+        <div class="size-row" id="dimensionInputs"><input id="sizeWidth" inputmode="decimal" placeholder="가로"><input id="sizeDepth" inputmode="decimal" placeholder="세로"><input id="sizeHeight" inputmode="decimal" placeholder="높이"></div>
       </div>
       <div class="section">
         <h2>3. 디자인 설정</h2>
         <div class="row"><div><label for="layout">사진 위치</label><select id="layout"><option value="right">오른쪽</option><option value="left">왼쪽</option></select></div><div><label for="format">저장 형식</label><select id="format"><option value="png">PNG</option><option value="jpeg">JPG</option></select></div></div>
+        <p class="hint">미리보기의 가로 나눔선을 위아래로 드래그하면 아래 항목도 함께 이동합니다.</p>
+        <div class="quick-actions"><button type="button" id="resetDividers">나눔선 자동 위치로</button></div>
         <label class="check-row"><input id="copyrightEnabled" type="checkbox" checked>우측 하단 제작 표시 사용</label>
         <input id="copyright" value="@thisismine" aria-label="제작 표시 문구">
         <label>포인트 색상</label><div class="swatches"><button data-color="#171717" style="background:#171717" aria-label="검정"></button><button data-color="#1f513f" style="background:#1f513f" aria-label="초록"></button><button data-color="#b9a38f" style="background:#b9a38f" aria-label="베이지"></button><button data-color="#e2aeb8" style="background:#e2aeb8" aria-label="분홍"></button></div>
@@ -145,10 +151,11 @@
   <script>
     const $ = id => document.getElementById(id);
     const canvas = $('canvas'), ctx = canvas.getContext('2d');
-    const fields = ['title','retailPrice','description','extraDescription','material','sizeWidth','sizeDepth','sizeHeight','layout','titleWeight','priceWeight','bodyWeight','careWeight','copyright','copyrightEnabled'];
+    const fields = ['title','retailPrice','description','extraDescription','material','materialTitle','sizeTitle','sizeMode','sizeCustom','sizeWidth','sizeDepth','sizeHeight','layout','titleWeight','priceWeight','bodyWeight','careWeight','copyright','copyrightEnabled'];
     const fontFamily = 'Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif';
     let productImages = [], accent = '#171717', careState={오븐:'불가',전자레인지:'불가',식기세척기:'불가'};
     let fontSizes={content:21,material:21,size:21};
+    let dividerPositions=[null,null], dividerGeometry=[], dividerDrag=null;
     const fontTargets=['targetContent','targetMaterial','targetSize'];
 
     function lines(text) { return text.split('\n'); }
@@ -230,20 +237,47 @@
       let y=retailPrice?220:207; y=drawDescriptionBlock($('description').value,tx,y,tw);
       if($('description').value.trim() && ($('extraDescription').value.trim() || Object.values(careState).some(v=>v!=='표시 안 함'))) y+=10;
       y=drawExtraBlock($('extraDescription').value,tx,y,tw);
-      const firstRule=Math.max(455,y+32); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,firstRule,tw,2);
+      const firstRule=dividerPositions[0] ?? Math.max(455,y+32); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,firstRule,tw,2);
       const materialHeading=fontSizes.material+5;
-      ctx.fillStyle='#77736c'; ctx.font=`500 ${materialHeading}px ${fontFamily}`; ctx.fillText('재질',tx,firstRule+64);
+      ctx.fillStyle='#77736c'; ctx.font=`500 ${materialHeading}px ${fontFamily}`; ctx.fillText($('materialTitle').value,tx,firstRule+64);
       y=drawMaterialBlock($('material').value,tx,firstRule+118,tw);
-      const secondRule=Math.max(665,y+30); ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,secondRule,tw,2);
+      const secondRule=Math.max(firstRule+100,dividerPositions[1] ?? Math.max(665,y+30));
+      dividerGeometry=[{x:tx,y:firstRule,w:tw},{x:tx,y:secondRule,w:tw}]; ctx.fillStyle='#d2d2d2'; ctx.fillRect(tx,secondRule,tw,2);
       const sizeHeading=fontSizes.size+5;
-      ctx.fillStyle='#77736c'; ctx.font=`500 ${sizeHeading}px ${fontFamily}`; ctx.fillText('크기',tx,secondRule+64);
+      ctx.fillStyle='#77736c'; ctx.font=`500 ${sizeHeading}px ${fontFamily}`; ctx.fillText($('sizeTitle').value,tx,secondRule+64);
       const dimensions=[$('sizeWidth').value.trim(),$('sizeDepth').value.trim(),$('sizeHeight').value.trim()];
-      const sizeText=dimensions.some(Boolean) ? `가로 × 세로 × 높이\n\n${dimensions.map(v=>v||'-').join(' × ')} (cm)` : '';
+      const sizeText=$('sizeMode').value==='custom' ? $('sizeCustom').value : dimensions.some(Boolean) ? `가로 × 세로 × 높이\n\n${dimensions.map(v=>v||'-').join(' × ')} (cm)` : '';
       drawTextBlock(sizeText,tx,secondRule+118,tw,fontSizes.size,Math.round(fontSizes.size*1.7),'#32302d',400);
       drawProductImages({x:ix,y:150,w:iw,h:735});
       const copyright=$('copyright').value.trim();
       if($('copyrightEnabled').checked && copyright){ ctx.fillStyle='#aaa7a1'; ctx.textAlign='right'; ctx.font=`400 13px ${fontFamily}`; ctx.fillText(copyright,946,932); }
     }
+
+    function syncSizeMode(){
+      const custom=$('sizeMode').value==='custom';
+      $('dimensionInputs').hidden=custom;
+      $('dimensionInputs').style.display=custom?'none':'';
+      $('sizeCustom').hidden=!custom; $('sizeCustomLabel').hidden=!custom;
+    }
+    $('sizeMode').addEventListener('input',syncSizeMode);
+    $('resetDividers').addEventListener('click',()=>{dividerPositions=[null,null];render();});
+    function canvasPoint(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*1000/r.width,y:(e.clientY-r.top)*1000/r.height};}
+    function hitDivider(e){const p=canvasPoint(e), tolerance=12*1000/canvas.getBoundingClientRect().height;return dividerGeometry.findIndex(d=>p.x>=d.x && p.x<=d.x+d.w && Math.abs(p.y-d.y)<=tolerance);}
+    canvas.style.touchAction='none';
+    canvas.addEventListener('pointerdown',e=>{
+      if(e.button!==0 || dividerDrag)return;
+      const index=hitDivider(e);if(index<0)return;
+      dividerDrag={index,id:e.pointerId,offset:canvasPoint(e).y-dividerGeometry[index].y};
+      canvas.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    canvas.addEventListener('pointermove',e=>{
+      if(!dividerDrag){canvas.style.cursor=hitDivider(e)>=0?'ns-resize':'';return;}
+      if(e.pointerId!==dividerDrag.id)return;
+      const {index,offset}=dividerDrag, min=index===0?190:dividerGeometry[0].y+100, max=index===0?650:820;
+      dividerPositions[index]=Math.round(Math.max(min,Math.min(max,canvasPoint(e).y-offset)));render();
+    });
+    function stopDividerDrag(e){if(dividerDrag && e.pointerId===dividerDrag.id){dividerDrag=null;canvas.style.cursor='';}}
+    ['pointerup','pointercancel','lostpointercapture'].forEach(type=>canvas.addEventListener(type,stopDividerDrag));
 
     function selectedTarget(){
       if($('targetMaterial').checked) return 'material';
@@ -294,7 +328,7 @@
       a.click();
       localStorage.setItem('productInfoCare',JSON.stringify(careState));
     });
-    $('reset').addEventListener('click',()=>{ $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('extraDescription').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}); });
+    $('reset').addEventListener('click',()=>{ $('materialTitle').value='재질'; $('sizeTitle').value='크기'; $('sizeMode').value='dimensions'; $('sizeCustom').value=''; dividerPositions=[null,null]; syncSizeMode(); $('title').value=''; $('retailPrice').value=''; $('description').value=''; $('extraDescription').value=''; $('material').value=''; $('sizeWidth').value=''; $('sizeDepth').value=''; $('sizeHeight').value=''; applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}); });
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
     syncFontSlider();
