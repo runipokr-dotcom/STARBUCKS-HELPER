@@ -51,6 +51,10 @@
     .check-row input { width:17px; height:17px; margin:0; accent-color:var(--accent); }
     .section-check { display:inline-flex; align-items:center; gap:7px; margin:0; color:inherit; font-size:inherit; font-weight:inherit; cursor:pointer; }
     .section-check input { width:16px; height:16px; margin:0; padding:0; accent-color:var(--accent); }
+    .editable-section-heading { display:flex; align-items:center; gap:7px; margin:12px 0 6px; }
+    .editable-section-heading input[type="checkbox"] { flex:0 0 16px; width:16px; height:16px; margin:0; padding:0; accent-color:var(--accent); }
+    .editable-section-heading .editable-heading { width:100%; min-width:0; padding:5px 3px; border:0; border-bottom:1px dashed #d9d5ce; border-radius:0; background:transparent; color:#4e4b46; font-size:12px; font-weight:650; }
+    .editable-section-heading .editable-heading:focus { border-bottom-color:var(--accent); background:#fff; }
     .font-size-control { display:grid; grid-template-columns:1fr 52px; align-items:center; gap:10px; }
     .font-size-control input[type="range"] { padding:0; border:0; border-radius:0; box-shadow:none; accent-color:var(--accent); }
     .font-size-value { text-align:right; color:#3e3a35; font-size:12px; font-weight:700; }
@@ -111,8 +115,7 @@
         <label for="retailPrice">정가</label><input id="retailPrice" inputmode="numeric" placeholder="숫자만 입력하세요">
         <label for="description">본문 내용</label><textarea id="description" placeholder="상품의 주요 설명을 입력하세요"></textarea>
         <label for="extraDescription">추가 설명 내용</label><textarea id="extraDescription" placeholder="주의사항 등 덜 중요한 내용을 입력하세요"></textarea>
-        <label class="section-check" for="targetMaterial"><input id="targetMaterial" type="checkbox">재질</label>
-        <label for="materialTitle">항목 제목</label><input id="materialTitle" value="재질" placeholder="예: 원재료, 소재">
+        <div class="editable-section-heading"><input id="targetMaterial" type="checkbox" aria-label="첫 번째 정보 글꼴 선택"><input class="editable-heading" id="materialTitle" value="재질" aria-label="첫 번째 정보 제목 수정" title="눌러서 제목 수정"></div>
         <div class="material-presets" aria-label="자주 쓰는 재질">
           <button type="button" data-part="몸체">몸체</button>
           <button type="button" data-part="뚜껑">뚜껑</button>
@@ -125,8 +128,7 @@
           <button type="button" data-material="고무제">고무제</button>
         </div>
         <textarea id="material" placeholder="부위와 재질 버튼을 순서대로 눌러주세요"></textarea>
-        <label class="section-check" for="targetSize"><input id="targetSize" type="checkbox">크기 (cm)</label>
-        <label for="sizeTitle">항목 제목</label><input id="sizeTitle" value="크기" placeholder="예: 용량, 중량">
+        <div class="editable-section-heading"><input id="targetSize" type="checkbox" aria-label="두 번째 정보 글꼴 선택"><input class="editable-heading" id="sizeTitle" value="크기" aria-label="두 번째 정보 제목 수정" title="눌러서 제목 수정"></div>
         <label for="sizeMode">내용 입력 방식</label><select id="sizeMode"><option value="dimensions">가로 × 세로 × 높이 (cm)</option><option value="custom">직접 입력</option></select>
         <label for="sizeCustom" id="sizeCustomLabel" hidden>내용</label><textarea id="sizeCustom" hidden placeholder="예: 250g / 원두 100%"></textarea>
         <div class="size-row" id="dimensionInputs"><input id="sizeWidth" inputmode="decimal" placeholder="가로"><input id="sizeDepth" inputmode="decimal" placeholder="세로"><input id="sizeHeight" inputmode="decimal" placeholder="높이"></div>
