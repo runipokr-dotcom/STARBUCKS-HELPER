@@ -1,5 +1,26 @@
 # WORKLOG
 
+## 2026-09-19 — ChatGPT (47건 쿠폰 전수검수 / coupons1 전체교체)
+
+### 작업 전 기록
+- 원본: Google Drive `47.zip` (file ID `1awwWgyeOx6a-jQq6hoaxuHMSn8zWzVuh`), 이미지 47장.
+- 사용자 지시: Coupon No.(17자리) + 등록코드(8자리) + 사용 유효기간 시작일 추출, 원본 전수 육안대조 필수, 중복 검사, 오늘의 커피 쿠폰이 있으면 별도 CSV, `coupons1.json` 전체교체.
+- 정확성 기준: SOURCE_OF_TRUTH / PAIR_BY_IMAGE / CHECK_EVERY_DIGIT / FULL_SOURCE_RECHECK / NO_GUESS / COUNT_MATCH 준수. 오류·불확실 값이 남으면 서버 반영 금지.
+- 기존 `coupons1.json` 51건을 먼저 읽고 구조 확인 후 교체 진행. 기존 서버와 신규 47건 간 Coupon No./등록코드 중복도 함께 확인.
+
+### 작업 후 기록
+- 원본 ZIP 1회 다운로드·해제, 이미지 수 47장 확인.
+- 47건 모두 원본 화면을 육안 확인하여 Coupon No. / 등록코드 / 유효기간 시작일을 Pair 단위로 확정. Coupon No. 17자리 47/47, 등록코드 8자리 47/47, 중복 0, 누락 0, 빈값 0, no 1~47 연속 확인.
+- 유효기간 시작일 범위: 2026-09-12 ~ 2026-09-13 → 배치명 `47_260919_260912~260913`.
+- 오늘의 커피 쿠폰: 0건. 전건 쿠폰 안내가 에코 텀블러 음료 쿠폰/파트너 제조 음료 한 잔 용도로 확인되어 별도 CSV 생성 없음.
+- 기존 서버 51건과 신규 47건 간 Coupon No. 중복 0, 등록코드 중복 0.
+- `coupons1.json`을 신규 47건으로 전체교체. commit `3b6107e95e7833f6e12984ada1ef9eabf2f2b3bb`.
+- READBACK: 47건, no 1~47 연속, Coupon No. unique 47, 등록코드 unique 47, 첫/마지막 데이터 확인 완료.
+- 검수 ZIP 로컬 생성: `47_260919_260912~260913_verified.zip` (47장). Drive에는 원본 ZIP의 검수 완료 사본을 같은 최종 배치명으로 생성(file ID `1xe0YAulHa532w7JqxAWzU2WLinxCIcC-`). 원본 파일은 삭제·이름변경·덮어쓰기 하지 않음.
+- 남은 주의: Drive 커넥터 제약으로 로컬에서 001.jpg~047.jpg로 재명명한 ZIP 자체를 업로드하지 못해, Drive 보관본은 원본 47장 파일명을 유지하는 검수 완료 사본이다. 데이터/서버 검수에는 영향 없음.
+
+---
+
 ## 2026-09-18 — Claude (WORKLOG 누락분 소급 정리: 2026-09-10 ~ 09-18)
 
 ### 작업 전 기록
