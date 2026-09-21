@@ -105,7 +105,7 @@ button:disabled{opacity:.5;cursor:default}
       <label for="runPreview">실행할 내용 (이번 실행에만 반영)</label>
       <textarea id="runPreview" required maxlength="30000"></textarea>
       <div class="row">
-        <div><label for="runProvider">모델</label><select id="runProvider"><option value="openai">ChatGPT</option><option value="anthropic">Claude</option></select></div>
+        <div><label for="runProvider">모델</label><select id="runProvider"><option value="openai">ChatGPT</option></select></div>
         <div><label for="runAccess">실행 암호</label><input id="runAccess" type="password" autocomplete="off" placeholder="관리자가 설정한 실행 암호" required></div>
       </div>
       <p class="note">실행할 내용은 선택한 AI 서비스로 전송됩니다. 실행 암호는 이 화면에서만 사용합니다.</p>
@@ -119,9 +119,8 @@ button:disabled{opacity:.5;cursor:default}
       <div class="cardActions">
         <button type="button" class="ghost" id="copyResultBtn">결과 복사</button>
         <button type="button" class="ghost" id="rerunBtn">다시 생성</button>
-        <button type="button" class="ghost" id="otherModelBtn">다른 모델로 실행</button>
       </div>
-      <p class="note">다시 생성·다른 모델로 실행은 마지막 결과와 동일한 입력을 사용합니다.</p>
+      <p class="note">다시 생성은 마지막 결과와 동일한 입력을 사용합니다.</p>
     </div>
   </section>
 </main>
@@ -129,7 +128,7 @@ button:disabled{opacity:.5;cursor:default}
 <a class="homeBtn" href="index.html">🏠 홈</a>
 
 <script type="module">
-import {openPromptRunner} from './prompt-runner.js?v=20260922';
+import {openPromptRunner} from './prompt-runner.js?v=20260922-openai';
 (async () => {
   const FIREBASE_CONFIG = {apiKey:"AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",authDomain:"starbucks-helper-f578e.firebaseapp.com",projectId:"starbucks-helper-f578e",storageBucket:"starbucks-helper-f578e.firebasestorage.app",messagingSenderId:"1015231512258",appId:"1:1015231512258:web:25bb0229b5bc90b56a455b",measurementId:"G-8H2H0NCJDF"};
   const COLLECTION = 'couponWork';

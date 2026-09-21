@@ -40,9 +40,9 @@ export function onSnapshot(ref,opt,fn){listeners.push(fn);fn(snapshot());}
  assert.equal(await p.locator('#runPreview').inputValue(),'  컵 $& {{새 변수}} / 컵 $& {{새 변수}} / 친절  ');
  delay=200;await p.locator('#runBtn').click();assert.equal(await p.locator('#runBtn').isDisabled(),true);await p.locator('#runResult').waitFor({state:'visible'});await p.waitForFunction(()=>!document.querySelector('#runBtn').disabled);delay=0;
  assert.equal(requests[0].provider,'openai');assert.equal(await p.locator('#runResult script').count(),0);
+ assert.equal(await p.locator('#runProvider option').count(),1);assert.equal(await p.locator('#otherModelBtn').count(),0);
  const firstPrompt=requests[0].prompt;
  await p.locator('#runPreview').fill('unsent change');await p.locator('#rerunBtn').click();await p.waitForFunction(()=>!document.querySelector('#rerunBtn').disabled);assert.equal(requests[1].prompt,firstPrompt);
- await p.locator('#otherModelBtn').click();await p.waitForFunction(()=>!document.querySelector('#otherModelBtn').disabled);assert.equal(requests[2].provider,'anthropic');assert.equal(requests[2].prompt,firstPrompt);
  await p.locator('#copyResultBtn').click();assert.equal(await p.evaluate(()=>navigator.clipboard.readText()),await p.locator('#runOutput').inputValue());
  if(process.env.SCREENSHOT){await p.setViewportSize({width:390,height:844});await p.locator('#runnerPanel').screenshot({path:process.env.SCREENSHOT});}
  fail=true;const previous=await p.locator('#runOutput').inputValue();await p.locator('#rerunBtn').click();await p.waitForFunction(()=>!document.querySelector('#rerunBtn').disabled);assert((await p.locator('#runNote').textContent()).includes('이전 결과'));assert.equal(await p.locator('#runOutput').inputValue(),previous);
@@ -54,6 +54,6 @@ export function onSnapshot(ref,opt,fn){listeners.push(fn);fn(snapshot());}
  await p.locator('#searchInput').fill('신규 검수');assert.equal(await p.locator('.card').count(),1);await p.getByText('전체보기',{exact:true}).click();assert.equal(await p.locator('.cardBody').textContent(),'  원문 보존\n끝  ');
  p.on('dialog',d=>d.accept());await p.getByText('삭제',{exact:true}).click();await p.waitForFunction(()=>document.querySelectorAll('.card').length===0);
  assert.equal(errors.length,0,errors.join('\n'));
- console.log('PASS: save/edit/favorite/search/delete/reload, unknown-field preservation, variables, repeated literal substitution, safe output, rerun/switch/copy/error recovery, no persisted token, 390px layout');
+ console.log('PASS: save/edit/favorite/search/delete/reload, unknown-field preservation, variables, repeated literal substitution, safe output, OpenAI-only rerun/copy/error recovery, no persisted token, 390px layout');
  } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

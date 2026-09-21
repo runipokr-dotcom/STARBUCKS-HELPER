@@ -1,8 +1,22 @@
 # WORKLOG
 
+## 2026-09-22 — Codex (ChatGPT 단독 연결)
+
+### 작업 전 기록
+- 사용자 변경: Claude는 사용하지 않고 ChatGPT만 연결한다.
+- 변경 범위: prompt.html의 Claude 선택 및 다른 모델 실행 버튼 제거, prompt-runner.js 이벤트와 안내 문구 정리, 관련 테스트/설정 안내 업데이트. 기존 저장·수정·삭제·검색·즐겨찾기 및 실행 암호 보호 유지. 기존 서버 Anthropic 어댑터는 호출하지 않으며 등록을 요구하지 않는다.
+- Vercel 실제 환경변수 등록 상태를 재확인하고 사용자 키 입력이 필요한 경우 그 단계만 인계한다.
+
+### 작업 후 기록
+- prompt.html에서 Claude 선택/다른 모델 실행 버튼을 제거하고 prompt-runner.js의 대응 이벤트를 정리. 기존 저장 기능과 ChatGPT 실행/복사/재생성 유지. 문법/공백 검사 및 독립 Chrome 회귀검수 통과. 운영 데이터 변경 없음.
+- Vercel 환경변수 0개 확인. OPENAI_API_KEY와 RUN_PROMPT_ACCESS_TOKEN 입력 화면을 준비했으며 키 입력·저장은 사용자 대기. Claude 키 요구 없음.
+
+---
+
 ## 2026-09-22 — Codex (실행형 프롬프트 저장소)
 
 ### 후속 배포 진행 (사용자: 그럼 언제 완료할거여)
+- 기능 커밋 845927e를 main에 push 완료. 작업 도중 추가된 견적서 커밋 ef94157/be09e1b를 rebase로 보존. Vercel API 운영 주소에서 실행 암호 미설정 503 확인. Pages build 성공, deploy 진행 중. Vercel connector 팀 0개, 브라우저 로그인 필요로 환경변수 검증은 사용자 로그인 대기.
 - 로컬 검수에서 중단한 것을 정정하고 main 반영 및 실제 Pages/Vercel 배포 검증까지 이어간다. Vercel 환경변수는 현재 로그인 확인이 필요하며 미등록 키를 추측하거나 공개하지 않는다.
 
 ### 작업 전 기록

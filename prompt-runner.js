@@ -12,7 +12,7 @@ const access = byId('runAccess');
 const endpoint = location.hostname.endsWith('.github.io') ?
   'https://starbucks-helper.vercel.app/api/run-prompt' : '/api/run-prompt';
 let template = '', running = false, lastRun = null;
-const controls = [byId('runBtn'), byId('rerunBtn'), byId('otherModelBtn')];
+const controls = [byId('runBtn'), byId('rerunBtn')];
 const variablePattern = () => /\{\{\s*([^{}\n]+?)\s*\}\}/g;
 
 function updatePreview() {
@@ -37,7 +37,7 @@ export function openPromptRunner(item) {
   });
   updatePreview();
   result.hidden = true; output.value = ''; lastRun = null;
-  note.textContent = names.length ? '변수를 입력하고 실행할 모델을 선택해 주세요.' : '실행할 내용을 확인하고 모델을 선택해 주세요.';
+  note.textContent = names.length ? '변수를 입력하고 ChatGPT로 실행해 주세요.' : '실행할 내용을 확인하고 ChatGPT로 실행해 주세요.';
   panel.hidden = false;
   panel.scrollIntoView({behavior: 'smooth', block: 'start'});
   (fields.querySelector('textarea') || provider).focus({preventScroll: true});
@@ -87,7 +87,6 @@ form.addEventListener('submit', event => {
   run(preview.value, provider.value);
 });
 byId('rerunBtn').addEventListener('click', () => { if (lastRun) run(lastRun.prompt, lastRun.provider); });
-byId('otherModelBtn').addEventListener('click', () => { if (lastRun) run(lastRun.prompt, lastRun.provider === 'openai' ? 'anthropic' : 'openai'); });
 byId('copyResultBtn').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(output.value); note.textContent = '결과를 복사했습니다.'; }
   catch { output.focus(); output.select(); note.textContent = '자동 복사가 제한되어 있어요. 선택된 결과를 길게 눌러 복사해 주세요.'; }
