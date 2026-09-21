@@ -1,0 +1,187 @@
+<!--
+STARBUCKS HELPER
+File : quote.html
+Version : 1.0
+Updated : 2026-09-21
+Purpose : Existing quotation XLSX template based generator.
+Important : The user's original XLSX is stored and reused as-is; only worksheet cell values are patched.
+-->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>견적서 만들기 | STARBUCKS HELPER</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--g:#00754a;--d:#063c2d;--bg:#f3f5f3;--line:#dfe5e1;--mut:#6a766f;--ink:#18201c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid var(--line)}header a{color:var(--d);text-decoration:none;font-weight:900}.wrap{width:min(860px,100%);margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}.title{font-size:21px;font-weight:900;margin:0 0 4px}.sub{color:var(--mut);font-size:12px;line-height:1.5}.status{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:#f7faf8;font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#bbb}.dot.ok{background:#00a862}.dot.err{background:#c62828}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}label{display:grid;gap:6px;color:var(--mut);font-size:12px;font-weight:800}input,select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;color:var(--ink);font:inherit;font-size:16px}button{min-height:44px;border:1px solid var(--line);border-radius:11px;padding:10px 14px;background:#fff;color:var(--ink);font:inherit;font-weight:850;cursor:pointer}.primary{background:var(--g);border-color:var(--g);color:#fff}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grow{flex:1}.moneyBox{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.metric{padding:13px;border:1px solid var(--line);border-radius:13px;background:#fbfcfb}.metric span{display:block;color:var(--mut);font-size:11px;font-weight:800}.metric b{display:block;margin-top:4px;font-size:20px}.metric.card b{color:var(--g)}.hint{margin-top:8px;color:var(--mut);font-size:11px;line-height:1.5}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.searchResults{display:grid;gap:6px;margin-top:8px;max-height:260px;overflow:auto}.productBtn{text-align:left;padding:11px 12px}.productBtn small{display:block;margin-top:4px;color:var(--mut)}.selectedProduct{margin-top:8px;padding:10px 12px;border:1px solid #b7d7c7;border-radius:11px;background:#f2faf6;font-size:13px}.danger{color:#b3261e}.oktext{color:var(--g)}@media(max-width:620px){.grid,.grid3,.moneyBox,.actions{grid-template-columns:1fr}.wrap{padding:10px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header><a href="index.html">← STARBUCKS HELPER</a><b>견적서</b></header>
+<main class="wrap">
+<section class="card">
+<h1 class="title">기존 엑셀 양식 그대로</h1>
+<div class="sub">오래 사용한 원본 견적서의 서식·병합셀·사업자정보·계좌정보는 건드리지 않고 필요한 값만 교체합니다.</div>
+<div class="status"><span id="templateDot" class="dot"></span><span id="templateStatus">원본 템플릿 확인 중…</span></div>
+<div class="row" style="margin-top:10px">
+<input id="templateFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+<button id="templateBtn" type="button">기존 견적서 원본 등록/교체</button>
+<button id="templateDelete" type="button">템플릿 연결 해제</button>
+</div>
+<div class="hint">최초 1회만 네 기존 XLSX를 등록하면 Firestore에 저장되어 다른 기기에서도 같은 원본을 사용합니다.</div>
+</section>
+
+<section class="card">
+<div class="grid">
+<label>수신자<input id="recipient" placeholder="예: 엄상아"></label>
+<label>견적일<input id="quoteDate" type="date"></label>
+</div>
+<label style="margin-top:10px">상품 검색<input id="productSearch" placeholder="예: 블랙 매트 데비"></label>
+<div id="searchResults" class="searchResults"></div>
+<div id="selectedProduct" class="selectedProduct" hidden></div>
+<div class="grid3" style="margin-top:10px">
+<label>상품명<input id="productName"></label>
+<label>규격<input id="spec" placeholder="예: 473ml"></label>
+<label>수량<input id="qty" type="number" min="1" value="1"></label>
+</div>
+<div class="grid" style="margin-top:10px">
+<label>상품 단가<input id="unitPrice" type="number" min="0" step="10"></label>
+<label>각인 단가<input id="engravePrice" type="number" min="0" step="100" value="1500"></label>
+</div>
+<div class="grid" style="margin-top:10px">
+<label>배송비<input id="shipping" type="number" min="0" step="100" value="0"></label>
+<label>카드 추가율(%)<input id="cardFee" type="number" min="0" step="0.1" value="4"></label>
+</div>
+<div class="moneyBox">
+<div class="metric"><span>현금 결제 기준</span><b id="cashTotal">0원</b></div>
+<div class="metric card"><span>카드 결제 기준</span><b id="cardTotal">0원</b></div>
+</div>
+<div class="hint">카드 금액은 현금 견적 총액에 설정한 비율을 추가하여 계산합니다. 견적서 비고란에는 현금/카드 금액만 표시합니다.</div>
+</section>
+
+<section class="card">
+<div class="actions">
+<button id="previewBtn" type="button">입력 확인</button>
+<button id="downloadBtn" class="primary" type="button">내 기존 양식으로 XLSX 만들기</button>
+</div>
+<div id="message" class="hint"></div>
+</section>
+</main>
+
+<script type="module">
+const FIREBASE_CONFIG={apiKey:"AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",authDomain:"starbucks-helper-f578e.firebaseapp.com",projectId:"starbucks-helper-f578e",storageBucket:"starbucks-helper-f578e.firebasestorage.app",messagingSenderId:"1015231512258",appId:"1:1015231512258:web:25bb0229b5bc90b56a455b",measurementId:"G-8H2H0NCJDF"};
+const COLLECTION="catalogShares",WORKSPACE_ID="work-k4m8q2x7n9v3c6p5r8t1";
+const $=s=>document.querySelector(s), money=n=>Math.round(Number(n||0)).toLocaleString("ko-KR")+"원";
+let cloud=null,products=[],templateBase64="",f,db,ref,selected=null;
+const fields=["recipient","quoteDate","productName","spec","qty","unitPrice","engravePrice","shipping","cardFee"];
+function calc(){
+ const qty=Math.max(0,Number($("#qty").value)||0), unit=Math.max(0,Number($("#unitPrice").value)||0), engrave=Math.max(0,Number($("#engravePrice").value)||0), shipping=Math.max(0,Number($("#shipping").value)||0), fee=Math.max(0,Number($("#cardFee").value)||0);
+ const cash=qty*unit+qty*engrave+shipping, card=Math.round(cash*(1+fee/100));
+ $("#cashTotal").textContent=money(cash); $("#cardTotal").textContent=money(card); return {qty,unit,engrave,shipping,fee,cash,card};
+}
+fields.forEach(id=>$("#"+id).addEventListener("input",calc));
+$("#quoteDate").value=new Date().toISOString().slice(0,10);
+
+function setTemplateState(ok,text){$("#templateDot").className="dot "+(ok?"ok":"err");$("#templateStatus").textContent=text}
+function b64FromArrayBuffer(buf){let bytes=new Uint8Array(buf),out="",chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(out)}
+function arrayBufferFromB64(b64){let bin=atob(b64),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return bytes.buffer}
+function xmlEscape(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
+function excelSerial(dateStr){const [y,m,d]=dateStr.split("-").map(Number);return Math.floor((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000)}
+function koreanNumber(n){
+ n=Math.round(Number(n||0)); if(!n)return "영";
+ const nums=["","일","이","삼","사","오","육","칠","팔","구"],small=["","십","백","천"],big=["","만","억","조"];
+ let result="",group=0;
+ while(n>0){let part=n%10000,p="";for(let i=0;i<4;i++){const digit=part%10;if(digit)p=nums[digit]+small[i]+p;part=Math.floor(part/10)}if(p)result=p+big[group]+result;n=Math.floor(n/10000);group++}
+ return result;
+}
+function findCell(doc,refName){
+ const cells=[...doc.getElementsByTagNameNS("*","c")]; let cell=cells.find(c=>c.getAttribute("r")===refName);
+ if(cell)return cell;
+ const sheetData=[...doc.getElementsByTagNameNS("*","sheetData")][0]; if(!sheetData)throw new Error("sheetData 없음");
+ const rowNum=String(refName.match(/\d+/)[0]); let row=[...sheetData.children].find(r=>r.localName==="row"&&r.getAttribute("r")===rowNum);
+ if(!row){row=doc.createElementNS(sheetData.namespaceURI,"row");row.setAttribute("r",rowNum);sheetData.appendChild(row)}
+ cell=doc.createElementNS(sheetData.namespaceURI,"c");cell.setAttribute("r",refName);row.appendChild(cell);return cell;
+}
+function clearCell(cell){while(cell.firstChild)cell.removeChild(cell.firstChild);cell.removeAttribute("t")}
+function setInline(doc,refName,value){const c=findCell(doc,refName),ns=c.namespaceURI;clearCell(c);c.setAttribute("t","inlineStr");const is=doc.createElementNS(ns,"is"),t=doc.createElementNS(ns,"t");t.textContent=String(value??"");is.appendChild(t);c.appendChild(is)}
+function setNumber(doc,refName,value){const c=findCell(doc,refName),ns=c.namespaceURI;clearCell(c);const v=doc.createElementNS(ns,"v");v.textContent=String(Number(value)||0);c.appendChild(v)}
+function setFormula(doc,refName,formula,result){const c=findCell(doc,refName),ns=c.namespaceURI;clearCell(c);const fnode=doc.createElementNS(ns,"f"),v=doc.createElementNS(ns,"v");fnode.textContent=formula;v.textContent=String(result);c.append(fnode,v)}
+function searchProducts(){
+ const q=$("#productSearch").value.trim().toLowerCase(),box=$("#searchResults");box.innerHTML=""; if(!q)return;
+ products.filter(p=>String(p.name||"").toLowerCase().includes(q)).slice(0,20).forEach(p=>{
+   const b=document.createElement("button");b.className="productBtn";b.type="button";b.innerHTML="<b>"+xmlEscape(p.name)+"</b><small>제안가 "+money(p.offer)+" · 판매가 "+money(p.sale)+"</small>";
+   b.onclick=()=>{selected=p;$("#productName").value=p.name||"";const m=String(p.name||"").match(/(\d+)\s*ml/i);$("#spec").value=m?m[1]+"ml":"";$("#unitPrice").value=Number(p.offer||0);$("#selectedProduct").hidden=false;$("#selectedProduct").textContent="선택: "+p.name+" · 제안가 "+money(p.offer);box.innerHTML="";calc()};
+   box.appendChild(b);
+ });
+}
+$("#productSearch").addEventListener("input",searchProducts);
+
+async function init(){
+ try{
+  const [{initializeApp},firestore]=await Promise.all([import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")]);
+  f=firestore;db=f.getFirestore(initializeApp(FIREBASE_CONFIG,"quote-helper"));ref=f.doc(db,COLLECTION,WORKSPACE_ID);
+  const snap=await f.getDoc(ref);cloud=snap.exists()?snap.data():{};
+  products=Array.isArray(cloud?.catalogData?.products)?cloud.catalogData.products:[];
+  templateBase64=cloud?.quoteTemplate?.base64||"";
+  if(templateBase64)setTemplateState(true,"기존 견적서 원본 연결됨 · "+(cloud.quoteTemplate.name||"XLSX"));
+  else setTemplateState(false,"원본 템플릿 미등록 · 아래 버튼으로 기존 XLSX를 한 번 등록");
+ }catch(e){console.error(e);setTemplateState(false,"연결 실패 · 인터넷 연결 확인")}
+}
+$("#templateBtn").onclick=()=>$("#templateFile").click();
+$("#templateFile").onchange=async()=>{
+ const file=$("#templateFile").files[0];if(!file)return;
+ if(!/\.xlsx$/i.test(file.name)){alert("XLSX 파일을 선택해주세요.");return}
+ if(file.size>700000){alert("템플릿 파일이 너무 큽니다.");return}
+ const base64=b64FromArrayBuffer(await file.arrayBuffer());
+ await f.setDoc(ref,{quoteTemplate:{name:file.name,base64,updatedAt:Date.now()}},{merge:true});
+ templateBase64=base64;setTemplateState(true,"기존 견적서 원본 연결됨 · "+file.name);$("#message").textContent="원본 템플릿 저장 완료";
+};
+$("#templateDelete").onclick=async()=>{if(!confirm("연결된 원본 템플릿을 해제할까요?"))return;await f.setDoc(ref,{quoteTemplate:f.deleteField()},{merge:true});templateBase64="";setTemplateState(false,"원본 템플릿 미등록");};
+
+function summary(){
+ const c=calc();return `수신: ${$("#recipient").value||"-"} / 상품: ${$("#productName").value||"-"} / ${c.qty}개 / 단가 ${money(c.unit)} / 각인 ${money(c.engrave)} / 현금 ${money(c.cash)} / 카드 ${money(c.card)}`;
+}
+$("#previewBtn").onclick=()=>$("#message").textContent=summary();
+
+$("#downloadBtn").onclick=async()=>{
+ try{
+  if(!templateBase64)throw new Error("먼저 네 기존 견적서 XLSX 원본을 등록해야 합니다.");
+  const recipient=$("#recipient").value.trim(), product=$("#productName").value.trim(), spec=$("#spec").value.trim(), date=$("#quoteDate").value;
+  if(!recipient||!product||!date)throw new Error("수신자, 상품명, 견적일을 확인해주세요.");
+  const c=calc(),zip=await JSZip.loadAsync(arrayBufferFromB64(templateBase64));
+  const path="xl/worksheets/sheet1.xml",text=await zip.file(path).async("text"),doc=new DOMParser().parseFromString(text,"application/xml");
+  if(doc.querySelector("parsererror"))throw new Error("원본 견적서 XML을 읽지 못했습니다.");
+
+  setInline(doc,"A5",recipient+" 님");
+  setNumber(doc,"A10",excelSerial(date));
+  setInline(doc,"F11",koreanNumber(c.cash)+" 원");
+  setNumber(doc,"N11",c.cash);
+  setNumber(doc,"A13",excelSerial(date));
+  setInline(doc,"B14",product);
+  setInline(doc,"F14",spec);
+  setNumber(doc,"H14",c.qty);
+  setNumber(doc,"I14",c.unit);
+  const prodSupply=c.qty*c.unit/1.1,prodVat=c.qty*c.unit-prodSupply;
+  setFormula(doc,"K14","I14*H14/1.1",prodSupply);setFormula(doc,"O14","I14*H14-K14",prodVat);
+  setInline(doc,"B15","레이저 각인");setNumber(doc,"H15",c.engrave?c.qty:0);setNumber(doc,"I15",c.engrave);
+  const engSupply=c.qty*c.engrave/1.1,engVat=c.qty*c.engrave-engSupply;
+  setFormula(doc,"K15","I15*H15/1.1",engSupply);setFormula(doc,"O15","I15*H15-K15",engVat);
+  setInline(doc,"B16","배송비");setNumber(doc,"H16",c.shipping?1:0);setNumber(doc,"I16",c.shipping);
+  const shipSupply=c.shipping/1.1,shipVat=c.shipping-shipSupply;setFormula(doc,"K16","I16*H16/1.1",shipSupply);setFormula(doc,"O16","I16*H16-K16",shipVat);
+  setInline(doc,"R14","현금 "+money(c.cash));
+  setInline(doc,"R15","카드 "+money(c.card)+" ("+c.fee+"% 포함)");
+  setFormula(doc,"K28","SUM(K13:N27)",prodSupply+engSupply+shipSupply);
+  setFormula(doc,"O28","SUM(O13:Q27)",prodVat+engVat+shipVat);
+
+  zip.file(path,new XMLSerializer().serializeToString(doc));
+  const out=await zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  const a=document.createElement("a"),yy=date.replace(/-/g,"").slice(2);a.href=URL.createObjectURL(out);a.download="스타벅스 대량구매 견적서 - "+recipient+" "+yy+".xlsx";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  $("#message").textContent="기존 원본 양식으로 다운로드 완료 · "+summary();
+ }catch(e){console.error(e);$("#message").innerHTML='<span class="danger">'+xmlEscape(e.message||e)+'</span>'}
+};
+calc();init();
+</script>
+</body>
+</html>
