@@ -11,7 +11,8 @@
 ### 작업 후 기록
 - `quote.html`을 실제 XLSX 직접 렌더링이 검증된 v2.2 커밋 `723db04` 상태로 복구. `downloadWorkbook`, Blob URL, `<a download>`, 자동 클릭 코드 0건.
 - 저장 성공 후 Firestore 덮어쓰기와 `renderWorkbookPreview(made.buffer, made.name)`만 실행. 미리보기는 생성한 실제 XLSX 첫 시트의 셀·병합·열너비·행높이·글꼴·정렬·테두리·채우기를 읽어 표시.
-- 인라인 JavaScript 문법과 `git diff --check` 통과. 공개 Pages에서 저장 시 다운로드 미발생과 원본 미리보기 표시를 배포 후 재검수한다.
+- 인라인 JavaScript 문법과 `git diff --check` 통과. 기능 커밋 `efac6ca` main push 후 공개 Pages에서 실제 저장 클릭 검수 완료.
+- 최종 동작: Firestore 저장 성공 후 완성 XLSX 전체 미리보기 1개 표시. 회사명 `디스이스마인`, 등록번호 `771-09-00823`, 계좌정보, 수신인, 상품, 날짜를 확인. 검수 전후 Downloads의 기존 XLSX 2개 파일명·수정시각·크기가 변하지 않았고 신규 파일도 없어 자동 다운로드 미발생 확인.
 
 ---
 
