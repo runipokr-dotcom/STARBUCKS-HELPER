@@ -16,7 +16,7 @@ section,.panel{background:#fff;border:1px solid #dce3df;border-radius:8px;paddin
 h2{font-size:15px;margin:0 0 10px}
 label{display:block;font-size:12px;font-weight:800;color:#64736d;margin:12px 0 6px}
 label:first-child{margin-top:0}
-textarea,input{width:100%;border:1px solid #d6dfda;border-radius:7px;background:#fff;color:#17211d;font-size:15px;padding:10px;line-height:1.45;font-family:inherit}
+textarea,input,select{width:100%;border:1px solid #d6dfda;border-radius:7px;background:#fff;color:#17211d;font-size:15px;padding:10px;line-height:1.45;font-family:inherit}
 textarea{min-height:120px;resize:vertical}
 input{height:42px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -25,10 +25,12 @@ button.secondary{background:#fff;color:#17211d;border-color:#b9c7c1}
 button.ghost{background:#fff;color:#006241;border-color:#bfe0d2;min-height:34px;font-size:12px;padding:0 10px}
 button.danger{background:#fff;color:#b42318;border-color:#f0c4bd;min-height:34px;font-size:12px;padding:0 10px}
 button:disabled{opacity:.5;cursor:default}
-.formActions{margin-top:12px;display:flex;justify-content:flex-end}
+.formActions{gap:8px;margin-top:12px;display:flex;justify-content:flex-end}
 .note{display:block;margin-top:8px;color:#64736d;font-size:12px;line-height:1.4}
 .searchBar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
-.searchBar input{flex:1}
+.searchBar input{flex:1;min-width:0}
+#runnerPanel{margin-top:14px;overflow-wrap:anywhere} #runOutput{min-height:240px} #runPreview{min-height:160px}
+#variableFields textarea{min-height:70px} #favoritesOnly{flex-shrink:0} select{min-height:42px}
 .count{font-size:12px;color:#64736d;font-weight:800;white-space:nowrap}
 .cards{display:grid;gap:10px}
 .card{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:12px 14px}
@@ -59,7 +61,7 @@ button:disabled{opacity:.5;cursor:default}
   </header>
 
   <section class="panel">
-    <h2>새 프롬프트 추가</h2>
+    <h2 id="editorTitle">새 프롬프트 추가</h2>
     <form id="promptForm">
       <label for="fTitle">제목</label>
       <input id="fTitle" type="text" maxlength="120" placeholder="예) 하이엔드 패션 캠페인 포스터" required autocomplete="off">
@@ -79,25 +81,55 @@ button:disabled{opacity:.5;cursor:default}
       <textarea id="fBody" placeholder="여기에 프롬프트 전체 내용을 붙여넣으세요" required></textarea>
 
       <div class="formActions">
+        <button type="button" class="secondary" id="cancelEditBtn" hidden>수정 취소</button>
         <button type="submit" id="submitBtn">저장</button>
       </div>
     </form>
+    <p class="note">실행할 때 입력받을 부분은 {{상품명}}, {{원하는 톤}}처럼 표시하세요.</p>
     <p class="note" id="formNote" role="status">서버에 연결 중…</p>
   </section>
 
   <section class="panel">
     <div class="searchBar">
       <input id="searchInput" type="search" placeholder="제목·태그·내용으로 검색" autocomplete="off">
+      <button type="button" class="ghost" id="favoritesOnly" aria-pressed="false">즐겨찾기</button>
       <span class="count" id="countText"></span>
     </div>
     <div class="cards" id="cardList"></div>
     <p class="empty" id="emptyText" hidden>저장된 프롬프트가 없어요. 위에서 하나 추가해보세요.</p>
+  </section>
+  <section class="panel" id="runnerPanel" hidden aria-labelledby="runTitle">
+    <h2 id="runTitle">프롬프트 실행</h2>
+    <form id="runnerForm">
+      <div id="variableFields"></div>
+      <label for="runPreview">실행할 내용 (이번 실행에만 반영)</label>
+      <textarea id="runPreview" required maxlength="30000"></textarea>
+      <div class="row">
+        <div><label for="runProvider">모델</label><select id="runProvider"><option value="openai">ChatGPT</option><option value="anthropic">Claude</option></select></div>
+        <div><label for="runAccess">실행 암호</label><input id="runAccess" type="password" autocomplete="off" placeholder="관리자가 설정한 실행 암호" required></div>
+      </div>
+      <p class="note">실행할 내용은 선택한 AI 서비스로 전송됩니다. 실행 암호는 이 화면에서만 사용합니다.</p>
+      <div class="formActions"><button id="runBtn" type="submit">실행하기</button></div>
+    </form>
+    <p id="runNote" class="note" role="status" aria-live="polite"></p>
+    <div id="runResult" hidden>
+      <label for="runOutput">실행 결과</label>
+      <p id="resultNote" class="note"></p>
+      <textarea id="runOutput" readonly></textarea>
+      <div class="cardActions">
+        <button type="button" class="ghost" id="copyResultBtn">결과 복사</button>
+        <button type="button" class="ghost" id="rerunBtn">다시 생성</button>
+        <button type="button" class="ghost" id="otherModelBtn">다른 모델로 실행</button>
+      </div>
+      <p class="note">다시 생성·다른 모델로 실행은 마지막 결과와 동일한 입력을 사용합니다.</p>
+    </div>
   </section>
 </main>
 
 <a class="homeBtn" href="index.html">🏠 홈</a>
 
 <script type="module">
+import {openPromptRunner} from './prompt-runner.js?v=20260922';
 (async () => {
   const FIREBASE_CONFIG = {apiKey:"AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",authDomain:"starbucks-helper-f578e.firebaseapp.com",projectId:"starbucks-helper-f578e",storageBucket:"starbucks-helper-f578e.firebasestorage.app",messagingSenderId:"1015231512258",appId:"1:1015231512258:web:25bb0229b5bc90b56a455b",measurementId:"G-8H2H0NCJDF"};
   const COLLECTION = 'couponWork';
@@ -117,6 +149,18 @@ button:disabled{opacity:.5;cursor:default}
 
   let items = [], ready = false, busy = false, query = '', expanded = new Set();
   let ref, f, db;
+  let editing = null, favoritesOnly = false;
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  function resetEditor() {
+    editing = null; form.reset(); cancelEditBtn.hidden = true;
+    document.getElementById('editorTitle').textContent = '새 프롬프트 추가';
+    submitBtn.textContent = '저장';
+  }
+  cancelEditBtn.addEventListener('click', () => { if (!busy) resetEditor(); });
+  document.getElementById('favoritesOnly').addEventListener('click', event => {
+    favoritesOnly = !favoritesOnly; event.currentTarget.setAttribute('aria-pressed', String(favoritesOnly));
+    event.currentTarget.textContent = favoritesOnly ? '★ 즐겨찾기만' : '즐겨찾기'; render();
+  });
 
   function validate(data) {
     if (!data || data.version !== 1 || !Array.isArray(data.items) || !data.items.every(row =>
@@ -139,10 +183,11 @@ button:disabled{opacity:.5;cursor:default}
 
   function render() {
     const q = query.trim().toLowerCase();
-    const filtered = items.filter(item => matches(item, q)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const filtered = items.filter(item => matches(item, q) && (!favoritesOnly || item.favorite)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
     countText.textContent = ready ? `${filtered.length}개` : '';
     emptyText.hidden = !ready || filtered.length > 0;
+    emptyText.textContent = q || favoritesOnly ? '조건에 맞는 프롬프트가 없습니다.' : '저장된 프롬프트가 없어요. 위에서 하나 추가해보세요.';
     cardList.replaceChildren();
 
     for (const item of filtered) {
@@ -195,6 +240,32 @@ button:disabled{opacity:.5;cursor:default}
       const actions = document.createElement('div');
       actions.className = 'cardActions';
 
+      const useBtn = document.createElement('button');
+      useBtn.type = 'button'; useBtn.textContent = '사용하기';
+      useBtn.addEventListener('click', () => openPromptRunner(item));
+      actions.appendChild(useBtn);
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button'; editBtn.className = 'ghost'; editBtn.textContent = '수정'; editBtn.disabled = !ready || busy;
+      editBtn.addEventListener('click', () => {
+        if ([titleInput, bodyInput, tagsInput, sourceInput].some(input => input.value) &&
+            !confirm('작성 중인 내용을 닫고 이 프롬프트를 수정할까요?')) return;
+        editing = {...item, tags: [...(item.tags || [])]};
+        titleInput.value = item.title; bodyInput.value = item.body;
+        tagsInput.value = (item.tags || []).join(', '); sourceInput.value = item.sourceUrl || '';
+        cancelEditBtn.hidden = false; submitBtn.textContent = '수정 저장';
+        document.getElementById('editorTitle').textContent = '프롬프트 수정';
+        form.scrollIntoView({behavior:'smooth'}); titleInput.focus({preventScroll:true});
+      });
+      actions.appendChild(editBtn);
+      const favoriteBtn = document.createElement('button');
+      favoriteBtn.type = 'button'; favoriteBtn.className = 'ghost';
+      favoriteBtn.textContent = item.favorite ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기';
+      favoriteBtn.setAttribute('aria-pressed', String(!!item.favorite)); favoriteBtn.disabled = !ready || busy;
+      favoriteBtn.addEventListener('click', () => change(current => current.map(row =>
+        row.id === item.id ? {...row, favorite: !row.favorite} : row)));
+      actions.appendChild(favoriteBtn);
+
       const toggleBtn = document.createElement('button');
       toggleBtn.type = 'button';
       toggleBtn.className = 'ghost';
@@ -237,6 +308,7 @@ button:disabled{opacity:.5;cursor:default}
       cardList.appendChild(card);
     }
 
+    cancelEditBtn.disabled = busy;
     submitBtn.disabled = !ready || busy;
     titleInput.disabled = tagsInput.disabled = sourceInput.disabled = bodyInput.disabled = !ready || busy;
   }
@@ -257,7 +329,7 @@ button:disabled{opacity:.5;cursor:default}
       return true;
     } catch (error) {
       console.error('prompt save', error);
-      formNote.textContent = '서버 저장 실패 · 연결을 확인하고 다시 시도해 주세요.';
+      formNote.textContent = error.message === 'EDIT_CONFLICT' ? '다른 기기에서 수정되거나 삭제된 항목입니다. 작성 내용을 복사해 보관한 뒤 취소하고 다시 열어 주세요.' : '서버 저장 실패 · 연결을 확인하고 다시 시도해 주세요.';
       return false;
     } finally { busy = false; render(); }
   }
@@ -274,9 +346,16 @@ button:disabled{opacity:.5;cursor:default}
       title, body, tags, sourceUrl,
       createdAt: Date.now()
     };
-    const ok = await change(current => [...current, item]);
+    const baseline = editing;
+    const ok = await change(current => {
+      if (!baseline) return [...current, item];
+      const original = current.find(row => row.id === baseline.id);
+      if (!original || ['title','body','sourceUrl'].some(key => original[key] !== baseline[key]) ||
+          JSON.stringify(original.tags || []) !== JSON.stringify(baseline.tags || [])) throw new Error('EDIT_CONFLICT');
+      return current.map(row => row.id === baseline.id ? {...row, title, body, tags, sourceUrl, updatedAt: Date.now()} : row);
+    });
     if (ok) {
-      titleInput.value = ''; tagsInput.value = ''; sourceInput.value = ''; bodyInput.value = '';
+      resetEditor();
       titleInput.focus();
     }
   });

@@ -1,5 +1,30 @@
 # WORKLOG
 
+## 2026-09-22 — Codex (실행형 프롬프트 저장소)
+
+### 후속 배포 진행 (사용자: 그럼 언제 완료할거여)
+- 로컬 검수에서 중단한 것을 정정하고 main 반영 및 실제 Pages/Vercel 배포 검증까지 이어간다. Vercel 환경변수는 현재 로그인 확인이 필요하며 미등록 키를 추측하거나 공개하지 않는다.
+
+### 작업 전 기록
+- 요청: 사용하기 → 변수 입력 → ChatGPT/Claude → /api/run-prompt → 페이지 내 결과, 복사/다시 생성/다른 모델 실행. API 키는 Vercel 환경변수만 사용.
+- 기준: 원격 main fetch 확인 d1cfa6b. 다른 작업 보존을 위해 현재 작업의 work/helper 독립 checkout 사용. 기존 저장/검색/삭제/전체보기/복사/Firebase 문서 유지. 현재 수정/즐겨찾기 기능은 없어 보완한다.
+- 대상: prompt.html, prompt-runner.js 신규, api/run-prompt.js 신규, vercel.json, 실행 기능 테스트와 배포 안내. 쿠폰/카탈로그/견적서/기존 API 변경 금지. 데이터 마이그레이션/삭제 없음.
+- 방식: {{변수명}} 입력, 결과는 텍스트로 안전하게 표시. 공개 Pages의 기존 Vercel 호스트 사용. 별도 실행 암호(RUN_PROMPT_ACCESS_TOKEN)로 유료 API 접근 보호; 공급자 API 키는 클라이언트로 전달하지 않는다.
+- 미확인: Vercel 키/모델 이용 권한과 운영 배포 후 실호출. 이번 지시는 파일 수정/검수/설정 안내이며 원격 push/운영 배포는 수행하지 않는다.
+
+
+### 작업 후 기록
+- 수정: prompt.html, vercel.json, WORKLOG.md. 신규: prompt-runner.js, api/run-prompt.js, docs/PROMPT_RUNNER.md, tests/run-prompt.test.mjs, tests/prompt-browser.cjs. 삭제 파일 없음.
+- 사용하기/중복 변수를 한 번만 입력/{{변수명}} 치환/실행 내용 확인/ChatGPT·Claude/페이지 내 텍스트 결과/복사/동일 입력 재생성/다른 모델 실행 구현. 기존 UI와 문서 version 1 유지. 기존 코드에 없던 수정·즐겨찾기 추가. ID·생성일·알 수 없는 기존 필드 유지 및 다른 기기의 동시 편집 충돌 차단.
+- 공급자 API 키는 서버 환경변수에서만 읽음. 별도 32자 이상 실행 암호 필수, 허용 origin 검사, 입력 제한, 55초 서버 제한, 공급자 오류 비노출, 잘린 결과 표시, 안전한 텍스트 출력. 결과/실행 암호를 저장소에 기록하지 않음.
+- 검수 통과: JavaScript 문법, git diff --check, Node API 테스트 6개(상위 테스트 포함). API 인증·CORS·메서드·입력·키 누락·양사 요청/응답·오류·타임아웃·불완전 결과 검사.
+- 독립 Chrome 모의 Firestore/모의 API 검수 통과: 저장/수정/즐겨찾기/검색/삭제/새로고침, 알 수 없는 필드 보존, 다른 기기 변경 충돌 시 작성 내용 보존, 반복 변수와 특수문자 치환, HTML 미실행, 결과 복사, 동일 입력 재생성·모델 전환, 실패 시 이전 결과 보존, 암호 미저장, 390px 가로 넘침 없음. 모바일 실행 패널 캡처 육안 확인. 운영 Firestore 변경/마이그레이션 0건.
+- 기존 상품 추출 API·쿠폰·카탈로그·견적서 파일 변경 없음. 다른 작업자 변경과 충돌 없음. 특이사항 없음(아래 미검증 범위 제외).
+- commit SHA: 미커밋, 기준 d1cfa6b. 원격 push/Pages·Vercel 배포/환경변수 등록은 수행하지 않음. 실제 유료 API와 운영 Firebase 기기간 동기화·Pages 동작·Safari/카카오 실기기는 미검증. 배포 단계 및 필수/선택 환경변수는 docs/PROMPT_RUNNER.md에 기록.
+
+
+---
+
 ## 2026-09-22 — Codex (견적서·거래명세서 입력 및 카드 수수료 구조 개편)
 
 ### 작업 전 기록
