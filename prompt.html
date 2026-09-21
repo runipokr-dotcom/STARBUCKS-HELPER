@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프롬프트 저장소</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6f7f4;color:#17211d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{width:min(880px,calc(100% - 24px));margin:18px auto 80px}
+header{margin-bottom:14px}
+h1{font-size:26px;margin:0;letter-spacing:0}
+.sub{color:#64736d;font-size:14px;line-height:1.5;margin-top:4px}
+section,.panel{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:14px}
+.panel + .panel{margin-top:14px}
+h2{font-size:15px;margin:0 0 10px}
+label{display:block;font-size:12px;font-weight:800;color:#64736d;margin:12px 0 6px}
+label:first-child{margin-top:0}
+textarea,input{width:100%;border:1px solid #d6dfda;border-radius:7px;background:#fff;color:#17211d;font-size:15px;padding:10px;line-height:1.45;font-family:inherit}
+textarea{min-height:120px;resize:vertical}
+input{height:42px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{min-height:42px;border:1px solid #006241;border-radius:7px;background:#006241;color:#fff;font-weight:800;font-size:14px;cursor:pointer;padding:0 14px}
+button.secondary{background:#fff;color:#17211d;border-color:#b9c7c1}
+button.ghost{background:#fff;color:#006241;border-color:#bfe0d2;min-height:34px;font-size:12px;padding:0 10px}
+button.danger{background:#fff;color:#b42318;border-color:#f0c4bd;min-height:34px;font-size:12px;padding:0 10px}
+button:disabled{opacity:.5;cursor:default}
+.formActions{margin-top:12px;display:flex;justify-content:flex-end}
+.note{display:block;margin-top:8px;color:#64736d;font-size:12px;line-height:1.4}
+.searchBar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.searchBar input{flex:1}
+.count{font-size:12px;color:#64736d;font-weight:800;white-space:nowrap}
+.cards{display:grid;gap:10px}
+.card{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:12px 14px}
+.cardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cardTitle{font-size:15px;font-weight:900;color:#17211d;word-break:break-word}
+.cardMeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{display:inline-flex;background:#eef5f1;color:#006241;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:800}
+.cardDate{font-size:11px;color:#8a978f;white-space:nowrap;margin-top:2px}
+.cardBody{margin-top:10px;font-size:13px;line-height:1.55;color:#33423c;white-space:pre-wrap;word-break:break-word}
+.cardBody.clamped{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.cardActions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.sourceLink{font-size:12px;color:#006241;text-decoration:none;word-break:break-all}
+.empty{color:#64736d;font-size:14px;padding:20px 4px;text-align:center}
+.homeBtn{position:fixed;right:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;background:#14211d;color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+@media (max-width:620px){
+  main{width:min(620px,calc(100% - 18px));margin-top:12px}
+  .row{grid-template-columns:1fr}
+  h1{font-size:22px}
+  section,.panel{padding:12px}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>프롬프트 저장소</h1>
+    <p class="sub">인터넷에서 줍줍한 프롬프트를 저장해두는 곳. 여기 저장하면 PC와 모바일 어디서든 바로 볼 수 있어요.</p>
+  </header>
+
+  <section class="panel">
+    <h2>새 프롬프트 추가</h2>
+    <form id="promptForm">
+      <label for="fTitle">제목</label>
+      <input id="fTitle" type="text" maxlength="120" placeholder="예) 하이엔드 패션 캠페인 포스터" required autocomplete="off">
+
+      <div class="row">
+        <div>
+          <label for="fTags">태그(쉼표로 구분, 선택)</label>
+          <input id="fTags" type="text" placeholder="예) 포스터, 타이포, 상품이미지" autocomplete="off">
+        </div>
+        <div>
+          <label for="fSource">출처 URL(선택)</label>
+          <input id="fSource" type="url" placeholder="https://..." autocomplete="off">
+        </div>
+      </div>
+
+      <label for="fBody">프롬프트 원문</label>
+      <textarea id="fBody" placeholder="여기에 프롬프트 전체 내용을 붙여넣으세요" required></textarea>
+
+      <div class="formActions">
+        <button type="submit" id="submitBtn">저장</button>
+      </div>
+    </form>
+    <p class="note" id="formNote" role="status">서버에 연결 중…</p>
+  </section>
+
+  <section class="panel">
+    <div class="searchBar">
+      <input id="searchInput" type="search" placeholder="제목·태그·내용으로 검색" autocomplete="off">
+      <span class="count" id="countText"></span>
+    </div>
+    <div class="cards" id="cardList"></div>
+    <p class="empty" id="emptyText" hidden>저장된 프롬프트가 없어요. 위에서 하나 추가해보세요.</p>
+  </section>
+</main>
+
+<a class="homeBtn" href="index.html">🏠 홈</a>
+
+<script type="module">
+(async () => {
+  const FIREBASE_CONFIG = {apiKey:"AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",authDomain:"starbucks-helper-f578e.firebaseapp.com",projectId:"starbucks-helper-f578e",storageBucket:"starbucks-helper-f578e.firebasestorage.app",messagingSenderId:"1015231512258",appId:"1:1015231512258:web:25bb0229b5bc90b56a455b",measurementId:"G-8H2H0NCJDF"};
+  const COLLECTION = 'couponWork';
+  const DOC_ID = 'helper-prompt-library-v1';
+
+  const form = document.getElementById('promptForm');
+  const titleInput = document.getElementById('fTitle');
+  const tagsInput = document.getElementById('fTags');
+  const sourceInput = document.getElementById('fSource');
+  const bodyInput = document.getElementById('fBody');
+  const submitBtn = document.getElementById('submitBtn');
+  const formNote = document.getElementById('formNote');
+  const searchInput = document.getElementById('searchInput');
+  const cardList = document.getElementById('cardList');
+  const emptyText = document.getElementById('emptyText');
+  const countText = document.getElementById('countText');
+
+  let items = [], ready = false, busy = false, query = '', expanded = new Set();
+  let ref, f, db;
+
+  function validate(data) {
+    if (!data || data.version !== 1 || !Array.isArray(data.items) || !data.items.every(row =>
+      row && typeof row.id === 'string' && typeof row.title === 'string' && typeof row.body === 'string'
+    )) throw new Error('Invalid cloud prompt data');
+    return data.items;
+  }
+
+  function matches(item, q) {
+    if (!q) return true;
+    const hay = [item.title, item.body, ...(item.tags || [])].join(' ').toLowerCase();
+    return hay.includes(q);
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '';
+    try { return new Date(ts).toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit'}); }
+    catch { return ''; }
+  }
+
+  function render() {
+    const q = query.trim().toLowerCase();
+    const filtered = items.filter(item => matches(item, q)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    countText.textContent = ready ? `${filtered.length}개` : '';
+    emptyText.hidden = !ready || filtered.length > 0;
+    cardList.replaceChildren();
+
+    for (const item of filtered) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const head = document.createElement('div');
+      head.className = 'cardHead';
+      const titleWrap = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'cardTitle';
+      title.textContent = item.title;
+      titleWrap.appendChild(title);
+      if ((item.tags || []).length) {
+        const meta = document.createElement('div');
+        meta.className = 'cardMeta';
+        for (const tag of item.tags) {
+          const t = document.createElement('span');
+          t.className = 'tag';
+          t.textContent = tag;
+          meta.appendChild(t);
+        }
+        titleWrap.appendChild(meta);
+      }
+      head.appendChild(titleWrap);
+      const date = document.createElement('div');
+      date.className = 'cardDate';
+      date.textContent = fmtDate(item.createdAt);
+      head.appendChild(date);
+      card.appendChild(head);
+
+      if (item.sourceUrl && /^https?:\/\//i.test(item.sourceUrl)) {
+        const link = document.createElement('a');
+        link.className = 'sourceLink';
+        link.href = item.sourceUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = item.sourceUrl;
+        link.style.display = 'block';
+        link.style.marginTop = '6px';
+        card.appendChild(link);
+      }
+
+      const isExpanded = expanded.has(item.id);
+      const body = document.createElement('div');
+      body.className = 'cardBody' + (isExpanded ? '' : ' clamped');
+      body.textContent = item.body;
+      card.appendChild(body);
+
+      const actions = document.createElement('div');
+      actions.className = 'cardActions';
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'ghost';
+      toggleBtn.textContent = isExpanded ? '접기' : '전체보기';
+      toggleBtn.addEventListener('click', () => {
+        if (isExpanded) expanded.delete(item.id); else expanded.add(item.id);
+        render();
+      });
+      actions.appendChild(toggleBtn);
+
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'ghost';
+      copyBtn.textContent = '복사';
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(item.body);
+          copyBtn.textContent = '복사됨!';
+        } catch {
+          expanded.add(item.id);
+          render();
+          formNote.textContent = '자동 복사가 제한되어 있어요. 펼쳐진 원문을 길게 눌러 복사해 주세요.';
+        }
+        setTimeout(() => { copyBtn.textContent = '복사'; }, 1400);
+      });
+      actions.appendChild(copyBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'danger';
+      delBtn.textContent = '삭제';
+      delBtn.disabled = !ready || busy;
+      delBtn.addEventListener('click', async () => {
+        if (!confirm(`"${item.title}" 프롬프트를 삭제할까요?`)) return;
+        await change(current => current.filter(row => row.id !== item.id));
+      });
+      actions.appendChild(delBtn);
+
+      card.appendChild(actions);
+      cardList.appendChild(card);
+    }
+
+    submitBtn.disabled = !ready || busy;
+    titleInput.disabled = tagsInput.disabled = sourceInput.disabled = bodyInput.disabled = !ready || busy;
+  }
+
+  async function change(transform) {
+    if (!ready || busy) return false;
+    busy = true; formNote.textContent = '서버에 저장 중…'; render();
+    try {
+      const next = await f.runTransaction(db, async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error('Missing prompt document');
+        const result = transform(validate(snap.data()));
+        tx.update(ref, {items: result, updatedAt: f.serverTimestamp()});
+        return result;
+      });
+      items = next;
+      formNote.textContent = '서버 저장 완료 · 다른 기기에서도 바로 보여요.';
+      return true;
+    } catch (error) {
+      console.error('prompt save', error);
+      formNote.textContent = '서버 저장 실패 · 연결을 확인하고 다시 시도해 주세요.';
+      return false;
+    } finally { busy = false; render(); }
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const title = titleInput.value.trim();
+    const body = bodyInput.value;
+    if (!title || !body.trim()) return;
+    const tags = tagsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+    const sourceUrl = sourceInput.value.trim();
+    const item = {
+      id: crypto.randomUUID(),
+      title, body, tags, sourceUrl,
+      createdAt: Date.now()
+    };
+    const ok = await change(current => [...current, item]);
+    if (ok) {
+      titleInput.value = ''; tagsInput.value = ''; sourceInput.value = ''; bodyInput.value = '';
+      titleInput.focus();
+    }
+  });
+
+  searchInput.addEventListener('input', () => { query = searchInput.value; render(); });
+
+  render();
+
+  try {
+    const [{initializeApp, getApps}, firestore] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+    ]);
+    f = firestore;
+    const app = getApps().find(a => a.name === '[DEFAULT]') || initializeApp(FIREBASE_CONFIG);
+    db = f.getFirestore(app);
+    ref = f.doc(db, COLLECTION, DOC_ID);
+    await f.runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (snap.exists()) { validate(snap.data()); return; }
+      tx.set(ref, {version: 1, items: [], updatedAt: f.serverTimestamp()});
+    });
+    f.onSnapshot(ref, {includeMetadataChanges: true}, snap => {
+      try {
+        if (!snap.exists()) throw new Error('Missing prompt document');
+        items = validate(snap.data());
+        ready = !snap.metadata.fromCache;
+        if (!busy) formNote.textContent = ready ? '서버 연결 완료 · 여기 저장하면 다른 기기에서도 보여요.' : '서버 연결 확인 중…';
+        render();
+      } catch (error) {
+        console.error('prompt snapshot', error);
+        ready = false; render();
+        formNote.textContent = '서버 목록을 읽지 못했어요. 새로고침 후 다시 시도해 주세요.';
+      }
+    }, error => {
+      console.error('prompt sync', error);
+      ready = false; render();
+      formNote.textContent = '서버 연결 실패 · 새로고침 후 다시 시도해 주세요.';
+    });
+  } catch (error) {
+    console.error('prompt init', error);
+    formNote.textContent = '서버 연결 실패 · 새로고침 후 다시 시도해 주세요.';
+  }
+})();
+</script>
+</body>
+</html>
