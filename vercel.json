@@ -2,9 +2,6 @@
   "functions": {
     "api/extract.js": {
       "maxDuration": 30
-    },
-    "api/run-prompt.js": {
-      "maxDuration": 60
     }
   }
 }
