@@ -1,6 +1,8 @@
 # 실행형 프롬프트 저장소
 
-현재 사용자 선택은 **ChatGPT만 사용**이다. 아래 기존 양사 구현 기록과 달리 화면에서는 Claude와 다른 모델 실행 버튼을 제거했다. 필요한 변수는 OPENAI_API_KEY와 RUN_PROMPT_ACCESS_TOKEN 두 개이며 ANTHROPIC_API_KEY 등록은 필요 없다.
+현재 사용자 선택은 **ChatGPT만 사용**이다.
+
+2026-09-22 운영 확인: 두 Production Secret(OPENAI_API_KEY, RUN_PROMPT_ACCESS_TOKEN) 저장과 재배포 완료. 실제 호출은 OpenAI 429 응답이며 Billing 크레딧 잔액 $0.00 확인. 생성 성공 검증은 사용자 크레딧 충전 후 남아 있다. 아래 기존 양사 구현 기록과 달리 화면에서는 Claude와 다른 모델 실행 버튼을 제거했다. 필요한 변수는 OPENAI_API_KEY와 RUN_PROMPT_ACCESS_TOKEN 두 개이며 ANTHROPIC_API_KEY 등록은 필요 없다.
 
 ## 사용 방법
 1. 저장할 원문의 입력 위치에 `{{상품명}}`, `{{원하는 톤}}`처럼 변수를 표시한다. 같은 변수는 한 번만 입력한다. 기존 일반 프롬프트도 그대로 실행할 수 있다.

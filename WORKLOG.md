@@ -1,5 +1,18 @@
 # WORKLOG
 
+## 2026-09-22 — Codex (API 키 입력 복구 및 실제 연결 확인)
+
+### 작업 전 기록
+- 사용자 API 키가 Vercel 환경변수의 Key 칸에 들어가 변수명 오류 발생. 키 값은 출력하지 않고 OPENAI_API_KEY의 Value로 이동. 기존 RUN_PROMPT_ACCESS_TOKEN은 보존. 사용자는 기존 키 사용을 명시적으로 요청함.
+- Production에 두 Secret 변수의 저장을 재열어 확인하고 8b00ab9를 재배포(Ready, FiwdddAUjHCLdchrLCghKxpdLJZZ). 공개 Pages에서 기존 항목의 실행 미리보기만 짧은 테스트로 바꾸어 호출, 저장 원문 변경 없음.
+- 실제 OpenAI 호출이 HTTP 429 반환. OpenAI Billing에서 Free trial / Credit remaining $0.00 확인. 크레딧 부족은 재시도로 해결되지 않으므로 안전한 오류 코드 분류를 추가한다. 키/오류 원문/계정 정보는 응답이나 로그에 포함하지 않는다.
+
+### 작업 후 기록
+- api/run-prompt.js에서 insufficient_quota/billing_hard_limit_reached와 일시 rate limit을 구분. 모의 API 테스트 6개 및 git diff --check 통과. 키 값의 저장소 기록 없음.
+- 공개 Pages에서 저장 목록 및 실행 UI, Vercel Production Ready, 실제 API 인증 이후 429 응답을 확인. 생성 성공은 크레딧 부족으로 미확인. 결제는 사용자에게 인계하며 자동 결제하지 않는다.
+
+---
+
 ## 2026-09-22 — Codex (ChatGPT 단독 연결)
 
 ### 작업 전 기록

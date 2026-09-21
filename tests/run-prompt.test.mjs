@@ -49,6 +49,7 @@ test('run-prompt API validation, auth, adapters and safe errors', async t => {
       const pending=call();t.mock.timers.tick(55000);assert.equal((await pending).statusCode,504);t.mock.timers.reset();
     });
     await t.test('safe provider failures, empty output and incomplete responses',async()=>{
+      globalThis.fetch=async()=>({ok:false,status:429,json:async()=>({error:{code:'insufficient_quota',message:'test-secret'}})});const quota=await call();assert.equal(quota.statusCode,429);assert(quota.body.error.includes('크레딧'));assert(!JSON.stringify(quota).includes('test-secret'));
       globalThis.fetch=async()=>({ok:false,status:429,json:async()=>({error:'test-secret'})});assert.equal((await call()).statusCode,429);
       globalThis.fetch=async()=>({ok:false,status:401,json:async()=>({error:'test-secret'})});const failure=await call();assert.equal(failure.statusCode,502);assert(!JSON.stringify(failure).includes('test-secret'));
       globalThis.fetch=async()=>{throw new Error('test-secret');};assert.equal((await call()).statusCode,502);

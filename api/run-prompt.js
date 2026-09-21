@@ -61,10 +61,16 @@ export default async function handler(req, res) {
         model, input: body.prompt, max_output_tokens: 4096, store: false
       } : {model, max_tokens: 4096, messages: [{role: 'user', content: body.prompt}]})
     });
-    // Do not relay provider errors: they can contain prompt text or account details.
-    if (!response.ok) return send(response.status === 429 ? 429 : 502, {error:
-      response.status === 429 ? 'API 사용 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.' :
-      '모델 호출에 실패했습니다. 서버의 API 키, 모델 이용 권한, 결제 상태를 확인해 주세요.'});
+    // Map only known error codes; never relay provider messages or account details.
+    if (!response.ok) {
+      let code;
+      try { code = (await response.json())?.error?.code; } catch { /* Non-JSON upstream error. */ }
+      const quota = isOpenAI && ['insufficient_quota', 'billing_hard_limit_reached'].includes(code);
+      const error = quota ? 'OpenAI API 크레딧이 부족하거나 결제 한도에 도달했습니다. OpenAI 결제 설정을 확인해 주세요. ChatGPT 구독과 API 크레딧은 별도입니다.' :
+        response.status === 429 ? 'API 호출이 일시적으로 제한되었습니다. 잠시 후 다시 시도해 주세요.' :
+        '모델 호출에 실패했습니다. 서버의 API 키, 모델 이용 권한, 결제 상태를 확인해 주세요.';
+      return send(response.status === 429 ? 429 : 502, {error});
+    }
     const data = await response.json();
     if (isOpenAI && !['completed', 'incomplete'].includes(data.status)) {
       return send(502, {error: '모델이 답변 생성을 완료하지 못했습니다. 다시 시도해 주세요.'});
