@@ -72,6 +72,8 @@ STARBUCKS HELPER는 단순 쿠폰 페이지가 아니라 디스이스마인 운�
 - 비밀번호 평문은 저장소에 넣지 않고 해시만 저장한다.
 - 현재 방식은 GitHub Pages 정적 게이트이므로 일반 접근 차단/오접근 방지용이다. 저장소 소스 분석까지 막는 강한 인증이 필요하면 Vercel/Firebase 기반 서버 인증으로 별도 이전한다.
 - `share.html`에 auth-gate를 삽입하거나 QR 주소를 변경하지 않는다.
+- **공개 웹게임 예외:** `bunker-game/`은 외부 퍼블리싱용 독립 정적 웹게임이므로 auth-gate/PIN을 넣지 않는다. HELPER 내부 데이터나 Firebase 문서에 의존시키지 않는다.
+- 게임 공개 주소: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/bunker-game/`.
 
 ## 5. 현재 중요 이슈
 1. Firestore Security Rules가 내부 작업 데이터와 공개 share를 충분히 분리하지 못하고 있음. 인증/공개범위 설계 후 별도 개편 필요.
