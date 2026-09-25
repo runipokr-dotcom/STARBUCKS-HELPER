@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#182119">
+  <title>PIXEL BUNKER PROJECT</title>
+  <meta name="description" content="굴착부터 철골, 벙커 쉘 완공까지 진행하는 건설 프로젝트 웹게임">
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">FIELD CONTROL / PROJECT 047</div>
+      <h1>PIXEL BUNKER PROJECT</h1>
+    </div>
+    <div class="top-actions">
+      <button id="saveBtn" class="ghost">저장</button>
+      <button id="resetBtn" class="ghost danger">초기화</button>
+    </div>
+  </header>
+
+  <main class="board">
+    <aside class="panel soil-panel">
+      <div class="panel-title">SOIL LAYERS</div>
+      <div class="soil-list">
+        <div><span class="soil s1"></span><b>표토</b><small>0.0–0.2m</small></div>
+        <div><span class="soil s2"></span><b>사질양토</b><small>0.2–1.2m</small></div>
+        <div><span class="soil s3"></span><b>점토층</b><small>1.2–2.5m</small></div>
+        <div><span class="soil s4"></span><b>사력층</b><small>2.5–5.0m</small></div>
+        <div><span class="soil s5"></span><b>암반</b><small>5.0m+</small></div>
+      </div>
+
+      <div class="panel-title sub">PROJECT DATA</div>
+      <dl class="spec">
+        <div><dt>굴착 깊이</dt><dd id="depthSpec">0.0m</dd></div>
+        <div><dt>구조 단계</dt><dd id="stageSpec">조사</dd></div>
+        <div><dt>기상</dt><dd id="weatherSpec">맑음</dd></div>
+        <div><dt>작업조</dt><dd id="crewSpec">3명</dd></div>
+      </dl>
+    </aside>
+
+    <section class="site">
+      <div class="site-head">
+        <div>
+          <span class="chip" id="phaseChip">PHASE 01</span>
+          <h2 id="stageTitle">부지 조사</h2>
+        </div>
+        <div class="overall"><span>전체 공정</span><b id="overallText">0%</b></div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="siteCanvas" width="900" height="980" aria-label="벙커 공사 현장"></canvas>
+        <div class="weather-card" id="weatherCard">☀ 24°C · 풍속 2m/s</div>
+        <div class="floating-status" id="floatingStatus">현장 준비 중</div>
+      </div>
+
+      <div class="resource-strip">
+        <div><span>예산</span><b id="moneyValue">₩120,000</b></div>
+        <div><span>연료</span><b id="fuelValue">100</b></div>
+        <div><span>강재</span><b id="steelValue">24</b></div>
+        <div><span>콘크리트</span><b id="concreteValue">32</b></div>
+      </div>
+    </section>
+
+    <aside class="panel timeline-panel">
+      <div class="panel-title">SITE TIMELINE</div>
+      <div id="timeline" class="timeline"></div>
+      <div class="panel-title sub">SITE STATUS</div>
+      <div class="meter-row"><span>안전</span><progress id="safetyMeter" max="100" value="92"></progress><b id="safetyText">92</b></div>
+      <div class="meter-row"><span>품질</span><progress id="qualityMeter" max="100" value="88"></progress><b id="qualityText">88</b></div>
+      <div class="meter-row"><span>장비</span><progress id="equipmentMeter" max="100" value="100"></progress><b id="equipmentText">100</b></div>
+    </aside>
+
+    <section class="control panel">
+      <div class="task-copy">
+        <div class="panel-title">CURRENT OPERATION</div>
+        <h3 id="taskTitle">현장 측량</h3>
+        <p id="taskDesc">부지 경계와 기준고를 확인합니다.</p>
+        <div class="costs" id="taskCosts"></div>
+      </div>
+
+      <div class="operation">
+        <div class="progress-shell"><i id="taskProgress"></i></div>
+        <div class="operation-buttons">
+          <button id="workBtn" class="primary">작업 시작</button>
+          <button id="supplyBtn">보급</button>
+          <button id="maintainBtn">정비</button>
+        </div>
+        <p id="eventLog" class="event-log">현장 통제실 연결 완료.</p>
+      </div>
+    </section>
+
+    <section class="panel equipment-panel">
+      <div class="panel-title">EQUIPMENT</div>
+      <div class="equipment-grid">
+        <article><div class="machine excavator">EX</div><b>EXC-260</b><small>유압 굴착기</small></article>
+        <article><div class="machine crane">CR</div><b>CRN-250</b><small>크롤러 크레인</small></article>
+        <article><div class="machine mixer">MX</div><b>MX-90</b><small>콘크리트 믹서</small></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>WEB PROTOTYPE 0.1</span>
+    <span>자동 저장 · 모바일 대응</span>
+  </footer>
+
+  <script src="game.js?v=1"></script>
+</body>
+</html>
