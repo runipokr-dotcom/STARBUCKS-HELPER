@@ -1,8 +1,8 @@
 /*
 STARBUCKS HELPER
 File : catalog-sync.js
-Version : 1.3
-Updated : 2026-09-04
+Version : 1.4
+Updated : 2026-09-25
 Purpose : Cross-device catalog sync + mobile link queue + category-priority sorting + source image repair.
 
 - PC keeps the existing localhost extractor.
@@ -60,6 +60,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   let queueBusy = false;
   let imageRecheckBusy = false;
   let latestQueue = [];
+  let lastCloudSignature = "";
 
   const deviceId = (() => {
     let id = localStorage.getItem(DEVICE_ID_KEY);
@@ -219,6 +220,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       localStorage.setItem(KEY, JSON.stringify(data));
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp || now()));
       if (typeof render === "function") render();
+      try { lastCloudSignature = JSON.stringify(cloudSafeData() || ""); } catch {}
       renderQueue(latestQueue);
     } catch (error) {
       console.error("[catalog-sync] apply remote", error);
@@ -231,6 +233,12 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     if (!initialized || applyingRemote || !ref) return;
     const catalogData = cloudSafeData();
     if (!catalogData) return;
+    let signature = "";
+    try { signature = JSON.stringify(catalogData); } catch {}
+    if (signature && signature === lastCloudSignature) {
+      updateSyncBadge("동기화됨", "ok");
+      return;
+    }
     const stamp = now();
     try {
       await f.setDoc(
@@ -245,6 +253,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
         { merge: true },
       );
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp));
+      if (signature) lastCloudSignature = signature;
       updateSyncBadge("동기화됨", "ok");
     } catch (error) {
       console.error("[catalog-sync] push", error);
@@ -256,7 +265,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     if (!initialized || applyingRemote) return;
     clearTimeout(writeTimer);
     updateSyncBadge("동기화 중", "busy");
-    writeTimer = setTimeout(pushCatalog, 450);
+    writeTimer = setTimeout(pushCatalog, 900);
   }
 
   function installAutosaveHook() {
