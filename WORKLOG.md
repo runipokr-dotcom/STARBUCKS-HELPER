@@ -1,5 +1,23 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.3 렌더 시퀀스 전환)
+
+### 작업 전 기록
+- 사용자 확정: 긴 설명 대신 실제 구현 진행. v0.2의 실시간 3D 중심 구조를 **렌더 배경 + 굴착기/크레인 프레임 시퀀스 재생** 중심으로 전환.
+- 목표:
+  - 웹 퍼블리싱 시안처럼 1프레임 화면 유지.
+  - phase별 배경 렌더 이미지 교체.
+  - 장비 애니메이션은 WebP/PNG 프레임 시퀀스를 canvas에서 재생.
+  - 굴착기 굴착 / 타워크레인 인양을 별도 animation key로 관리.
+  - 실제 렌더 자산이 아직 없을 때도 UI와 phase 진행은 동작하도록 fallback 제공.
+  - 자산을 `assets/bg/`, `assets/anim/` 아래에 넣기만 하면 코드 수정 없이 재생.
+- 파일 구조:
+  - `bunker-game/app.js`
+  - `bunker-game/data/phases.json`
+  - `bunker-game/data/animations.json`
+  - `bunker-game/assets/README.md`
+- 기존 공개 URL `/bunker-game/`, HELPER PIN 예외, QR 카탈로그 및 업무 데이터에는 영향 금지.
+
 ## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.2 버그픽스)
 
 ### 작업 전 기록
