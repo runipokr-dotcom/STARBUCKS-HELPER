@@ -51,13 +51,12 @@
    - 2026-09-21 WORKLOG에는 “중복 등록 버그가 현재 main에 존재하지 않는다”고 기록되어 있으나 **현재 실제 main 코드와 불일치**한다.
    - 다음 수정 시 이벤트 등록을 초기화 시 1회로 분리하고 `apply()`는 표시 상태만 갱신하도록 해야 한다. WORKLOG의 과거 판정도 “당시 확인과 현재 코드가 불일치”로 해석할 것.
 
-#### P1 — 쿠폰 데이터 무결성
-3. 현재 서버 JSON 형식 검사
+#### P1 — 쿠폰 데이터 형식 확인
+3. 현재 서버 JSON 형식 검사 및 사용자 정정
    - `coupons1.json`: 66건, no 1~66 연속, Coupon No. 17자리 전건, 등록코드 8자리 전건, 중복 0.
    - `coupons2.json`: 41건, no 1~41 연속, Coupon No. 17자리 전건, 등록코드 8자리 전건, 중복 0.
-   - `coupons3.json`: 52건, no 1~52 연속, 등록코드 8자리/중복 0이나 **Coupon No.가 52건 전부 16자리**.
-   - HELPER의 확정 HARD RULE은 Coupon No. 17자리이므로 서버3는 원본 쿠폰 유형이 예외인지, 한 자리 누락된 잘못된 데이터인지 **원본 이미지 기준 전수 재확인 전까지 정상으로 간주하면 안 된다.**
-   - 이번 감사에서는 데이터 수정 금지. SOURCE_OF_TRUTH 규칙에 따라 원본 없이 자동 보정/앞자리 추정 금지.
+   - `coupons3.json`: 52건, no 1~52 연속, 등록코드 8자리/중복 0, Coupon No. 16자리 전건.
+   - **사용자 확정: 쿠폰3 서버는 별도 양식이며 Coupon No. 16자리가 정상이다.** 17자리 규칙을 쿠폰3에 적용하거나 자동 보정하지 않는다.
 
 #### P1 — 카탈로그 동기화 / 성능
 4. `catalog-editor.html` + `catalog-sync.js`
@@ -90,11 +89,10 @@
 ### 6 Sol / 다음 작업자 권장 순서
 1. **P0 Security 설계**: 공개 고객 페이지가 필요한 범위와 내부 운영 데이터를 분리. Firebase Auth 또는 서버 프록시/Vercel API를 사용해 내부 write/read를 보호하고 공개 share는 필요한 문서만 read, 주문은 create-only + read 비공개로 제한.
 2. **index 이벤트 중복 버그 최소 수정 + 회귀 테스트**.
-3. **coupons3 52건 원본 전수 재검수**. 원본 없이 임의 수정 금지.
-4. **카탈로그 성능 계측 후 최소 최적화**: write 횟수, payload 크기, render 횟수 측정 → no-op write 제거 → self snapshot/render 억제.
-5. **share/quote 보안 분리**: 주문 개인정보 및 견적 원본 파일의 public read 제거.
-6. **각인 시안 전용 도구 설계**: 원본 잠금, px/mm 기준점, 25mm/5mm 실측 오버레이, 전체/확대 동시 출력.
-7. **CURRENT_STATE 요약 문서 도입** 검토. 기존 WORKLOG 삭제/축약 금지.
+3. **카탈로그 성능 계측 후 최소 최적화**: write 횟수, payload 크기, render 횟수 측정 → no-op write 제거 → self snapshot/render 억제.
+4. **share/quote 보안 분리**: 주문 개인정보 및 견적 원본 파일의 public read 제거.
+5. **각인 시안 전용 도구 설계**: 원본 잠금, px/mm 기준점, 25mm/5mm 실측 오버레이, 전체/확대 동시 출력.
+6. **START_HERE 운영 기준 유지**. 확정 규칙은 START_HERE, 상세 이력은 WORKLOG에 기록.
 
 ### 이번 감사에서 실제 변경
 - 수정 파일: `WORKLOG.md`만.
