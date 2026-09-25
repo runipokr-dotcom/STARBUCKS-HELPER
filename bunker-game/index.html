@@ -7,14 +7,6 @@
   <title>PIXEL BUNKER PROJECT · 3D</title>
   <meta name="description" content="굴착부터 철골, 벙커 완공까지 진행하는 3D 건설 프로젝트 웹게임">
   <link rel="stylesheet" href="styles.css?v=2">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
 <body>
   <main class="app-shell">
@@ -72,7 +64,7 @@
         </div>
       </div>
       <div class="viewport" id="viewport">
-        <canvas id="threeCanvas"></canvas>
+        <img id="stageBg" class="stage-bg" alt=""><canvas id="seqCanvas" class="seq-canvas"></canvas>
         <div class="viewport-tag tl">SECTOR B-12</div>
         <div class="viewport-tag tr" id="sceneState">SURVEY MODE</div>
         <div class="viewport-help">드래그로 시점 회전 · 휠로 줌</div>
@@ -122,6 +114,6 @@
     </section>
   </main>
 
-  <script type="module" src="game.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
