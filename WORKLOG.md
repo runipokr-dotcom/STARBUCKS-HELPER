@@ -19,6 +19,32 @@
 - 공개 URL 목표: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/bunker-game/`.
 - QR 카탈로그 `share.html?id=c6xxh9`와 기존 HELPER 잠금 정책은 변경하지 않는다.
 
+
+### 작업 후 기록
+- 신규 독립 폴더 `bunker-game/` 생성:
+  - `index.html`: 퍼블리싱 가능한 게임 UI/메타/레이아웃.
+  - `styles.css`: 건설 프로젝트 보드 스타일 + 모바일/데스크톱 반응형.
+  - `game.js`: 공정/자원/날씨/안전/품질/장비/Canvas 현장 렌더링 및 localStorage 세이브.
+  - `README.md`: GitHub Pages/Vercel/Netlify 배포 방법과 확장 방향.
+- 1차 플레이 루프 구현:
+  - 부지 조사 → 부지 정리 → 굴착 → 지반 다짐 → 기초 타설 → 철골 세우기 → 벙커 쉘 → 설비 → 완공.
+  - 예산/연료/강재/콘크리트 자원, 안전/품질/장비 상태, 랜덤 날씨, 보급/정비, 단계별 비용과 진행률.
+  - Canvas에서 굴착기/크레인/기초/철골/쉘이 공정 단계에 따라 시각적으로 변화.
+  - 브라우저 localStorage로 진행 자동 저장 및 초기화 지원.
+- HELPER `index.html` 업무 도구에 **벙커 프로젝트** 링크 추가. 게임은 공개 독립 페이지로 열림.
+- `START_HERE.md`에 `bunker-game/`을 PIN 예외 공개 웹게임으로 명시. HELPER 내부 데이터/Firebase에 종속시키지 않는 규칙 추가.
+- 공개 목표 URL: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/bunker-game/`.
+- 기존 QR 카탈로그 주소/HELPER PIN/상품·쿠폰·Firestore 데이터 변경 없음.
+- 주요 commit:
+  - game shell `5291f9603811b9979509fa5b859de5fb2c3e3b8a`
+  - styles `2673e58816011658ee6a994e4579d1df34bf6419`
+  - game logic `a6daec2535264098178ce3fa4c7188d02b6fbda2`
+  - publishing README `89f1e1f3604e06f695a1f74de374bfc579b574ae`
+  - HELPER link `01cd3c4e67917824e2d8ada5efb4598738a58420`
+  - START_HERE public exception `c2bf0bb11df7ebcfbbe9e7d27c10b3fb253a030d`
+- 다음 확장 후보: 작업자/장비 카드, 랜덤 사고 이벤트, 업그레이드, 지하층 확장, 효과음/BGM, 스테이지 맵, 점수/랭킹, 서버 세이브.
+
+
 ## 2026-09-25 — ChatGPT (HELPER PIN 접근 규칙 정리)
 
 ### 작업 전/후 기록
