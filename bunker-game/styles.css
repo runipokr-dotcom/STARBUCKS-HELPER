@@ -1,0 +1,63 @@
+:root{
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+  --paper:#eee9dc;--ink:#20241f;--line:#6e746b;--dark:#182119;--green:#2e694e;--orange:#d98335;--red:#b34b3e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#151a16;color:var(--ink)}
+body{padding:max(10px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+button{font:inherit}
+.topbar{max-width:1280px;margin:auto;background:var(--paper);border:2px solid var(--line);border-bottom:0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-size:10px;letter-spacing:.18em;color:#666d65;font-weight:800}
+h1{margin:2px 0 0;font-size:clamp(20px,3vw,34px);letter-spacing:.02em}
+.top-actions{display:flex;gap:8px}
+button{border:1px solid #838a81;border-radius:8px;padding:10px 14px;background:#f9f5e9;color:#20241f;font-weight:800;cursor:pointer}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--dark);color:#fff;border-color:var(--dark)}
+button.ghost{padding:8px 11px;background:transparent}
+button.danger{color:#8f352c}
+.board{max-width:1280px;margin:auto;background:var(--paper);border:2px solid var(--line);display:grid;grid-template-columns:210px minmax(0,1fr) 235px;grid-template-areas:"soil site timeline" "control control timeline" "equipment equipment timeline";gap:0}
+.panel,.site{border-right:1px solid var(--line);border-top:1px solid var(--line);background:var(--paper)}
+.panel{padding:14px}
+.panel-title{font-size:11px;font-weight:950;letter-spacing:.14em;border-bottom:2px solid #7f857b;padding-bottom:7px;margin-bottom:10px}
+.panel-title.sub{margin-top:18px}
+.soil-list{display:grid;gap:8px}.soil-list>div{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+.soil{grid-row:1/3;width:44px;height:34px;border:1px solid #777;display:block}
+.s1{background:linear-gradient(#70471c,#8f6428)}.s2{background:#9a6532}.s3{background:#8a5126}.s4{background:radial-gradient(#76552e 2px,#ae8b5b 3px,#8e6c44 4px)}.s5{background:#4b4d47}
+.soil-list b{font-size:11px}.soil-list small{font-size:9px;color:#666}
+.spec{margin:0;display:grid;gap:7px}.spec div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #999;padding-bottom:4px}.spec dt{font-size:10px}.spec dd{font-size:10px;font-weight:900;margin:0}
+.site{grid-area:site;padding:12px}
+.site-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
+.site-head h2{margin:5px 0 0;font-size:20px}.chip{display:inline-block;background:var(--dark);color:#fff;border-radius:3px;padding:4px 6px;font-size:9px;font-weight:900;letter-spacing:.12em}
+.overall{text-align:right}.overall span{display:block;font-size:9px;color:#6b716b}.overall b{font-size:24px}
+.canvas-wrap{position:relative;border:2px solid #6f746d;background:#d9d4c8;overflow:hidden;aspect-ratio:9/8}
+#siteCanvas{display:block;width:100%;height:100%;touch-action:none}
+.weather-card,.floating-status{position:absolute;top:10px;border:1px solid #6e746b;background:#eee9dce8;border-radius:5px;padding:7px 9px;font-size:10px;font-weight:800;backdrop-filter:blur(4px)}
+.weather-card{left:10px}.floating-status{right:10px}
+.resource-strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #7b8178;border-top:0}.resource-strip div{padding:8px;border-right:1px solid #999}.resource-strip div:last-child{border:0}.resource-strip span{display:block;font-size:8px;color:#6b716a}.resource-strip b{font-size:11px}
+.timeline-panel{grid-area:timeline;border-right:0}
+.timeline{display:grid;gap:5px}.timeline-item{display:grid;grid-template-columns:18px 1fr;gap:7px;align-items:start;font-size:10px;padding:4px 0}.timeline-item i{width:14px;height:14px;border:1px solid #71766f;display:grid;place-items:center;font-style:normal;font-size:9px}.timeline-item.done i{background:#405f48;color:#fff}.timeline-item.active{font-weight:900;color:#213f2f}.timeline-item.locked{opacity:.45}
+.meter-row{display:grid;grid-template-columns:40px 1fr 24px;gap:6px;align-items:center;font-size:9px;margin:10px 0}.meter-row progress{width:100%;height:8px}.meter-row b{text-align:right}
+.control{grid-area:control;display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+.task-copy h3{margin:0 0 6px;font-size:18px}.task-copy p{margin:0;color:#666;font-size:11px;line-height:1.5}.costs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.costs span{border:1px solid #9ba097;border-radius:999px;padding:4px 7px;font-size:9px;font-weight:800}
+.progress-shell{height:10px;border:1px solid #737a70;background:#d7d2c7;margin:5px 0 12px;overflow:hidden}.progress-shell i{display:block;height:100%;width:0;background:var(--green);transition:width .25s}
+.operation-buttons{display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px}.event-log{min-height:18px;font-size:10px;color:#5e655e;margin:10px 0 0}
+.equipment-panel{grid-area:equipment}.equipment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.equipment-grid article{display:grid;grid-template-columns:50px 1fr;grid-template-rows:auto auto;column-gap:8px;border:1px solid #9ca097;padding:7px}.equipment-grid b{font-size:10px}.equipment-grid small{font-size:9px;color:#6a6f69}.machine{grid-row:1/3;width:50px;height:38px;display:grid;place-items:center;color:#242820;font-size:10px;font-weight:950;border-radius:4px}.excavator{background:#d89a2f}.crane{background:#c77929}.mixer{background:#a9a49a}
+footer{max-width:1280px;margin:auto;color:#9aa399;display:flex;justify-content:space-between;padding:8px 3px;font-size:9px;letter-spacing:.1em}
+
+@media(max-width:900px){
+  body{padding:0;background:var(--paper)}
+  .topbar{border:0;border-bottom:2px solid var(--line);position:sticky;top:0;z-index:20}.topbar h1{font-size:18px}.eyebrow{font-size:8px}.top-actions button{padding:7px 8px;font-size:10px}
+  .board{border:0;display:grid;grid-template-columns:1fr;grid-template-areas:"site" "control" "timeline" "soil" "equipment"}
+  .panel,.site{border-right:0}.timeline-panel{border-right:0}
+  .soil-panel{display:none}
+  .canvas-wrap{aspect-ratio:4/4.5}
+  .control{grid-template-columns:1fr}
+  .resource-strip b{font-size:10px}
+  .timeline-panel{padding-bottom:18px}
+}
+@media(max-width:520px){
+  .site{padding:8px}.panel{padding:12px}.site-head h2{font-size:17px}.overall b{font-size:20px}
+  .resource-strip div{padding:7px 5px}.resource-strip span{font-size:7px}.resource-strip b{font-size:9px}
+  .operation-buttons{grid-template-columns:1fr 1fr}.operation-buttons .primary{grid-column:1/-1}
+  .equipment-grid{grid-template-columns:1fr}
+}
