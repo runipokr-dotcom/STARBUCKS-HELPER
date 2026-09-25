@@ -6,7 +6,7 @@ Note: static GitHub Pages gate for casual access control, not a substitute for s
 */
 (() => {
   const SESSION_KEY = "starbucks-helper-internal-auth-v1";
-  const EXPECTED = "39a96f30b98d2d92e3034446997e9b3678fe9a568ecb6426971611a7da9045cd";
+  const EXPECTED = "937377f056160fc4b15e0b770c67136a5f03c15205b4d3bf918268fefa2c6d0a";
   const PUBLIC_FALLBACK = "share.html?id=c6xxh9";
 
   if (sessionStorage.getItem(SESSION_KEY) === "ok") return;
