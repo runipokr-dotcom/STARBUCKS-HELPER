@@ -1,5 +1,22 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (HELPER PIN 접근 규칙 정리)
+
+### 작업 전/후 기록
+- 사용자 요청: ChatGPT/Work가 HELPER를 작업할 때 PIN이 필요한 범위를 명확히 정리해 운영 기준에 반영.
+- 확정 규칙:
+  - **브라우저로 내부 HELPER 페이지를 직접 열어 사용/검수**할 때는 PIN 입력 필요.
+  - **GitHub 저장소 소스 읽기·수정·커밋**은 브라우저 페이지 접근이 아니므로 PIN 입력 불필요.
+  - **공개 QR 상품 카탈로그 `share.html?id=c6xxh9`**는 PIN 없이 공개 유지.
+- 작업자에게 중요한 해석:
+  - 브라우저 자동화/실배포 검수에서 PIN 화면이 보이는 것은 정상 보호 동작.
+  - 코드 작업은 GitHub connector로 계속 진행 가능하며 PIN 때문에 막히지 않음.
+- `START_HERE.md`의 내부 접근 잠금 항목에 위 규칙 추가.
+- 기능/상품/쿠폰/Firestore 데이터 변경 없음.
+- START_HERE commit: `ccfb71e6b85ecce17fb9fe27a59f1e13de9f8a6b`.
+
+---
+
 ## 2026-09-25 — ChatGPT (휴대폰 잠금화면형 6자리 PIN UI)
 
 ### 작업 전/후 기록
