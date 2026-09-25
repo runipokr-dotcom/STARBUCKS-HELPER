@@ -5,6 +5,7 @@ Public exception: share.html (not loaded there)
 Note: static GitHub Pages gate for casual access control, not a substitute for server-side authentication.
 */
 (() => {
+  if (!document.querySelector('script[data-helper-pin]')) { const s=document.createElement("script"); s.src="pin-pad.js?v=20260925-1"; s.dataset.helperPin="1"; document.head.appendChild(s); }
   const SESSION_KEY = "starbucks-helper-internal-auth-v1";
   const EXPECTED = "937377f056160fc4b15e0b770c67136a5f03c15205b4d3bf918268fefa2c6d0a";
   const PUBLIC_FALLBACK = "share.html?id=c6xxh9";
@@ -72,16 +73,30 @@ Note: static GitHub Pages gate for casual access control, not a substitute for s
     return result;
   }
 
-  let ok = false;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const entered = window.prompt("STARBUCKS HELPER 비밀번호");
-    if (entered === null) break;
-    if (sha256(entered) === EXPECTED) {
-      sessionStorage.setItem(SESSION_KEY, "ok");
-      ok = true;
-      break;
+  let attempts = 0;
+  function openPinPad() {
+    if (!window.StarbucksHelperPinPad) {
+      setTimeout(openPinPad, 30);
+      return;
     }
-    window.alert("비밀번호가 맞지 않습니다.");
+    window.StarbucksHelperPinPad({
+      onComplete(entered, ui) {
+        if (sha256(entered) === EXPECTED) {
+          sessionStorage.setItem(SESSION_KEY, "ok");
+          ui.close();
+          location.reload();
+          return;
+        }
+        attempts++;
+        if (attempts >= 3) {
+          location.replace(PUBLIC_FALLBACK);
+          return;
+        }
+        ui.fail("비밀번호가 맞지 않습니다.");
+      },
+      onExit() { location.replace(PUBLIC_FALLBACK); }
+    });
   }
-  if (!ok) location.replace(PUBLIC_FALLBACK);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", openPinPad, { once: true });
+  else openPinPad();
 })();
