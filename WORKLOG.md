@@ -20,6 +20,39 @@
 - 보존: 상품 데이터, 정렬/필터/카테고리/태그/가격 계산식, PC 로컬 추출, 모바일 링크 큐, 이미지 재검수, 고객 공유, Firestore 문서 구조, UI 디자인 전부 유지.
 - 이번 단계에서는 Firestore Security Rules 구조 변경은 하지 않는다. 보안 개편은 인증/공개 share 영향이 커 별도 단계로 진행한다.
 
+### 작업 후 기록
+- 신규 `START_HERE.md`: HELPER 업무 흐름, 반복 금지 실수, 쿠폰1/2와 쿠폰3 자리수 규칙, 카탈로그/이미지/견적 HARD RULE, 살아있는 이슈를 현재 운영 기준으로 정리.
+- `AGENTS.md`, `CLAUDE.md`: 작업 순서를 **START_HERE → WORKLOG 최신 → 실제 main 코드**로 고정. 기존 WORKLOG_READ_FIRST 문구도 이 순서와 충돌하지 않도록 정리.
+- 사용자 정정 반영: 쿠폰3 서버 16자리 Coupon No.는 정상 별도 양식으로 확정. 앞선 감사 기록의 “52건 이상” 판정을 정정하고 재검수 TODO에서 제거.
+- `index.html`: 서버 표시 토글의 `addEventListener`를 `apply()` 밖 초기화 구간으로 이동. `apply()` 반복 호출 시 listener가 누적되지 않도록 수정.
+- `catalog-editor.html`:
+  - 판매가/매입가 수정 후 전체 `render()` 대신 해당 카드의 판매가·매입가·제안가·웹판매가와 바구니만 갱신.
+  - 이미지 이전/다음 클릭 후 전체 `render()` 대신 해당 카드 이미지와 장수 표시만 갱신.
+  - 상품명 변경처럼 카테고리/필터 구조에 영향을 줄 수 있는 변경은 기존 전체 render 유지.
+  - `catalog-sync.js` cachebuster를 `v=20260925-1`로 갱신.
+- `catalog-sync.js` v1.4:
+  - cloud payload signature를 저장해 동일 데이터의 Firestore 재전송을 생략.
+  - 초기 로컬/클라우드 payload가 같으면 페이지 진입 시 불필요한 전체 rewrite 생략.
+  - 다른 기기 snapshot이 현재 로컬과 동일하면 전체 data 교체/render 생략하고 stamp만 갱신.
+  - 연속 수정 debounce를 450ms → 900ms로 늘려 빠른 연속 변경을 한 번의 cloud write로 묶음.
+- 기존 상품 데이터/Firestore 문서 구조/카테고리/태그/정렬/가격 계산/PC 추출/모바일 큐/이미지 재검수/고객 공유 UI는 변경하지 않음.
+- 데이터 변경: 상품/쿠폰 JSON 및 운영 Firestore 데이터 직접 수정 없음.
+- 정적 READBACK 검수:
+  - index listener 등록이 `apply()` 외부 1회인지 확인.
+  - 판매가/매입가 및 이미지 이전/다음 경로에 전체 render가 제거됐는지 확인.
+  - 상품명/카테고리/태그 등 구조 변경 경로는 기존 render 유지 확인.
+  - sync signature skip / 900ms debounce / 초기 동일 payload skip 확인.
+  - cachebuster 반영 확인.
+- 공개 GitHub Pages는 현재 검증 도구에서 직접 접근할 수 없어 실배포 클릭/체감 성능은 미검증. 실제 브라우저에서 첫 사용 시 판매가 수정, 이미지 넘김, 빠른 연속 수정, 다른 기기 동기화를 확인할 것.
+- 관련 commit:
+  - START_HERE 신규: `184b91eca673617fc166a2c408a65fbd5c3cf7a2`
+  - AGENTS/CLAUDE 진입 규칙: `fd59ad21b7321b770544aa778b5fd18da54862dc`, `33cd98aee3f460f3cc7acf7092504b6c84123d83`, 후속 정리 `7d6dd10d9eb81179162973baf609d407762bb97b`, `04b9462ceec8f8ec40d2b566aec01239cf9e5f78`
+  - index 최종 listener 수정: `ccee3c32b1410bad289ecd182bb6176e22db24eb`
+  - catalog-sync 1차/최종: `9fadd8dc0d380f2a529cb820a06665d3636b4718`, `7df5deeb18e3f75b4643f09732de7463027c32b8`
+  - catalog-editor 부분 렌더: `a313360ced6482ab35c431694905d0a0f7c9ad22`
+  - 쿠폰3/우선순위 기록 정정: `3777e5be4b23ade723173adc08755341235a0879`
+- 남은 핵심: 실제 운영 체감이 여전히 느리면 다음 단계는 **localStorage 전체 stringify 빈도와 visible 전체 DOM 생성 자체를 계측**하고, 상품 카드 단위 patch 범위를 태그/카테고리까지 안전하게 확대하는 것. Firestore 보안 개편은 별도 작업으로 유지.
+
 ## 2026-09-25 — ChatGPT (HELPER 전반 감사 / 업무·Work 이미지 컨텍스트 통합)
 
 ### 작업 전 기록
