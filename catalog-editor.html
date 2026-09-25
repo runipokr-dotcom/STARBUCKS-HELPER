@@ -840,6 +840,10 @@ Fixed : mobile two-column cards / autosave after product edits
           전체 상품에 적용
         </button>
       </section>
+      <section class="settings" id="catalogAuditPanel">
+        <div class="settings-head"><strong>카탈로그 점검</strong><button class="btn filter-btn" id="catalogAuditButton" type="button">무결성 검사</button></div>
+        <div id="catalogAuditResult" class="hint" style="margin-top:8px;white-space:pre-wrap"></div>
+      </section>
       <section class="category">
         <div class="cat-head">
           <h1 contenteditable="true">텀블러 · MD</h1>
@@ -1175,9 +1179,18 @@ Fixed : mobile two-column cards / autosave after product edits
         render();
         toast("정렬했습니다");
       }
+      let localSaveTimer = null;
+      let localSavePending = false;
+      function flushLocalSave() {
+        if (!localSavePending) return;
+        localSavePending = false;
+        localStorage.setItem(KEY, JSON.stringify(data));
+      }
       function autosave() {
         data.category = $(".cat-head h1").textContent.trim() || "상품";
-        localStorage.setItem(KEY, JSON.stringify(data));
+        localSavePending = true;
+        clearTimeout(localSaveTimer);
+        localSaveTimer = setTimeout(flushLocalSave, 180);
       }
       function touch(p) {
         p.updatedAt = Date.now();
@@ -1270,6 +1283,7 @@ Fixed : mobile two-column cards / autosave after product edits
         return deduplicateImages(images).slice(0, 5);
       }
       async function publishShare() {
+        flushLocalSave();
         try {
           const { db, firestore: f } = await initShareSync();
           if (!data.shareId) {
@@ -1362,6 +1376,53 @@ Fixed : mobile two-column cards / autosave after product edits
         );
         $("#filterCount").textContent =
           `표시 ${visible().length}개 · 선택 ${data.products.filter((p) => p.selected).length}개`;
+      }
+      function auditCatalogIntegrity() {
+        const issues = [];
+        const seenSource = new Map();
+        const seenNamePrice = new Map();
+        const validCategories = new Set(data.categories || []);
+        data.products.forEach((p, i) => {
+          const label = `#${i + 1} ${p.name || "(상품명 없음)"}`;
+          if (!String(p.name || "").trim()) issues.push(`${label}: 상품명 없음`);
+          if (!Number.isFinite(Number(p.sale)) || Number(p.sale) < 0) issues.push(`${label}: 판매가 이상`);
+          if (!Number.isFinite(Number(p.cost)) || Number(p.cost) < 0) issues.push(`${label}: 매입가 이상`);
+          if (!Number.isFinite(Number(p.offer)) || Number(p.offer) < 0) issues.push(`${label}: 제안가 이상`);
+          if (!p.updatedAt) issues.push(`${label}: updatedAt 없음`);
+          if (!validCategories.has(p.category)) issues.push(`${label}: 등록되지 않은 카테고리 "${p.category || ""}"`);
+          if (!Array.isArray(p.tags)) issues.push(`${label}: tags 배열 아님`);
+          const imgs = Array.isArray(p.images) ? p.images : [];
+          if (!imgs.length) issues.push(`${label}: 이미지 없음`);
+          const broken = imgs.filter(src => !src || !(/^(https?:\/\/|idb:|blob:)/i.test(String(src))));
+          if (broken.length) issues.push(`${label}: 형식 이상 이미지 ${broken.length}개`);
+          if (imgs.length > 5) issues.push(`${label}: 이미지 5장 초과 (${imgs.length})`);
+          const unique = new Set(imgs);
+          if (unique.size !== imgs.length) issues.push(`${label}: 중복 이미지 ${imgs.length - unique.size}개`);
+          const sourceKey = String(p.sourceUrl || "").trim();
+          if (sourceKey) {
+            if (seenSource.has(sourceKey)) issues.push(`${label}: sourceUrl 중복 (#${seenSource.get(sourceKey) + 1}와 동일)`);
+            else seenSource.set(sourceKey, i);
+          }
+          const np = `${String(p.name || "").trim().toLowerCase()}|${Number(p.sale || 0)}`;
+          if (np !== "|0") {
+            if (seenNamePrice.has(np)) issues.push(`${label}: 상품명+판매가 중복 (#${seenNamePrice.get(np) + 1}와 동일)`);
+            else seenNamePrice.set(np, i);
+          }
+        });
+        return {
+          total: data.products.length,
+          issues,
+          categories: (data.categories || []).length,
+          selected: data.products.filter(p => p.selected).length
+        };
+      }
+      function renderAuditResult() {
+        const box = $("#catalogAuditResult");
+        if (!box) return;
+        const result = auditCatalogIntegrity();
+        box.textContent = result.issues.length
+          ? `상품 ${result.total}개 · 문제 ${result.issues.length}건\n` + result.issues.slice(0, 80).join("\n") + (result.issues.length > 80 ? `\n… 외 ${result.issues.length - 80}건` : "")
+          : `상품 ${result.total}개 · 문제 없음`;
       }
       function render() {
         data.products.forEach(normalizeProductImages);
@@ -1832,6 +1893,7 @@ Fixed : mobile two-column cards / autosave after product edits
         visible().forEach(({ p }) => (p.selected = false));
         render();
       };
+      $("#catalogAuditButton").onclick = renderAuditResult;
       $("#save").onclick = save;
       $("#add").onclick = add;
       $("#quote").onclick = copyShareLink;
@@ -1898,11 +1960,13 @@ Fixed : mobile two-column cards / autosave after product edits
           button.textContent = "다운로드＋상품 추가";
         }
       };
+      window.addEventListener("pagehide", flushLocalSave);
+      document.addEventListener("visibilitychange", () => { if (document.hidden) flushLocalSave(); });
       const scrollTopButton = $("#scrollTop");
       scrollTopButton.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
       render();
     </script>
     <script src="catalog-online-import.js?v=20260904-4"></script>
-    <script src="catalog-sync.js?v=20260925-1"></script>
+    <script src="catalog-sync.js?v=20260925-2"></script>
   </body>
 </html>
