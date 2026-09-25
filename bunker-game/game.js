@@ -1,225 +1,172 @@
-const SAVE_KEY="pixel-bunker-project-v1";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
+const SAVE_KEY="pixel-bunker-project-v2";
 const STAGES=[
-  {title:"부지 조사",tasks:[
-    {name:"기준점 측량",desc:"부지 경계와 기준고를 설정합니다.",cost:{money:2500,fuel:1},gain:{quality:2},work:2},
-    {name:"지반 스캔",desc:"지하 매설물과 토질 상태를 확인합니다.",cost:{money:4200,fuel:2},gain:{safety:3},work:3}
-  ]},
-  {title:"부지 정리",tasks:[
-    {name:"수목 제거",desc:"장비 진입을 위해 작업구역을 비웁니다.",cost:{money:3800,fuel:5},work:3},
-    {name:"진입로 확보",desc:"중장비 이동로와 자재 적치장을 만듭니다.",cost:{money:5200,fuel:6},gain:{equipment:2},work:4}
-  ]},
-  {title:"굴착",tasks:[
-    {name:"1차 굴착",desc:"굴착기로 표토와 사질층을 제거합니다.",cost:{money:7200,fuel:12},gain:{depth:1.6},work:5},
-    {name:"2차 굴착",desc:"벙커 바닥 레벨까지 굴착합니다.",cost:{money:9800,fuel:15},gain:{depth:1.4},work:6}
-  ]},
-  {title:"지반 다짐",tasks:[
-    {name:"배수층 시공",desc:"쇄석과 배수관을 설치합니다.",cost:{money:6500,fuel:4},gain:{quality:4},work:4},
-    {name:"기초면 다짐",desc:"플레이트 콤팩터로 허용 오차를 맞춥니다.",cost:{money:5400,fuel:7},gain:{quality:5},work:4}
-  ]},
-  {title:"기초 타설",tasks:[
-    {name:"철근 배근",desc:"기초 슬래브 철근망을 조립합니다.",cost:{money:8200,steel:6},gain:{quality:3},work:5},
-    {name:"콘크리트 타설",desc:"기초 슬래브와 타워 베이스를 타설합니다.",cost:{money:11000,concrete:12},gain:{quality:4},work:7}
-  ]},
-  {title:"철골 세우기",tasks:[
-    {name:"기둥 인양",desc:"크레인으로 주기둥을 세웁니다.",cost:{money:9600,fuel:8,steel:8},gain:{safety:-1},work:6},
-    {name:"보 설치",desc:"상부 보와 연결 플레이트를 조립합니다.",cost:{money:8800,fuel:6,steel:6},gain:{quality:3},work:6}
-  ]},
-  {title:"벙커 쉘",tasks:[
-    {name:"외벽 시공",desc:"강재 패널과 콘크리트 벽체를 구축합니다.",cost:{money:12500,steel:4,concrete:10},work:7},
-    {name:"방수·차폐",desc:"방수층과 외부 차폐층을 마감합니다.",cost:{money:7600},gain:{quality:5},work:5}
-  ]},
-  {title:"설비",tasks:[
-    {name:"전력·환기",desc:"전력, 환기, 필터 시스템을 설치합니다.",cost:{money:10400},gain:{safety:4},work:6},
-    {name:"통제실 시운전",desc:"센서와 통제 장비를 시험합니다.",cost:{money:6800,fuel:2},gain:{quality:4,safety:3},work:5}
-  ]},
-  {title:"완공",tasks:[
-    {name:"최종 검사",desc:"구조·안전·설비 체크리스트를 완료합니다.",cost:{money:4000},gain:{quality:2,safety:2},work:4}
-  ]}
+  {name:"부지 조사",state:"SURVEY MODE",task:"기준점 측량",desc:"부지 경계와 기준고를 설정합니다.",cost:{money:2500,fuel:1},depth:0},
+  {name:"부지 정리",state:"CLEARING",task:"진입로 확보",desc:"중장비 이동로와 작업구역을 정리합니다.",cost:{money:5200,fuel:5},depth:.2},
+  {name:"굴착",state:"EXCAVATION",task:"2차 굴착",desc:"벙커 바닥 레벨까지 토사를 제거합니다.",cost:{money:9800,fuel:14},depth:3},
+  {name:"지반 다짐",state:"GROUND PREP",task:"기초면 다짐",desc:"배수층과 기초면을 정밀 다짐합니다.",cost:{money:6200,fuel:6},depth:3},
+  {name:"기초 타설",state:"FOUNDATION",task:"슬래브 타설",desc:"철근 배근 후 기초 슬래브를 타설합니다.",cost:{money:11000,steel:5,concrete:10},depth:3},
+  {name:"철골 세우기",state:"STEEL FRAME",task:"주기둥 인양",desc:"크레인으로 주요 철골을 세웁니다.",cost:{money:9800,fuel:8,steel:8},depth:3},
+  {name:"벙커 쉘",state:"BUNKER SHELL",task:"외벽 시공",desc:"철골 외부에 차폐 구조체를 구축합니다.",cost:{money:12500,steel:4,concrete:10},depth:3},
+  {name:"설비",state:"SYSTEM INSTALL",task:"전력·환기",desc:"전력, 환기, 필터 시스템을 설치합니다.",cost:{money:10200},depth:3},
+  {name:"완공",state:"PROJECT COMPLETE",task:"최종 검사",desc:"구조·안전·설비 체크리스트를 완료합니다.",cost:{money:4000},depth:3}
 ];
-
 const WEATHER=[
-  {name:"맑음",icon:"☀",temp:24,wind:2,penalty:0},
-  {name:"흐림",icon:"☁",temp:20,wind:4,penalty:0},
-  {name:"강풍",icon:"🌬",temp:18,wind:9,penalty:1},
-  {name:"비",icon:"☂",temp:17,wind:5,penalty:1}
+  {label:"☀ 24°C",name:"맑음"},{label:"☁ 20°C",name:"흐림"},{label:"🌬 18°C",name:"강풍"},{label:"☂ 17°C",name:"비"}
 ];
-
-const initial=()=>({
-  stage:0,task:0,taskProgress:0,money:120000,fuel:100,steel:24,concrete:32,
-  safety:92,quality:88,equipment:100,depth:0,crew:3,weather:0,completed:false,lastEvent:"현장 통제실 연결 완료."
-});
-let state=load();
-let working=false;
-let anim=0;
 
 const $=id=>document.getElementById(id);
-const canvas=$("siteCanvas"),ctx=canvas.getContext("2d");
+const state=load();
+let working=false;
 
 function load(){
-  try{return {...initial(),...JSON.parse(localStorage.getItem(SAVE_KEY)||"null")}}catch{return initial()}
+  const base={stage:0,progress:0,money:120000,fuel:100,steel:24,concrete:32,safety:92,quality:88,equipment:100,weather:0,day:1,hour:8,event:"현장 통제실 연결 완료."};
+  try{return {...base,...JSON.parse(localStorage.getItem(SAVE_KEY)||"null")}}catch{return base}
 }
-function save(){
-  localStorage.setItem(SAVE_KEY,JSON.stringify(state));
-  state.lastEvent="진행상황을 저장했습니다.";
-  renderUI();
-}
-function reset(){
-  if(!confirm("프로젝트 진행상황을 초기화할까요?"))return;
-  state=initial();localStorage.removeItem(SAVE_KEY);working=false;renderAll();
-}
-function stageData(){return STAGES[Math.min(state.stage,STAGES.length-1)]}
-function taskData(){return stageData().tasks[Math.min(state.task,stageData().tasks.length-1)]}
-function totalTasks(){return STAGES.reduce((n,s)=>n+s.tasks.length,0)}
-function doneTasks(){return STAGES.slice(0,state.stage).reduce((n,s)=>n+s.tasks.length,0)+state.task}
-function overall(){
-  if(state.completed)return 100;
-  return Math.round((doneTasks()+state.taskProgress/100)/totalTasks()*100);
-}
-function canAfford(cost){
-  return Object.entries(cost).every(([k,v])=>state[k]>=v);
-}
+function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
+function stage(){return STAGES[Math.min(state.stage,STAGES.length-1)]}
+function canAfford(cost){return Object.entries(cost).every(([k,v])=>state[k]>=v)}
 function pay(cost){Object.entries(cost).forEach(([k,v])=>state[k]-=v)}
-function applyGain(gain={}){
-  if(gain.depth)state.depth+=gain.depth;
-  for(const key of ["safety","quality","equipment"])if(gain[key])state[key]=Math.max(0,Math.min(100,state[key]+gain[key]));
-}
-
+function overall(){return Math.round(((state.stage+state.progress/100)/(STAGES.length-1))*100)}
+function tickTime(){state.hour+=2;if(state.hour>=18){state.day++;state.hour=8;state.weather=Math.floor(Math.random()*WEATHER.length)}}
 function runWork(){
-  if(working||state.completed)return;
-  const task=taskData();
-  if(!canAfford(task.cost)){state.lastEvent="자원이 부족합니다. 보급을 진행하세요.";renderUI();return}
-  pay(task.cost);working=true;state.taskProgress=0;
-  const weather=WEATHER[state.weather];
-  const totalTicks=task.work+weather.penalty;
-  let tick=0;
-  state.lastEvent=`${task.name} 작업 시작.`;
+  if(working||state.stage>=STAGES.length-1)return;
+  const s=stage();
+  if(!canAfford(s.cost)){state.event="자원이 부족합니다. 보급을 진행하세요.";renderUI();return}
+  pay(s.cost);working=true;state.progress=0;state.event=s.task+" 작업 시작.";
   const timer=setInterval(()=>{
-    tick++;
-    state.taskProgress=Math.min(100,Math.round(tick/totalTicks*100));
-    state.equipment=Math.max(25,state.equipment-(Math.random()<.35?1:0));
-    if(Math.random()<.07)state.safety=Math.max(40,state.safety-1);
+    state.progress=Math.min(100,state.progress+10);
+    state.equipment=Math.max(35,state.equipment-(Math.random()<.25?1:0));
+    if(Math.random()<.05)state.safety=Math.max(50,state.safety-1);
     renderUI();
-    if(tick>=totalTicks){
-      clearInterval(timer);working=false;completeTask(task);
+    if(state.progress>=100){
+      clearInterval(timer);working=false;
+      state.stage=Math.min(STAGES.length-1,state.stage+1);state.progress=0;tickTime();
+      state.quality=Math.min(100,state.quality+1);state.event="공정 완료. 다음 단계로 이동합니다.";save();syncScene();renderUI();
     }
-  },520);
-}
-function completeTask(task){
-  state.taskProgress=100;applyGain(task.gain);
-  state.money+=1200+state.crew*200;
-  const s=stageData();
-  if(state.task<s.tasks.length-1){state.task++;state.taskProgress=0}
-  else if(state.stage<STAGES.length-1){state.stage++;state.task=0;state.taskProgress=0;rollWeather()}
-  else{state.completed=true;state.taskProgress=100}
-  state.lastEvent=state.completed?"PROJECT COMPLETE — 벙커 시설 승인 완료.":`${task.name} 완료. 다음 공정으로 이동합니다.`;
-  localStorage.setItem(SAVE_KEY,JSON.stringify(state));renderAll();
+  },180);
 }
 function supply(){
   if(working)return;
-  if(state.money<9000){state.lastEvent="보급 예산이 부족합니다.";renderUI();return}
-  state.money-=9000;state.fuel+=30;state.steel+=8;state.concrete+=10;
-  state.lastEvent="현장 보급 완료: 연료 +30 / 강재 +8 / 콘크리트 +10";saveSilent();
+  if(state.money<9000){state.event="보급 예산이 부족합니다.";renderUI();return}
+  state.money-=9000;state.fuel+=30;state.steel+=8;state.concrete+=10;state.event="보급 완료: 연료 +30 / 강재 +8 / 콘크리트 +10";save();renderUI()
 }
 function maintain(){
   if(working)return;
-  if(state.money<4500){state.lastEvent="정비 예산이 부족합니다.";renderUI();return}
-  state.money-=4500;state.equipment=Math.min(100,state.equipment+24);state.safety=Math.min(100,state.safety+2);
-  state.lastEvent="장비 정비 완료. 가동률과 안전도가 회복됐습니다.";saveSilent();
+  if(state.money<4500){state.event="정비 예산이 부족합니다.";renderUI();return}
+  state.money-=4500;state.equipment=Math.min(100,state.equipment+24);state.safety=Math.min(100,state.safety+2);state.event="장비 정비 완료.";save();renderUI()
 }
-function saveSilent(){localStorage.setItem(SAVE_KEY,JSON.stringify(state));renderAll()}
-function rollWeather(){state.weather=Math.floor(Math.random()*WEATHER.length)}
-
+function resetGame(){
+  if(!confirm("프로젝트를 처음부터 다시 시작할까요?"))return;
+  localStorage.removeItem(SAVE_KEY);location.reload()
+}
 function renderTimeline(){
   $("timeline").innerHTML=STAGES.map((s,i)=>{
     const cls=i<state.stage?"done":i===state.stage?"active":"locked";
-    const mark=i<state.stage?"✓":String(i+1).padStart(2,"0");
-    return `<div class="timeline-item ${cls}"><i>${mark}</i><span>${s.title}</span></div>`
-  }).join("");
+    return `<div class="timeline-item ${cls}"><i>${i<state.stage?"✓":String(i+1).padStart(2,"0")}</i><span>${s.name}</span></div>`
+  }).join("")
 }
 function renderUI(){
-  const task=taskData(),weather=WEATHER[state.weather];
-  $("phaseChip").textContent=`PHASE ${String(state.stage+1).padStart(2,"0")}`;
-  $("stageTitle").textContent=state.completed?"PROJECT COMPLETE":stageData().title;
-  $("stageSpec").textContent=stageData().title;
-  $("depthSpec").textContent=state.depth.toFixed(1)+"m";
-  $("weatherSpec").textContent=weather.name;
-  $("weatherCard").textContent=`${weather.icon} ${weather.temp}°C · 풍속 ${weather.wind}m/s`;
-  $("crewSpec").textContent=state.crew+"명";
-  $("overallText").textContent=overall()+"%";
-  $("moneyValue").textContent="₩"+Math.round(state.money).toLocaleString("ko-KR");
-  $("fuelValue").textContent=Math.round(state.fuel);
-  $("steelValue").textContent=Math.round(state.steel);
-  $("concreteValue").textContent=Math.round(state.concrete);
-  $("safetyMeter").value=state.safety;$("safetyText").textContent=Math.round(state.safety);
-  $("qualityMeter").value=state.quality;$("qualityText").textContent=Math.round(state.quality);
-  $("equipmentMeter").value=state.equipment;$("equipmentText").textContent=Math.round(state.equipment);
-  $("taskTitle").textContent=state.completed?"시설 승인 완료":task.name;
-  $("taskDesc").textContent=state.completed?"모든 주요 공정이 완료되었습니다.":task.desc;
-  $("taskProgress").style.width=(state.completed?100:state.taskProgress)+"%";
-  $("taskCosts").innerHTML=state.completed?"":Object.entries(task.cost).map(([k,v])=>`<span>${({money:"예산",fuel:"연료",steel:"강재",concrete:"콘크리트"})[k]} ${k==="money"?"₩"+v.toLocaleString():v}</span>`).join("");
-  $("eventLog").textContent=state.lastEvent;
-  $("floatingStatus").textContent=working?"작업 진행 중 · "+state.taskProgress+"%":state.completed?"시설 운영 준비 완료":"현장 대기";
-  $("workBtn").disabled=working||state.completed;
-  $("workBtn").textContent=working?"작업 중…":state.completed?"완공":"작업 시작";
-  $("supplyBtn").disabled=working||state.completed;
-  $("maintainBtn").disabled=working||state.completed;
-  renderTimeline();
-}
-function renderAll(){renderUI();draw()}
-
-function iso(x,y,z=0){return {x:canvas.width/2+(x-y)*42,y:580+(x+y)*22-z}}
-function poly(points,fill,stroke="#3b413c"){
-  ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()
-}
-function box(x,y,w,d,h,top="#bcb7aa",side="#8e8a80"){
-  const a=iso(x,y,0),b=iso(x+w,y,0),c=iso(x+w,y+d,0),e=iso(x,y+d,0);
-  const at=iso(x,y,h),bt=iso(x+w,y,h),ct=iso(x+w,y+d,h),et=iso(x,y+d,h);
-  poly([at,bt,ct,et],top);poly([b,c,ct,bt],side);poly([c,e,et,ct],"#76746d");
-}
-function drawGround(){
-  const g=ctx.createLinearGradient(0,0,0,canvas.height);g.addColorStop(0,"#e5c982");g.addColorStop(.48,"#c89955");g.addColorStop(1,"#87643c");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#97b26a";ctx.fillRect(0,0,canvas.width,180);
-  for(let i=0;i<42;i++){const x=(i*83)%canvas.width,y=190+((i*137)%720);ctx.fillStyle=i%2?"#755331":"#9b7547";ctx.fillRect(x,y,3,3)}
-  ctx.strokeStyle="#927048";ctx.lineWidth=2;
-  for(let i=-7;i<8;i++){const a=iso(i,-5),b=iso(i,6);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
-  for(let j=-5;j<7;j++){const a=iso(-7,j),b=iso(7,j);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
-}
-function drawExcavator(t){
-  const x=170,y=690;ctx.save();ctx.translate(x,y);
-  ctx.fillStyle="#433d32";ctx.fillRect(-35,28,90,22);ctx.fillStyle="#d89a2f";ctx.fillRect(-20,-5,55,42);ctx.fillStyle="#28342e";ctx.fillRect(10,0,22,18);
-  ctx.strokeStyle="#c37a20";ctx.lineWidth=14;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(12,-2);ctx.lineTo(42,-48);ctx.lineTo(74,-65+Math.sin(t)*5);ctx.stroke();
-  ctx.fillStyle="#80551f";ctx.beginPath();ctx.moveTo(72,-72);ctx.lineTo(92,-62);ctx.lineTo(77,-45);ctx.closePath();ctx.fill();ctx.restore();
-}
-function drawCrane(t){
-  const x=720,y=430;ctx.save();ctx.translate(x,y);ctx.fillStyle="#4d4435";ctx.fillRect(-45,80,100,24);ctx.fillStyle="#d58c2c";ctx.fillRect(-15,45,62,40);
-  ctx.strokeStyle="#4a4031";ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(10,48);ctx.lineTo(-95,-175);ctx.stroke();
-  ctx.strokeStyle="#675a45";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-95,-175);ctx.lineTo(16,48);ctx.moveTo(-70,-115);ctx.lineTo(-38,-125);ctx.moveTo(-50,-72);ctx.lineTo(-20,-82);ctx.stroke();
-  const hookY=-30+Math.sin(t*.7)*8;ctx.strokeStyle="#2f332e";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-95,-175);ctx.lineTo(-95,hookY);ctx.stroke();ctx.fillStyle="#a63f32";ctx.fillRect(-103,hookY,16,18);ctx.restore();
-}
-function drawSite(t){
-  drawGround();
-  if(state.stage>=2){ctx.fillStyle="#745138";ctx.beginPath();ctx.ellipse(canvas.width/2,620,250,120,0,0,Math.PI*2);ctx.fill()}
-  if(state.stage>=3){poly([iso(-4,-3),iso(4,-3),iso(4,3),iso(-4,3)],"#aca28d")}
-  if(state.stage>=4){box(-4,-3,8,6,16,"#bdb7a6","#8d887c")}
-  if(state.stage>=5){
-    const cols=[[-3,-2],[3,-2],[-3,2],[3,2]];
-    cols.forEach(([x,y])=>box(x,y,.35,.35,155,"#6e7470","#4f5551"));
-    ctx.strokeStyle="#565c58";ctx.lineWidth=8;[[-3,-2,3,-2],[-3,2,3,2]].forEach(v=>{const a=iso(v[0],v[1],150),b=iso(v[2],v[3],150);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()})
-  }
-  if(state.stage>=6){box(-3.6,-2.6,7.2,5.2,90,"#9b9a91","#72746d")}
-  if(state.stage>=7){
-    ctx.fillStyle="#375f4c";ctx.fillRect(380,540,140,48);ctx.fillStyle="#d7d2c4";ctx.font="bold 16px sans-serif";ctx.fillText("CONTROL",410,570)
-  }
-  if(state.stage<4)drawExcavator(t);
-  if(state.stage>=4&&state.stage<7)drawCrane(t);
-  if(state.completed){
-    ctx.fillStyle="#ffffffdd";ctx.fillRect(225,120,450,80);ctx.fillStyle="#203025";ctx.font="bold 28px sans-serif";ctx.textAlign="center";ctx.fillText("PROJECT COMPLETE",450,168);ctx.textAlign="left"
-  }
-}
-function draw(){
-  const t=performance.now()/700;ctx.clearRect(0,0,canvas.width,canvas.height);drawSite(t);anim=requestAnimationFrame(draw)
+  const s=stage(),weather=WEATHER[state.weather];
+  $("phaseChip").textContent="PHASE "+String(state.stage+1).padStart(2,"0");
+  $("phaseTitle").textContent=s.name;$("sceneState").textContent=s.state;$("structureValue").textContent=s.name;$("depthValue").textContent=s.depth.toFixed(1)+" m";
+  $("overallValue").textContent=Math.min(100,overall())+"%";$("weatherTop").textContent=weather.label;$("clockTop").textContent=`DAY ${String(state.day).padStart(2,"0")} · ${String(state.hour).padStart(2,"0")}:00`;
+  $("moneyValue").textContent="₩"+Math.round(state.money).toLocaleString("ko-KR");$("fuelValue").textContent=Math.round(state.fuel);$("steelValue").textContent=Math.round(state.steel);$("concreteValue").textContent=Math.round(state.concrete);
+  $("safetyMeter").value=state.safety;$("safetyText").textContent=Math.round(state.safety);$("qualityMeter").value=state.quality;$("qualityText").textContent=Math.round(state.quality);$("equipmentMeter").value=state.equipment;$("equipmentText").textContent=Math.round(state.equipment);
+  $("taskTitle").textContent=s.task;$("taskDesc").textContent=s.desc;$("eventLog").textContent=state.event;$("taskProgress").style.width=state.progress+"%";
+  $("taskCosts").innerHTML=Object.entries(s.cost).map(([k,v])=>`<span>${({money:"예산",fuel:"연료",steel:"강재",concrete:"콘크리트"})[k]} ${k==="money"?"₩"+v.toLocaleString():v}</span>`).join("");
+  $("workBtn").disabled=working||state.stage>=STAGES.length-1;$("workBtn").textContent=working?"작업 중…":state.stage>=STAGES.length-1?"완공":"작업 시작";
+  $("supplyBtn").disabled=working;$("maintainBtn").disabled=working;renderTimeline()
 }
 
-$("workBtn").onclick=runWork;$("supplyBtn").onclick=supply;$("maintainBtn").onclick=maintain;$("saveBtn").onclick=save;$("resetBtn").onclick=reset;
-renderAll();
+// THREE.JS
+const canvas=$("threeCanvas"),viewport=$("viewport");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xb7cdd1);scene.fog=new THREE.Fog(0xb7cdd1,28,62);
+const camera=new THREE.PerspectiveCamera(35,1,.1,120);camera.position.set(18,15,22);
+const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.target.set(0,2,0);controls.minDistance=16;controls.maxDistance=34;controls.maxPolarAngle=Math.PI*.47;controls.minPolarAngle=Math.PI*.22;controls.enablePan=false;
+
+scene.add(new THREE.HemisphereLight(0xe9f2f3,0x6a543d,1.9));
+const sun=new THREE.DirectionalLight(0xfff0d5,3.2);sun.position.set(-10,20,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-20;sun.shadow.camera.right=20;sun.shadow.camera.top=20;sun.shadow.camera.bottom=-20;scene.add(sun);
+
+const siteRoot=new THREE.Group();scene.add(siteRoot);
+const groundMat=new THREE.MeshStandardMaterial({color:0xa98b5d,roughness:1});
+const grassMat=new THREE.MeshStandardMaterial({color:0x6f8b56,roughness:1});
+const concreteMat=new THREE.MeshStandardMaterial({color:0x9d9f98,roughness:.85});
+const steelMat=new THREE.MeshStandardMaterial({color:0x4d5553,roughness:.42,metalness:.55});
+const darkSteel=new THREE.MeshStandardMaterial({color:0x343b38,roughness:.5,metalness:.65});
+const orangeMat=new THREE.MeshStandardMaterial({color:0xd08b2c,roughness:.55,metalness:.15});
+const bunkerMat=new THREE.MeshStandardMaterial({color:0x7b8079,roughness:.8});
+const glassMat=new THREE.MeshStandardMaterial({color:0x315b55,roughness:.25,metalness:.2});
+
+function mesh(geo,mat,x=0,y=0,z=0){
+  const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m
+}
+const base=mesh(new THREE.BoxGeometry(28,.8,22),groundMat,0,-.4,0);siteRoot.add(base);
+const grass=mesh(new THREE.BoxGeometry(28,.15,5),grassMat,0,.075,-8.5);siteRoot.add(grass);
+
+const construction=new THREE.Group();siteRoot.add(construction);
+function clearConstruction(){while(construction.children.length)construction.remove(construction.children[0])}
+function addPit(){
+  const pit=mesh(new THREE.BoxGeometry(12,.55,9),new THREE.MeshStandardMaterial({color:0x6f5037,roughness:1}),0,.08,0);construction.add(pit);
+  const rimMat=new THREE.MeshStandardMaterial({color:0x8e6b46,roughness:1});
+  construction.add(mesh(new THREE.BoxGeometry(14,.35,1),rimMat,0,.2,-5));construction.add(mesh(new THREE.BoxGeometry(14,.35,1),rimMat,0,.2,5));construction.add(mesh(new THREE.BoxGeometry(1,.35,9),rimMat,-6.5,.2,0));construction.add(mesh(new THREE.BoxGeometry(1,.35,9),rimMat,6.5,.2,0))
+}
+function addFoundation(){construction.add(mesh(new THREE.BoxGeometry(10,.65,7),concreteMat,0,.45,0))}
+function addFrame(){
+  const cols=[[-4,-2.5],[4,-2.5],[-4,2.5],[4,2.5]];
+  cols.forEach(([x,z])=>construction.add(mesh(new THREE.BoxGeometry(.38,5,.38),steelMat,x,3,z)));
+  [[-4,-2.5,4,-2.5],[-4,2.5,4,2.5],[-4,-2.5,-4,2.5],[4,-2.5,4,2.5]].forEach(([x1,z1,x2,z2])=>{
+    const len=Math.hypot(x2-x1,z2-z1),bar=mesh(new THREE.BoxGeometry(len,.32,.32),steelMat,(x1+x2)/2,5.35,(z1+z2)/2);bar.rotation.y=Math.atan2(z2-z1,x2-x1);construction.add(bar)
+  })
+}
+function addShell(){
+  const wallT=.35,h=3.9;construction.add(mesh(new THREE.BoxGeometry(9, h, wallT),bunkerMat,0,2.25,-3.3));construction.add(mesh(new THREE.BoxGeometry(9,h,wallT),bunkerMat,0,2.25,3.3));construction.add(mesh(new THREE.BoxGeometry(wallT,h,6.3),bunkerMat,-4.3,2.25,0));construction.add(mesh(new THREE.BoxGeometry(wallT,h,6.3),bunkerMat,4.3,2.25,0));
+  construction.add(mesh(new THREE.BoxGeometry(9,.42,6.6),bunkerMat,0,4.2,0))
+}
+function addSystems(){
+  const panel=mesh(new THREE.BoxGeometry(2.4,1.5,.2),glassMat,0,2.1,-3.55);construction.add(panel);
+  for(let i=-2;i<=2;i++){const vent=mesh(new THREE.CylinderGeometry(.18,.18,2.2,16),darkSteel,i*1.2,5.3,0);vent.rotation.z=Math.PI/2;construction.add(vent)}
+}
+
+const machines=new THREE.Group();siteRoot.add(machines);
+function addExcavator(){
+  const g=new THREE.Group();g.position.set(-8,.6,4);
+  const track=mesh(new THREE.BoxGeometry(3,.45,1.5),darkSteel);g.add(track);const body=mesh(new THREE.BoxGeometry(1.8,1.1,1.3),orangeMat,0,.75,0);g.add(body);const cab=mesh(new THREE.BoxGeometry(.85,.8,1.05),glassMat,.35,1.45,0);g.add(cab);
+  const boom=mesh(new THREE.BoxGeometry(3,.22,.22),orangeMat,1.8,2.1,0);boom.rotation.z=.55;g.add(boom);const arm=mesh(new THREE.BoxGeometry(2.2,.18,.18),orangeMat,3.8,2.8,0);arm.rotation.z=-.25;g.add(arm);machines.add(g);return g
+}
+function addCrane(){
+  const g=new THREE.Group();g.position.set(8,.5,-3);
+  g.add(mesh(new THREE.BoxGeometry(3,.5,1.7),darkSteel));g.add(mesh(new THREE.BoxGeometry(1.8,1.2,1.4),orangeMat,0,1,0));
+  const mast=mesh(new THREE.BoxGeometry(.35,8,.35),darkSteel,0,5,0);g.add(mast);
+  const boom=mesh(new THREE.BoxGeometry(8,.22,.22),orangeMat,-3,8.5,0);boom.rotation.z=.18;g.add(boom);
+  const cable=mesh(new THREE.CylinderGeometry(.025,.025,4,8),darkSteel,-5.5,6.2,0);g.add(cable);const hook=mesh(new THREE.BoxGeometry(.3,.45,.3),orangeMat,-5.5,4.1,0);g.add(hook);machines.add(g);return {group:g,hook,cable}
+}
+const excavator=addExcavator();const crane=addCrane();
+
+function syncScene(){
+  clearConstruction();machines.visible=true;excavator.visible=state.stage<=3;crane.group.visible=state.stage>=4&&state.stage<=6;
+  if(state.stage>=2)addPit();if(state.stage>=4)addFoundation();if(state.stage>=5)addFrame();if(state.stage>=6)addShell();if(state.stage>=7)addSystems();
+  if(state.stage>=8){crane.group.visible=false;excavator.visible=false}
+}
+syncScene();
+
+function resize(){
+  const r=viewport.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()
+}
+new ResizeObserver(resize).observe(viewport);resize();
+
+let t=0;
+function animate(){
+  requestAnimationFrame(animate);t+=.016;controls.update();
+  if(excavator.visible){excavator.rotation.y=Math.sin(t*.35)*.035}
+  if(crane.group.visible){crane.hook.position.y=4.1+Math.sin(t*.9)*.3}
+  renderer.render(scene,camera)
+}
+animate();
+
+$("workBtn").onclick=runWork;$("supplyBtn").onclick=supply;$("maintainBtn").onclick=maintain;$("resetBtn").onclick=resetGame;
+renderUI();
