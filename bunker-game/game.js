@@ -1,5 +1,5 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const SAVE_KEY="pixel-bunker-project-v2";
 const STAGES=[
@@ -22,17 +22,17 @@ const state=load();
 let working=false;
 
 function load(){
-  const base={stage:0,progress:0,money:120000,fuel:100,steel:24,concrete:32,safety:92,quality:88,equipment:100,weather:0,day:1,hour:8,event:"현장 통제실 연결 완료."};
+  const base={stage:0,progress:0,completed:false,money:120000,fuel:100,steel:24,concrete:32,safety:92,quality:88,equipment:100,weather:0,day:1,hour:8,event:"현장 통제실 연결 완료."};
   try{return {...base,...JSON.parse(localStorage.getItem(SAVE_KEY)||"null")}}catch{return base}
 }
 function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
 function stage(){return STAGES[Math.min(state.stage,STAGES.length-1)]}
 function canAfford(cost){return Object.entries(cost).every(([k,v])=>state[k]>=v)}
 function pay(cost){Object.entries(cost).forEach(([k,v])=>state[k]-=v)}
-function overall(){return Math.round(((state.stage+state.progress/100)/(STAGES.length-1))*100)}
+function overall(){if(state.completed)return 100;return Math.round(((state.stage+state.progress/100)/STAGES.length)*100)}
 function tickTime(){state.hour+=2;if(state.hour>=18){state.day++;state.hour=8;state.weather=Math.floor(Math.random()*WEATHER.length)}}
 function runWork(){
-  if(working||state.stage>=STAGES.length-1)return;
+  if(working||state.completed)return;
   const s=stage();
   if(!canAfford(s.cost)){state.event="자원이 부족합니다. 보급을 진행하세요.";renderUI();return}
   pay(s.cost);working=true;state.progress=0;state.event=s.task+" 작업 시작.";
@@ -43,8 +43,13 @@ function runWork(){
     renderUI();
     if(state.progress>=100){
       clearInterval(timer);working=false;
-      state.stage=Math.min(STAGES.length-1,state.stage+1);state.progress=0;tickTime();
-      state.quality=Math.min(100,state.quality+1);state.event="공정 완료. 다음 단계로 이동합니다.";save();syncScene();renderUI();
+      if(state.stage<STAGES.length-1){
+        state.stage++;state.progress=0;state.event="공정 완료. 다음 단계로 이동합니다.";
+      }else{
+        state.completed=true;state.progress=100;state.event="PROJECT COMPLETE — 최종 검사 승인 완료.";
+      }
+      tickTime();
+      state.quality=Math.min(100,state.quality+1);save();syncScene();renderUI();
     }
   },180);
 }
@@ -75,9 +80,9 @@ function renderUI(){
   $("overallValue").textContent=Math.min(100,overall())+"%";$("weatherTop").textContent=weather.label;$("clockTop").textContent=`DAY ${String(state.day).padStart(2,"0")} · ${String(state.hour).padStart(2,"0")}:00`;
   $("moneyValue").textContent="₩"+Math.round(state.money).toLocaleString("ko-KR");$("fuelValue").textContent=Math.round(state.fuel);$("steelValue").textContent=Math.round(state.steel);$("concreteValue").textContent=Math.round(state.concrete);
   $("safetyMeter").value=state.safety;$("safetyText").textContent=Math.round(state.safety);$("qualityMeter").value=state.quality;$("qualityText").textContent=Math.round(state.quality);$("equipmentMeter").value=state.equipment;$("equipmentText").textContent=Math.round(state.equipment);
-  $("taskTitle").textContent=s.task;$("taskDesc").textContent=s.desc;$("eventLog").textContent=state.event;$("taskProgress").style.width=state.progress+"%";
-  $("taskCosts").innerHTML=Object.entries(s.cost).map(([k,v])=>`<span>${({money:"예산",fuel:"연료",steel:"강재",concrete:"콘크리트"})[k]} ${k==="money"?"₩"+v.toLocaleString():v}</span>`).join("");
-  $("workBtn").disabled=working||state.stage>=STAGES.length-1;$("workBtn").textContent=working?"작업 중…":state.stage>=STAGES.length-1?"완공":"작업 시작";
+  $("taskTitle").textContent=state.completed?"시설 승인 완료":s.task;$("taskDesc").textContent=state.completed?"모든 주요 공정과 최종 검사가 완료되었습니다.":s.desc;$("eventLog").textContent=state.event;$("taskProgress").style.width=(state.completed?100:state.progress)+"%";
+  $("taskCosts").innerHTML=state.completed?"":Object.entries(s.cost).map(([k,v])=>`<span>${({money:"예산",fuel:"연료",steel:"강재",concrete:"콘크리트"})[k]} ${k==="money"?"₩"+v.toLocaleString():v}</span>`).join("");
+  $("workBtn").disabled=working||state.completed;$("workBtn").textContent=working?"작업 중…":state.completed?"완공":"작업 시작";
   $("supplyBtn").disabled=working;$("maintainBtn").disabled=working;renderTimeline()
 }
 
