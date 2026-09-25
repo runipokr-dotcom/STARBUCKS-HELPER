@@ -18,6 +18,51 @@
   - `bunker-game/assets/README.md`
 - 기존 공개 URL `/bunker-game/`, HELPER PIN 예외, QR 카탈로그 및 업무 데이터에는 영향 금지.
 
+
+### 작업 후 기록
+- v0.3 렌더 시퀀스 기반으로 실제 전환 완료.
+- 신규:
+  - `bunker-game/app.js`
+  - `bunker-game/data/phases.json`
+  - `bunker-game/data/animations.json`
+  - `bunker-game/assets/README.md`
+- `index.html`:
+  - Three.js import map / game.js 연결 제거.
+  - phase 배경용 `stageBg` + 프레임 재생용 `seqCanvas` 2-layer viewport로 변경.
+  - `app.js?v=3` 사용.
+- `styles.css`:
+  - 배경 렌더 이미지 cover 레이어.
+  - 투명 장비 프레임 canvas overlay.
+  - 1프레임 HUD 레이아웃 유지.
+- `phases.json`:
+  - 조사 / 굴착 / 기초 / 철골 / 쉘 / 설비 / 완공 단계별 배경, 비용, 연결 animation key 정의.
+- `animations.json`:
+  - 굴착기 36프레임 / 크레인 인양 40프레임 / 크레인 설치 42프레임.
+  - FPS와 화면 상대 좌표/크기를 데이터로 분리.
+- `app.js`:
+  - JSON 기반 phase/animation 로딩.
+  - 이미지 시퀀스 preload + canvas 프레임 재생.
+  - 실제 렌더 자산 누락 시 fallback 애니메이션으로 정상 진행.
+  - localStorage v3 저장, 자원/보급/정비/최종완공 유지.
+- 자산 naming:
+  - `excavator_dig_0001.webp ... 0036.webp`
+  - `crane_lift_0001.webp ... 0040.webp`
+  - `crane_install_0001.webp ... 0042.webp`
+- 공개 게임 페이지 auth-gate 미적용 유지.
+- 정적 READBACK 검수:
+  - app.js v3 연결 / Three.js 연결 제거 / bg + seq canvas / JSON 파싱 / animation key / fallback / 4자리 프레임 naming / PIN 예외 확인.
+- 공개 GitHub Pages URL은 웹 검증 도구에서 접근 불가하여 실브라우저 렌더는 미검증.
+- commit:
+  - phases `dbc182e0247eb351d07e06503c3f9a5743b41871`
+  - animations `d277cb0197b822f3ba3c3a65c4baf8e0527208fc`
+  - app.js `dcd1330e226e56a7c275502563762497d1cf9bf2`
+  - asset guide `0a7fbdad2ebc8d9bb9a577ac265367ca2fd2f675`
+  - HTML `d07ff004bb046b37f28669220a92088ac1e66395`
+  - CSS `66466acb88b2df32ef24e4557c201561789ccb81`
+  - README `20dfbbb9809e89337e9ceba4efaeebb317ae9b5d`
+- 다음 단계는 실제 렌더 자산 제작/투입. 코드 구조는 자산 교체만으로 동작하도록 준비 완료.
+
+
 ## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.2 버그픽스)
 
 ### 작업 전 기록
