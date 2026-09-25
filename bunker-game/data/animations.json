@@ -1,0 +1,5 @@
+{
+  "excavator_dig":{"path":"assets/anim/excavator_dig/","prefix":"excavator_dig_","ext":"webp","start":1,"end":36,"fps":24,"loop":false,"x":0.07,"y":0.34,"width":0.48,"height":0.48},
+  "crane_lift":{"path":"assets/anim/crane_lift/","prefix":"crane_lift_","ext":"webp","start":1,"end":40,"fps":24,"loop":false,"x":0.50,"y":0.04,"width":0.42,"height":0.72},
+  "crane_install":{"path":"assets/anim/crane_install/","prefix":"crane_install_","ext":"webp","start":1,"end":42,"fps":24,"loop":false,"x":0.50,"y":0.04,"width":0.42,"height":0.72}
+}
