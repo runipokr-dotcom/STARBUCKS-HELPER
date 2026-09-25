@@ -1,5 +1,31 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (휴대폰 잠금화면형 6자리 PIN UI)
+
+### 작업 전/후 기록
+- 사용자 요청: 기존 브라우저 `prompt()` 비밀번호 입력을 휴대폰 잠금 해제처럼 6자리 숫자 PIN UI로 변경.
+- 비밀번호 값은 기존 `999999` 유지. 저장 해시 변경 없음.
+- 신규 `pin-pad.js`:
+  - 6개 점 표시.
+  - 0~9 원형 숫자 키패드.
+  - ⌫ 한 자리 삭제.
+  - 6자리 입력 즉시 인증 확인.
+  - 오답 시 짧은 흔들림 + 입력 초기화.
+- `auth-gate.js`:
+  - 기존 `window.prompt()` 루프 제거.
+  - `pin-pad.js`를 로드한 뒤 PIN UI 콜백으로 기존 SHA-256 검증 로직 사용.
+  - 성공 시 기존 sessionStorage 인증 유지.
+  - 3회 실패 또는 '상품 카탈로그로 이동' 선택 시 공개 QR 카탈로그로 이동.
+- READBACK:
+  - auth-gate → PIN pad 연결 확인.
+  - pin-pad UI 파일 존재 확인.
+  - `share.html`에는 auth-gate 미삽입 상태 유지.
+- QR 공개 URL `share.html?id=c6xxh9` 변경 없음.
+- 상품/쿠폰/Firestore 데이터 변경 없음.
+- commit: PIN UI `88469ce09d2893fc674f6839ce7411ecd1e3a6ae`, 연결 `4419ea8012e85890a05dd550a4be8ff3c7ffe926`.
+
+---
+
 ## 2026-09-25 — ChatGPT (HELPER 내부 비밀번호 변경)
 
 ### 작업 전/후 기록
