@@ -1,5 +1,23 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (HELPER 내부 접근 비밀번호 적용 완료)
+
+### 작업 후 기록
+- 신규 `auth-gate.js`: 내부 HELPER용 정적 비밀번호 게이트.
+- 저장소에는 비밀번호 평문을 넣지 않고 SHA-256 해시만 저장.
+- 같은 탭 세션에서 한 번 통과하면 `sessionStorage`로 내부 페이지 이동 시 재입력하지 않음.
+- 비밀번호 3회 실패 또는 취소 시 공개 고객 카탈로그 `share.html?id=c6xxh9`로 이동.
+- 보호 적용 HTML 15개:
+  - index, calculate, catalog-editor, catalog-preview, coupon1/2/3, image-arrange, image-extractor, image-maker, md-extractor, price, prompt, quote, territory-game.
+- **share.html은 auth-gate 미삽입 / 공개 유지**를 READBACK으로 확인.
+- QR 고정 URL 및 shareId 변경 없음.
+- 상품/쿠폰/Firestore 데이터 변경 없음.
+- 보안 한계: GitHub Pages 정적 게이트이므로 일반 접근 차단/오접근 방지용. 저장소가 public이라 소스 분석까지 막는 강한 인증은 아님. 강한 보안이 필요하면 서버 인증으로 별도 이전 필요.
+- 주요 커밋: auth-gate `f274be16c9f5ce29b208b4f9bb0056cd728cbcaf`, index 적용 `da5f823bae4f8349bdc791c2214b5b43bd9f454b` 등 각 내부 HTML 순차 반영.
+- START_HERE 정책 반영 commit: `0a6e45730e4487116ea9d538b374de95623ab1a8`.
+
+---
+
 ## 2026-09-25 — ChatGPT (HELPER 내부 비밀번호 게이트 착수)
 
 ### 작업 전 기록
