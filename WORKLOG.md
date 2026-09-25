@@ -18,6 +18,29 @@
   - 외부 의존성은 Three.js CDN 1개만 사용하고 빌드 도구 없음.
 - 기존 QR 카탈로그, HELPER PIN, 상품/쿠폰/Firestore 데이터에는 영향 금지.
 
+
+### 작업 후 기록
+- `bunker-game/index.html`: 1440×900 기준 한 화면 1프레임 대시보드 구조로 전면 재배치. 좌측 토질/장비, 중앙 3D viewport, 우측 timeline/status, 하단 operation console.
+- `bunker-game/styles.css`: 데스크톱은 스크롤 없는 고정형 웹퍼블리싱 프레임, 1050/760/500px 브레이크포인트에서 100dvh 안에 재배치.
+- `bunker-game/game.js`: 기존 2D Canvas 렌더를 Three.js로 교체.
+  - PerspectiveCamera + OrbitControls.
+  - Hemisphere/Directional light, soft shadow, fog, ACES tone mapping.
+  - low-poly primitive 기반 굴착기/크레인/지형/기초/철골/벙커 쉘/설비.
+  - 공정 단계에 따라 실제 3D 구조물과 장비 visibility가 변경.
+  - 드래그 회전 / 휠 줌.
+  - 자원/안전/품질/장비/날씨/시간/localStorage 세이브 유지.
+- 외부 의존성은 Three.js CDN만 사용. 별도 빌드 과정 없음.
+- 공개 게임 페이지이므로 auth-gate/PIN 미적용 유지.
+- 기존 HELPER/QR 카탈로그/상품·쿠폰·Firestore 데이터 변경 없음.
+- READBACK: module script, 1-frame CSS, Three.js import, OrbitControls, stage scene swap, 공개 예외 확인.
+- v0.2 commit:
+  - HTML `c8819efe2b00d8133b70006c6ff2595373955a49`
+  - CSS `f3034da87a4b300e3439f986905dfc2b137a289f`
+  - Three.js `3193a4fee508703e1036cc7598556e32507c8df4`
+  - README `ecc7a073f621cbe3f2f703d655ee81f4d333d03d`
+- 다음 품질 업그레이드: 실제 GLB 장비 모델/PBR 텍스처/환경광/포스트프로세싱으로 광고형 3D 렌더 퀄리티 강화.
+
+
 ## 2026-09-25 — ChatGPT (PIXEL BUNKER 웹게임 프로젝트 착수)
 
 ### 작업 전 기록
