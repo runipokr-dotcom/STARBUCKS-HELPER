@@ -1,5 +1,11 @@
 # STARBUCKS HELPER 협업 규칙
 
+## START HERE HARD RULE
+- [START_HERE_READ_FIRST] HELPER 관련 업무는 반드시 루트의 `START_HERE.md`를 **가장 먼저** 읽고 현재 운영 기준, 반복 금지 실수, 살아있는 이슈를 확인한다.
+- [WORKLOG_SECOND] 그 다음 `WORKLOG.md` 최신 항목을 읽는다. 과거 WORKLOG와 현재 main 코드가 충돌하면 실제 코드와 최신 사용자 확정사항을 교차검사한다.
+- `START_HERE.md`의 확정 규칙이 바뀌면 해당 파일과 WORKLOG를 함께 갱신한다.
+
+
 ## 역할 분리 HARD RULE
 - [COUPON_INSTRUCTION_ROLE] `COUPON_WORK_INSTRUCTIONS.md`와 `image-extractor.html`이 생성하는 프롬프트는 **쿠폰 추출·검수·크롭·서버 반영 실행용 작업지시서**다. 쿠폰 실작업 방법만 관리한다.
 - [WORKLOG_GLOBAL_ROLE] `WORKLOG.md`는 **STARBUCKS HELPER 전반의 공용 작업일지**다. 쿠폰뿐 아니라 카탈로그, 공유페이지, 계산기, 서버, 데이터, UI, 버그수정, 성능개선, 배포, 운영정책 등 HELPER 관련 모든 업무를 기록한다.
