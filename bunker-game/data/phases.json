@@ -1,0 +1,9 @@
+[
+  {"id":"survey","title":"부지 조사","task":"기준점 측량","description":"부지 경계와 기준고를 설정합니다.","background":"assets/bg/phase_01_site.webp","animation":null,"cost":{"money":2500,"fuel":1}},
+  {"id":"excavation","title":"굴착","task":"포크레인 굴착","description":"굴착기가 토사를 걷어내고 바닥 레벨을 만듭니다.","background":"assets/bg/phase_02_excavation.webp","animation":"excavator_dig","cost":{"money":9800,"fuel":14}},
+  {"id":"foundation","title":"기초 타설","task":"슬래브 타설","description":"철근 배근 후 기초 슬래브를 타설합니다.","background":"assets/bg/phase_03_foundation.webp","animation":null,"cost":{"money":11000,"steel":5,"concrete":10}},
+  {"id":"steel","title":"철골 세우기","task":"타워크레인 인양","description":"철골 부재를 인양해 주기둥과 보를 설치합니다.","background":"assets/bg/phase_04_steel.webp","animation":"crane_lift","cost":{"money":9800,"fuel":8,"steel":8}},
+  {"id":"shell","title":"벙커 쉘","task":"외벽 시공","description":"차폐 외벽과 지붕 구조를 완성합니다.","background":"assets/bg/phase_05_shell.webp","animation":"crane_install","cost":{"money":12500,"steel":4,"concrete":10}},
+  {"id":"systems","title":"설비","task":"전력·환기","description":"전력, 환기, 필터 시스템을 설치합니다.","background":"assets/bg/phase_06_system.webp","animation":null,"cost":{"money":10200}},
+  {"id":"complete","title":"완공","task":"최종 검사","description":"구조·안전·설비 체크리스트를 완료합니다.","background":"assets/bg/phase_07_complete.webp","animation":null,"cost":{"money":4000}}
+]
