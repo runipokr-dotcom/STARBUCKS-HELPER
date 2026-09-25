@@ -15,6 +15,29 @@
   - 완공 후 UI/scene/진행률이 100%로 일관되게 표시.
 - 공개 게임 URL, HELPER PIN, QR 카탈로그, 상품/쿠폰/Firestore 데이터는 변경하지 않는다.
 
+
+### 작업 후 기록
+- Three.js 모듈 로딩 수정:
+  - `bunker-game/index.html`에 import map 추가.
+  - `three` / `three/addons/` 경로를 jsDelivr CDN에 매핑.
+  - `game.js`는 bare import `three`, `three/addons/controls/OrbitControls.js`를 사용하도록 변경.
+  - 목적: OrbitControls 내부의 bare specifier를 브라우저가 해석하지 못해 3D 씬이 로드 실패할 수 있는 문제 방지.
+- 최종 공정 로직 수정:
+  - 저장 state에 `completed:false` 기본값 추가.
+  - 마지막 stage 도달만으로 작업 버튼을 막지 않고 **최종 검사 작업까지 실제 실행** 가능.
+  - 최종 검사 완료 후에만 `completed=true`, 진행률 100%, 작업 버튼 `완공` 상태로 전환.
+  - 전체 공정률 계산을 9개 stage 기준으로 수정해 마지막 stage 진입만으로 100%가 되던 문제 해결.
+  - 기존 v2 저장 데이터에 completed 필드가 없어도 기본값 병합으로 계속 사용 가능.
+- READBACK 정적검수:
+  - import map / module script / Three.js bare import / OrbitControls addon 경로 확인.
+  - completed 기본값 / 최종검사 실행조건 / 완료처리 / 100% 진행률 확인.
+  - `bunker-game/index.html`에 auth-gate가 없는 공개 페이지 상태 유지 확인.
+- 공개 GitHub Pages URL은 현재 웹 검증 도구에서 직접 접근할 수 없어 실브라우저 렌더 확인은 미검증. 소스/배포 구조 기준 검수 완료.
+- commit:
+  - import map `9a396f96cfa90f2379c589dc1b4de9555d95cabb`
+  - completion flow `65bf3ccb7712bf83e4f947a5a09e87f3e225224c`
+
+
 ## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.2 1-frame 3D rebuild)
 
 ### 작업 전 기록
