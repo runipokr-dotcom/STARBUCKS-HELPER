@@ -1,5 +1,17 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (QR 카탈로그 주소 고정 규칙 추가)
+
+### 작업 전/후 기록
+- 사용자 확인 요청: 앞서 QR로 만든 HELPER 상품 카탈로그 주소가 최근 최적화/버그수정으로 바뀌지 않았는지 확인하고, 앞으로도 실수로 변경되지 않게 할 것.
+- 확인한 운영 URL: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=c6xxh9`.
+- 최근 최적화 기준 commit `0c73cc2...` 이후 최종 `8371205...`까지 변경 파일을 compare한 결과 `share.html`은 변경 대상이 아니며, `shareId`/공개 카탈로그 URL 변경도 없음.
+- `START_HERE.md`에 QR 고정 URL HARD RULE 추가: 사용자가 명시적으로 요청하지 않는 한 `shareId=c6xxh9`, `share.html` 경로, GitHub Pages 프로젝트 경로 변경 금지. 카탈로그 수정 후 기존 QR URL 동작 확인을 회귀검수 항목으로 포함.
+- 기능/상품/쿠폰/Firestore 데이터 변경 없음.
+- START_HERE 규칙 commit: `4ad1fd67d9e4f65d9fd7216f0e1eb452d6ef6136`.
+
+---
+
 ## 2026-09-25 — ChatGPT (START_HERE 도입 + 카탈로그 체감 성능 최적화 착수)
 
 ### 작업 전 기록
