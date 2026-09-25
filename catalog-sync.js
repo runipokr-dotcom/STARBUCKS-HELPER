@@ -198,6 +198,10 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     return next;
   }
 
+  function catalogSignature(value) {
+    try { return JSON.stringify(value || ""); } catch { return ""; }
+  }
+
   function productFingerprint() {
     try {
       return JSON.stringify(
@@ -213,6 +217,13 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     applyingRemote = true;
     try {
       const next = normalizeIncomingData(incoming);
+      const incomingSignature = catalogSignature(next);
+      const currentSignature = catalogSignature(cloudSafeData());
+      if (incomingSignature && incomingSignature === currentSignature) {
+        localStorage.setItem(SYNC_STAMP_KEY, String(stamp || now()));
+        lastCloudSignature = incomingSignature;
+        return;
+      }
       for (const key of Object.keys(data)) delete data[key];
       Object.assign(data, next);
       applyCategoryPriorityOrder();
@@ -220,7 +231,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       localStorage.setItem(KEY, JSON.stringify(data));
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp || now()));
       if (typeof render === "function") render();
-      try { lastCloudSignature = JSON.stringify(cloudSafeData() || ""); } catch {}
+      lastCloudSignature = catalogSignature(cloudSafeData());
       renderQueue(latestQueue);
     } catch (error) {
       console.error("[catalog-sync] apply remote", error);
@@ -233,8 +244,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     if (!initialized || applyingRemote || !ref) return;
     const catalogData = cloudSafeData();
     if (!catalogData) return;
-    let signature = "";
-    try { signature = JSON.stringify(catalogData); } catch {}
+    const signature = catalogSignature(catalogData);
     if (signature && signature === lastCloudSignature) {
       updateSyncBadge("동기화됨", "ok");
       return;
@@ -591,6 +601,11 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       const cloudStamp = Number(cloud?.catalogUpdatedAt || 0);
       const localCount = safeArray(data.products).length;
       const cloudCount = safeArray(cloud?.catalogData?.products).length;
+      if (cloud?.catalogData) {
+        const localSignature = catalogSignature(cloudSafeData());
+        const cloudSignature = catalogSignature(normalizeIncomingData(cloud.catalogData));
+        if (localSignature && localSignature === cloudSignature) lastCloudSignature = localSignature;
+      }
 
       initialized = true;
       updateSyncBadge("연결됨", "ok");
