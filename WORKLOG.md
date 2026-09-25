@@ -1,5 +1,25 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (START_HERE 도입 + 카탈로그 체감 성능 최적화 착수)
+
+### 작업 전 기록
+- 사용자 목적: WORKLOG는 단순 역사 기록이 아니라 **반복 실수를 막기 위한 운영 기억장치**다. ChatGPT Work / GPT-6 Sol / Codex / Claude가 HELPER 작업 전 핵심 흐름·금지사항·현재 이슈를 즉시 읽을 수 있도록 루트에 별도 `START_HERE.md`를 둔다.
+- `AGENTS.md`, `CLAUDE.md`에서 HELPER 작업 전 `START_HERE.md` → `WORKLOG.md` 최신 항목 순으로 읽도록 강제한다.
+- 사용자 정정: **쿠폰3 서버는 별도 양식이며 Coupon No. 16자리가 정상**이다. 17자리 규칙은 쿠폰1/2 계열에 적용하며 쿠폰3의 16자리를 오류로 취급하거나 자동 보정하지 않는다.
+- 카탈로그 문제: 상품 업데이트가 누적될수록 `catalog-editor.html`에서 수정/업데이트 시 로딩이 길어지는 체감 문제가 지속됨. 기존 기능·데이터 구조·디자인을 유지하면서 성능을 우선 개선한다.
+- 실제 병목 확인:
+  - `autosave()`마다 전체 catalog를 JSON.stringify해 localStorage 저장.
+  - cloud sync는 autosave마다 450ms debounce 후 전체 catalog를 deep clone/정규화하여 Firestore에 전송.
+  - 판매가/매입가 변경도 전체 `render()`를 호출해 모든 상품 카드 DOM을 재생성.
+  - 이미지 이전/다음도 전체 `render()` 호출.
+- 이번 최소 수정 목표:
+  1. `START_HERE.md` 도입 및 작업자 필수 진입점 고정.
+  2. `index.html` 서버 표시 토글의 실제 중복 listener 버그 수정.
+  3. 카탈로그 연속 변경 cloud write를 더 크게 묶고 동일 payload 재전송 방지.
+  4. 판매가/매입가 및 이미지 이전/다음처럼 전체 DOM 재생성이 필요 없는 변경은 카드 단위 갱신.
+- 보존: 상품 데이터, 정렬/필터/카테고리/태그/가격 계산식, PC 로컬 추출, 모바일 링크 큐, 이미지 재검수, 고객 공유, Firestore 문서 구조, UI 디자인 전부 유지.
+- 이번 단계에서는 Firestore Security Rules 구조 변경은 하지 않는다. 보안 개편은 인증/공개 share 영향이 커 별도 단계로 진행한다.
+
 ## 2026-09-25 — ChatGPT (HELPER 전반 감사 / 업무·Work 이미지 컨텍스트 통합)
 
 ### 작업 전 기록
