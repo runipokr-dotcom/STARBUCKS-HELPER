@@ -1400,6 +1400,25 @@ Fixed : mobile two-column cards / autosave after product edits
         renderFilters();
         basket();
       }
+      function refreshProductCard(card, p) {
+        if (!card || !p) return;
+        const sale = card.querySelector(".field.sale");
+        const cost = card.querySelector(".field.cost");
+        const offer = card.querySelector(".field.offer");
+        const web = card.querySelector(".web-price");
+        if (sale) sale.value = `판매가 ${money(p.sale)}`;
+        if (cost) cost.value = `매입가 ${money(p.cost)}`;
+        if (offer) offer.value = `제안가 ${money(p.offer)}`;
+        if (web) web.textContent = `웹판매가 ${money(calcWebPrice(p.cost))}`;
+        basket();
+      }
+      function refreshProductPhoto(card, p) {
+        if (!card || !p || !p.images?.length) return;
+        const img = card.querySelector(".photo img");
+        const count = card.querySelector(".photo .count");
+        if (img) img.src = imageSrc(p.images[p.current || 0] || "");
+        if (count) count.textContent = `${(p.current || 0) + 1}/${p.images.length}`;
+      }
       function bind() {
         document.querySelectorAll(".product").forEach((card) => {
           let i = +card.dataset.i,
@@ -1419,13 +1438,13 @@ Fixed : mobile two-column cards / autosave after product edits
             prev.onclick = () => {
               p.current = (p.current - 1 + p.images.length) % p.images.length;
               autosave();
-              render();
+              refreshProductPhoto(card, p);
             };
           if (next)
             next.onclick = () => {
               p.current = (p.current + 1) % p.images.length;
               autosave();
-              render();
+              refreshProductPhoto(card, p);
             };
           card.querySelectorAll(".field").forEach(
             (f) =>
@@ -1445,7 +1464,8 @@ Fixed : mobile two-column cards / autosave after product edits
                 }
                 touch(p);
                 autosave();
-                if (f.dataset.k === "name" || f.dataset.k === "sale" || f.dataset.k === "cost") render();
+                if (f.dataset.k === "name") render();
+                else if (f.dataset.k === "sale" || f.dataset.k === "cost") refreshProductCard(card, p);
                 else basket();
               }),
           );
@@ -1883,6 +1903,6 @@ Fixed : mobile two-column cards / autosave after product edits
       render();
     </script>
     <script src="catalog-online-import.js?v=20260904-4"></script>
-    <script src="catalog-sync.js?v=20260904-4"></script>
+    <script src="catalog-sync.js?v=20260925-1"></script>
   </body>
 </html>
