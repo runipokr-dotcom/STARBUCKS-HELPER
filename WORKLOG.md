@@ -1,5 +1,20 @@
 # WORKLOG
 
+## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.2 버그픽스)
+
+### 작업 전 기록
+- 사용자 요청: PIXEL BUNKER v0.2 버그픽스.
+- 실제 코드 재검토에서 우선 수정 대상 확인:
+  1. Three.js CDN에서 `OrbitControls.js`를 직접 URL import하면 해당 모듈 내부의 bare specifier `three`를 브라우저가 해석하지 못할 수 있어 GitHub Pages에서 3D 씬이 로드 실패할 가능성이 있음.
+  2. 마지막 `완공 / 최종 검사` 스테이지에 도달하면 현재 조건 `state.stage >= STAGES.length - 1` 때문에 작업 버튼이 바로 비활성화되어 최종 검사를 실제로 수행할 수 없음.
+  3. 완공 상태를 stage index만으로 표현해 마지막 단계 도달과 실제 완료가 구분되지 않음.
+- 수정 목표:
+  - import map 기반 Three.js / addons 로딩으로 GitHub Pages 정적 배포 호환성 확보.
+  - `completed` 상태를 별도 관리해 마지막 최종 검사까지 실제 실행 후 완료 처리.
+  - 기존 저장 데이터(v2)에 `completed`가 없어도 기본값으로 안전하게 병합.
+  - 완공 후 UI/scene/진행률이 100%로 일관되게 표시.
+- 공개 게임 URL, HELPER PIN, QR 카탈로그, 상품/쿠폰/Firestore 데이터는 변경하지 않는다.
+
 ## 2026-09-25 — ChatGPT (PIXEL BUNKER v0.2 1-frame 3D rebuild)
 
 ### 작업 전 기록
