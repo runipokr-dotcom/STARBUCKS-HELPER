@@ -75,6 +75,12 @@ STARBUCKS HELPER는 단순 쿠폰 페이지가 아니라 디스이스마인 운�
 - **공개 웹게임 예외:** `bunker-game/`은 외부 퍼블리싱용 독립 정적 웹게임이므로 auth-gate/PIN을 넣지 않는다. HELPER 내부 데이터나 Firebase 문서에 의존시키지 않는다.
 - 게임 공개 주소: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/bunker-game/`.
 
+### 3서버 우선 보호 (2026-09-28)
+- `coupon3.html`은 Firebase 비밀번호 로그인 후 지정 소유자 UID만 사용한다. 기존 화면 PIN과 별개이며 비밀번호를 소스에 저장하지 않는다.
+- 카드 목록은 `privateCouponData/server3`에서 인증 후 읽는다. 신규 카드번호/등록코드를 GitHub 또는 정적 JSON에 추가하지 않는다.
+- 3서버 완료/메모 및 legacy 작업 문서도 소유자 UID만 접근한다. 다른 HELPER 데이터의 접근 제한은 아직 완료되지 않았다.
+- 기존 `coupons3.json` 52건은 비공개 이전 READBACK 완료 후 공개본에서 제거할 예정. 이전 검증 전 임의 삭제 금지.
+
 ## 5. 현재 중요 이슈
 1. Firestore Security Rules가 내부 작업 데이터와 공개 share를 충분히 분리하지 못하고 있음. 인증/공개범위 설계 후 별도 개편 필요.
 2. 카탈로그 편집이 데이터 증가와 함께 느려짐. 전체 stringify/write/render 최소화가 우선.
