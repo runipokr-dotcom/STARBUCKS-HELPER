@@ -79,7 +79,7 @@ STARBUCKS HELPER는 단순 쿠폰 페이지가 아니라 디스이스마인 운�
 - `coupon3.html`은 Firebase 비밀번호 로그인 후 지정 소유자 UID만 사용한다. 기존 화면 PIN과 별개이며 비밀번호를 소스에 저장하지 않는다.
 - 카드 목록은 `privateCouponData/server3`에서 인증 후 읽는다. 신규 카드번호/등록코드를 GitHub 또는 정적 JSON에 추가하지 않는다.
 - 3서버 완료/메모 및 legacy 작업 문서도 소유자 UID만 접근한다. 다른 HELPER 데이터의 접근 제한은 아직 완료되지 않았다.
-- 기존 `coupons3.json` 52건은 비공개 이전 READBACK 완료 후 공개본에서 제거할 예정. 이전 검증 전 임의 삭제 금지.
+- 기존 52건과 신규 20건은 비공개 저장소로 이전하고 READBACK 완료. `coupons3.json`은 호환용 빈 배열이며 홈의 3서버 현황도 인증 후 조회한다. 과거 공개본의 Git 이력/외부 사본은 남을 수 있다.
 
 ## 5. 현재 중요 이슈
 1. Firestore Security Rules가 내부 작업 데이터와 공개 share를 충분히 분리하지 못하고 있음. 인증/공개범위 설계 후 별도 개편 필요.
