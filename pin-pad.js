@@ -34,23 +34,46 @@
     const keys = root.querySelector(".keys");
     const msg = root.querySelector(".msg");
     const redraw = () => dots.forEach((dot, i) => dot.classList.toggle("on", i < pin.length));
+    let submitting = false;
 
     const press = value => {
       if (value === "back") pin = pin.slice(0, -1);
       else if (pin.length < 6) pin += value;
       redraw();
-      if (pin.length === 6) onComplete(pin, {
-        fail(text) {
-          msg.textContent = text || "비밀번호가 맞지 않습니다.";
-          root.classList.remove("shake");
-          void root.offsetWidth;
-          root.classList.add("shake");
-          pin = "";
-          redraw();
-        },
-        close() { root.remove(); }
-      });
+      if (pin.length === 6 && !submitting) {
+        submitting = true;
+        onComplete(pin, {
+          fail(text) {
+            submitting = false;
+            msg.textContent = text || "비밀번호가 맞지 않습니다.";
+            root.classList.remove("shake");
+            void root.offsetWidth;
+            root.classList.add("shake");
+            pin = "";
+            redraw();
+          },
+          close() {
+            document.removeEventListener("keydown", onKeyDown);
+            root.remove();
+          }
+        });
+      }
     };
+
+    const onKeyDown = event => {
+      if (!root.isConnected || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (/^[0-9]$/.test(event.key)) {
+        event.preventDefault();
+        press(event.key);
+      } else if (event.key === "Backspace") {
+        event.preventDefault();
+        press("back");
+      } else if (event.key === "Enter" && pin.length === 6) {
+        event.preventDefault();
+        press("");
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
 
     ["1","2","3","4","5","6","7","8","9","","0","back"].forEach(value => {
       if (!value) { keys.appendChild(document.createElement("span")); return; }
@@ -62,7 +85,10 @@
       keys.appendChild(button);
     });
 
-    root.querySelector(".exit").onclick = onExit;
+    root.querySelector(".exit").onclick = () => {
+      document.removeEventListener("keydown", onKeyDown);
+      onExit();
+    };
     document.body.appendChild(root);
   };
 })();
