@@ -22,7 +22,7 @@
 - 검수: 파이썬 컴파일, SSG 파서 픽스처 테스트(할인/정가 구분, &amp; 처리), 목업 응답으로 병합 로직 테스트(실패 판매처 직전 데이터 유지, firstSeen 유지) 통과. 샘플 JSON으로 discount.html PC/모바일(390px) 렌더링, JS 에러 0, javascript: 링크 차단 확인. index.html 카드 링크 확인, 기존 utility-card 순서 로직과 호환(새 카드는 클릭 수 0이라 맨 뒤).
 - 실데이터 확인(2026-09-30, 사용자 Mac 브라우저): 무신사 244개 중 7개 5% 할인, 29CM 299개/W컨셉 278개 할인 0, SSG 주방용품 할인 확인. GitHub Actions 서버 IP에서의 접근 가능 여부는 첫 실행 결과(discounts.json의 stores)로 확인 — 차단된 판매처는 discount.html에 "수집 실패"로 표시됨.
 - PC/모바일 영향: 홈에 카드 1개 추가뿐. 데이터 영향: 신규 discounts.json 외 기존 JSON/Firebase 무변경.
-- commit: Claude 클라우드 세션의 GitHub 연결에 쓰기 권한이 없어(403) Claude가 만든 패치(0001-feat-할인-레이더-추가.patch)를 Codex가 `git am`으로 적용·push. 적용 후 Codex가 이 줄에 commit SHA와 첫 Actions 실행 결과를 기입. 배포: GitHub Pages 자동.
+- commit: 기능 `3cd1a54762e29caa78e52945d8c301f0b81ae444` (`git am` 적용·main push 완료). 첫 Actions 실행 #1 성공, `discounts.json` 봇 커밋 `3a0891eb84bef07038f473dc4fdb0e506d395339`. stores: musinsa ok=true/error="" (244개 조회·7개 할인), 29cm ok=true/error="" (299개 조회·0개 할인), wconcept ok=true/error="" (278개 조회·0개 할인), ssg ok=true/error="" (260개 조회·58개 할인). 배포: GitHub Pages 자동.
 - 남은 일: 첫 Actions 실행 결과 확인 후 차단 판매처가 있으면 제외 또는 Mac 로컬 수집 검토. 네이버/스타벅스 공식몰은 미지원.
 
 ## 2026-09-28 — Codex (5분 자동 로그아웃 제거 / 로그인 유지)
