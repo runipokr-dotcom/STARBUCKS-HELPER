@@ -27,20 +27,7 @@ OUT = os.path.join(ROOT, "discounts.json")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
 
-STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉", "ssg": "SSG"}
-
-# SSG 스타벅스 브랜드관 중 MD(비식품) 카테고리만 수집 — 식품/음료/원두 묶음 제외
-SSG_BRAND_ID = "2000016468"
-SSG_CATEGORIES = {
-    "6000174585": "주방용품",
-    "6000200158": "가방/지갑",
-    "6000200159": "모자/장갑/ACC",
-    "6000174587": "생활잡화",
-    "6000173877": "인테리어소품",
-    "6000210428": "문구/취미",
-    "6000204820": "캠핑",
-    "6000204821": "골프",
-}
+STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉"}
 
 # W컨셉 웹사이트 프런트가 공개적으로 사용하는 조회용 키 (사이트 JS에 포함된 값, 개인 인증정보 아님)
 WCONCEPT_KEY = "VWmkUPgs6g2fviPZ5JQFQ3pERP4tIXv/J2jppLqSRBk="
@@ -178,53 +165,8 @@ def collect_wconcept():
     return out, total
 
 
-# ---------------------------------------------------------------- SSG
-SSG_LI = re.compile(r'<li class="cunit_t290">(.*?)</li>\s*(?=<li class="cunit_t290"|</ul>)', re.S)
-
-
-def _grab(pattern, text):
-    m = re.search(pattern, text, re.S)
-    return m.group(1).strip() if m else ""
-
-
-def parse_ssg(page_html, category=""):
-    rows = []
-    for block in SSG_LI.findall(page_html):
-        rate = to_int(_grab(r'ssgitem_sale_rate">.*?<span class="blind">할인율</span>\s*<span>(\d+)%', block))
-        if rate <= 0:
-            continue
-        id_ = _grab(r'data-react-unit-id="(\d+)"', block)
-        name = _grab(r'<div class="ssgitem_tit_name">(.*?)</div>', block)
-        link = html.unescape(_grab(r'<a href="(https://www\.ssg\.com/item/itemView\.ssg\?[^"]+)"', block))
-        img = _grab(r'<img[^>]*?\ssrc="([^"]+)"', block)
-        old = _grab(r'<span class="blind">정상가격</span>\s*<em>([\d,]+)', block)
-        new = _grab(r'<span class="blind">판매가격</span>\s*<em>([\d,]+)', block)
-        sold = "품절" in _grab(r'\[D\] 품절 레이어 -->(.{0,300})', block)
-        if not id_ or not name:
-            continue
-        rows.append(item("ssg", id_, name, link or f"https://www.ssg.com/item/itemView.ssg?itemId={id_}",
-                         img, new, old, rate, sold, {"category": category}))
-    return rows
-
-
-def collect_ssg():
-    out, seen, total = [], set(), 0
-    for ctg, label in SSG_CATEGORIES.items():
-        url = (f"https://www.ssg.com/disp/brandShop.ssg?brandId={SSG_BRAND_ID}&ctgId={ctg}"
-               "&sort=dcrt&pageSize=80")
-        page = request(url, headers={"Accept": "text/html", "Referer": "https://www.ssg.com/"})
-        total += len(SSG_LI.findall(page))
-        for r in parse_ssg(page, label):
-            if r["id"] in seen:
-                continue
-            seen.add(r["id"])
-            out.append(r)
-        time.sleep(1)
-    return out, total
-
-
 COLLECTORS = {"musinsa": collect_musinsa, "29cm": collect_29cm,
-              "wconcept": collect_wconcept, "ssg": collect_ssg}
+              "wconcept": collect_wconcept}
 
 
 def load_previous():
