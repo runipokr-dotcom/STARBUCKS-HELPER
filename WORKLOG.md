@@ -8,7 +8,12 @@
 - 결정 방식: SSG 수집기·화면 판매처 탭·안내 문구를 제거하고 기존 `discounts.json`에서도 SSG store 및 상품을 제거. 무신사·29CM·W컨셉 수집, 기존 검색/정렬/NEW, 홈 카드와 다른 HELPER 기능은 유지.
 
 ### 작업 후 기록
-- 작업 진행 중.
+- 수정: `scripts/collect_discounts.py`, `.github/workflows/discounts.yml`, `discount.html`, `WORKLOG.md`. 신규/삭제 파일 없음. 홈 카드와 다른 HELPER 기능 무변경.
+- SSG 수집 상수·파서·수집기·COLLECTORS 등록을 제거하고 화면의 SSG 탭/안내 문구도 제거. 판매처 카드는 3열(무신사·29CM·W컨셉)로 조정.
+- 기능 커밋: `e21f237a51fa357d01225eb35da9f2e3a15cb294`. 자동수집 #2 성공, 데이터 봇 커밋: `b39f70954357c9dcf6a06450ef1cc0c68d8ff69c`.
+- 검수: Python 문법·collector 키·diff 검사 통과. 최신 `discounts.json` stores는 musinsa/29cm/wconcept만 존재, 전체 7건, SSG store 없음, SSG 상품 0건. 나머지 판매처는 모두 ok=true/error="".
+- PC/모바일 영향: 판매처 탭 4개→3개이며 모바일 2열 규칙은 유지. 데이터 영향: 기존 SSG 58건 제거. 공식 판매자 필터는 근거 필드가 없어 추측 구현하지 않음.
+- 남은 문제: 특이사항 없음. GitHub Pages 전파 후 실제 응답 재확인 예정.
 
 ## 2026-09-30 — Claude (할인 레이더 신규: 판매처 할인 상품 자동 수집)
 
