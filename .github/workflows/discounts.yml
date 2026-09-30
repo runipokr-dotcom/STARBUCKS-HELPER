@@ -1,0 +1,47 @@
+# STARBUCKS HELPER - 할인 레이더 자동 수집
+# 하루 2회 판매처(무신사/29CM/W컨셉/SSG) 스타벅스 할인 상품을 모아 discounts.json 을 갱신한다.
+# 수동 실행: GitHub 저장소 > Actions > "할인 레이더 수집" > Run workflow
+name: 할인 레이더 수집
+
+on:
+  schedule:
+    - cron: "47 23 * * *"   # 08:47 KST
+    - cron: "47 8 * * *"    # 17:47 KST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/collect_discounts.py"
+      - ".github/workflows/discounts.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: discount-radar
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 할인 상품 수집
+        run: python3 scripts/collect_discounts.py
+
+      - name: 변경 시 커밋
+        run: |
+          if git diff --quiet -- discounts.json && git ls-files --error-unmatch discounts.json >/dev/null 2>&1; then
+            echo "변경 없음"; exit 0
+          fi
+          git config user.name "discount-radar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add discounts.json
+          git commit -m "chore: 할인 레이더 데이터 갱신"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
