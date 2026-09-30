@@ -27,7 +27,7 @@ OUT = os.path.join(ROOT, "discounts.json")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
 
-STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉"}
+STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉", "kakao": "카카오 선물하기"}
 
 # W컨셉 웹사이트 프런트가 공개적으로 사용하는 조회용 키 (사이트 JS에 포함된 값, 개인 인증정보 아님)
 WCONCEPT_KEY = "VWmkUPgs6g2fviPZ5JQFQ3pERP4tIXv/J2jppLqSRBk="
@@ -165,8 +165,44 @@ def collect_wconcept():
     return out, total
 
 
+# ---------------------------------------------------------------- 카카오 선물하기 (스타벅스 공식스토어만)
+def collect_kakao():
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(user_agent=UA, locale="ko-KR")
+        page.goto("https://gift.kakao.com/brand/11297", wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_selector('a.link_prdunit[href^="/product/"]', timeout=60000)
+        cards = page.locator("li:has(a.link_prdunit)").evaluate_all("""els => els.map(el => ({
+          url: el.querySelector('a.link_prdunit')?.getAttribute('href') || '',
+          brandUrl: el.querySelector('a.link_prdbrand')?.getAttribute('href') || '',
+          brand: el.querySelector('.txt_prdbrand')?.textContent?.trim() || '',
+          name: el.querySelector('.txt_prdname')?.textContent?.trim() || '',
+          image: el.querySelector('img.img_thumb')?.src || '',
+          price: el.querySelector('.num_price')?.textContent?.trim() || '',
+          rate: el.querySelector('.num_sale')?.textContent?.trim() || ''
+        }))""")
+        browser.close()
+
+    official, seen = [], set()
+    for card in cards:
+        if card.get("brandUrl") != "/brand/11297" or card.get("brand") != "스타벅스(공식스토어)":
+            continue
+        id_ = str(card.get("url") or "").rstrip("/").split("/")[-1]
+        if not id_.isdigit() or id_ in seen:
+            continue
+        seen.add(id_)
+        if to_int(card.get("rate")) <= 0:
+            continue
+        official.append(item("kakao", id_, card.get("name"),
+                             f"https://gift.kakao.com/product/{id_}", card.get("image"),
+                             card.get("price"), 0, card.get("rate")))
+    return official, len(seen)
+
+
 COLLECTORS = {"musinsa": collect_musinsa, "29cm": collect_29cm,
-              "wconcept": collect_wconcept}
+              "wconcept": collect_wconcept, "kakao": collect_kakao}
 
 
 def load_previous():

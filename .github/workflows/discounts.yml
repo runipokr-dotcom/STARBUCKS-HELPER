@@ -1,5 +1,5 @@
 # STARBUCKS HELPER - 할인 레이더 자동 수집
-# 하루 2회 판매처(무신사/29CM/W컨셉) 스타벅스 할인 상품을 모아 discounts.json 을 갱신한다.
+# 하루 2회 판매처(무신사/29CM/W컨셉/카카오 선물하기 공식스토어) 스타벅스 할인 상품을 모아 discounts.json 을 갱신한다.
 # 수동 실행: GitHub 저장소 > Actions > "할인 레이더 수집" > Run workflow
 name: 할인 레이더 수집
 
@@ -27,6 +27,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - name: 카카오 동적 페이지 수집 준비
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install chromium
 
       - name: 할인 상품 수집
         run: python3 scripts/collect_discounts.py
