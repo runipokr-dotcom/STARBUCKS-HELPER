@@ -13,7 +13,7 @@
 - 기능 커밋: `e21f237a51fa357d01225eb35da9f2e3a15cb294`. 자동수집 #2 성공, 데이터 봇 커밋: `b39f70954357c9dcf6a06450ef1cc0c68d8ff69c`.
 - 검수: Python 문법·collector 키·diff 검사 통과. 최신 `discounts.json` stores는 musinsa/29cm/wconcept만 존재, 전체 7건, SSG store 없음, SSG 상품 0건. 나머지 판매처는 모두 ok=true/error="".
 - PC/모바일 영향: 판매처 탭 4개→3개이며 모바일 2열 규칙은 유지. 데이터 영향: 기존 SSG 58건 제거. 공식 판매자 필터는 근거 필드가 없어 추측 구현하지 않음.
-- 남은 문제: 특이사항 없음. GitHub Pages 전파 후 실제 응답 재확인 예정.
+- GitHub Pages 실제 응답 확인: `discount.html` 판매처 순서가 무신사·29CM·W컨셉 3곳이고 SSG 문구/키 없음. `discounts.json`은 stores 3곳, 전체 7건, SSG 상품 0건. 남은 문제: 특이사항 없음.
 
 ## 2026-09-30 — Claude (할인 레이더 신규: 판매처 할인 상품 자동 수집)
 
