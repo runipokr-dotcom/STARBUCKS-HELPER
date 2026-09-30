@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-09-30T17:49:45+09:00",
+ "updatedAt": "2026-09-30T18:04:50+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-09-30T17:49:45+09:00",
-   "lastSuccessAt": "2026-09-30T17:49:45+09:00",
+   "checkedAt": "2026-09-30T18:04:50+09:00",
+   "lastSuccessAt": "2026-09-30T18:04:50+09:00",
    "scanned": 244,
    "discounted": 7,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-09-30T17:49:45+09:00",
-   "lastSuccessAt": "2026-09-30T17:49:45+09:00",
+   "checkedAt": "2026-09-30T18:04:50+09:00",
+   "lastSuccessAt": "2026-09-30T18:04:50+09:00",
    "scanned": 299,
    "discounted": 0,
    "error": ""
@@ -23,14 +23,71 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-09-30T17:49:45+09:00",
-   "lastSuccessAt": "2026-09-30T17:49:45+09:00",
+   "checkedAt": "2026-09-30T18:04:50+09:00",
+   "lastSuccessAt": "2026-09-30T18:04:50+09:00",
    "scanned": 278,
    "discounted": 0,
+   "error": ""
+  },
+  "kakao": {
+   "name": "카카오 선물하기",
+   "ok": true,
+   "checkedAt": "2026-09-30T18:04:50+09:00",
+   "lastSuccessAt": "2026-09-30T18:04:50+09:00",
+   "scanned": 92,
+   "discounted": 4,
    "error": ""
   }
  },
  "items": [
+  {
+   "store": "kakao",
+   "id": "7712218",
+   "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/7712218",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 28800,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-09-30T18:04:50+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12406998",
+   "name": "\"감각적인 홈카페 아이템\" 스태카 홈카페 세트 3P",
+   "url": "https://gift.kakao.com/product/12406998",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 46800,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-09-30T18:04:50+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12406994",
+   "name": "\"감성 테이블 완성\" 스태카 브런치 세트 3P",
+   "url": "https://gift.kakao.com/product/12406994",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 47700,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-09-30T18:04:50+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12109009",
+   "name": "\"퍼스널컬러\" SS 단테 텀블러 710ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/12109009",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 44100,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-09-30T18:04:50+09:00"
+  },
   {
    "store": "musinsa",
    "id": "5648355",
