@@ -174,6 +174,10 @@ def collect_kakao():
         page = browser.new_page(user_agent=UA, locale="ko-KR")
         page.goto("https://gift.kakao.com/brand/11297", wait_until="domcontentloaded", timeout=60000)
         page.wait_for_selector('a.link_prdunit[href^="/product/"]', timeout=60000)
+        discounted = page.locator("li:has(.num_sale)")
+        for index in range(discounted.count()):
+            discounted.nth(index).scroll_into_view_if_needed()
+        page.wait_for_timeout(1000)
         cards = page.locator("li:has(a.link_prdunit)").evaluate_all("""els => els.map(el => ({
           url: el.querySelector('a.link_prdunit')?.getAttribute('href') || '',
           brandUrl: el.querySelector('a.link_prdbrand')?.getAttribute('href') || '',
