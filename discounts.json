@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-01T00:20:00+09:00",
+ "updatedAt": "2026-10-01T11:26:53+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-01T00:20:00+09:00",
-   "lastSuccessAt": "2026-10-01T00:20:00+09:00",
+   "checkedAt": "2026-10-01T11:26:53+09:00",
+   "lastSuccessAt": "2026-10-01T11:26:53+09:00",
    "scanned": 244,
    "discounted": 7,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-01T00:20:00+09:00",
-   "lastSuccessAt": "2026-10-01T00:20:00+09:00",
+   "checkedAt": "2026-10-01T11:26:53+09:00",
+   "lastSuccessAt": "2026-10-01T11:26:53+09:00",
    "scanned": 299,
    "discounted": 0,
    "error": ""
@@ -23,23 +23,35 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-01T00:20:00+09:00",
-   "lastSuccessAt": "2026-10-01T00:20:00+09:00",
+   "checkedAt": "2026-10-01T11:26:53+09:00",
+   "lastSuccessAt": "2026-10-01T11:26:53+09:00",
    "scanned": 278,
-   "discounted": 0,
+   "discounted": 3,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-01T00:20:00+09:00",
-   "lastSuccessAt": "2026-10-01T00:20:00+09:00",
+   "checkedAt": "2026-10-01T11:26:53+09:00",
+   "lastSuccessAt": "2026-10-01T11:26:53+09:00",
    "scanned": 92,
    "discounted": 4,
    "error": ""
   }
  },
  "items": [
+  {
+   "store": "wconcept",
+   "id": "308803788",
+   "name": "유어 서머 하네스&미니 백팩 세트",
+   "url": "https://www.wconcept.co.kr/Product/308803788",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/88/308803788_KD69313.jpg",
+   "price": 20000,
+   "originalPrice": 25000,
+   "rate": 20,
+   "soldOut": true,
+   "firstSeen": "2026-10-01T11:26:53+09:00"
+  },
   {
    "store": "kakao",
    "id": "7712218",
@@ -87,6 +99,30 @@
    "rate": 10,
    "soldOut": false,
    "firstSeen": "2026-09-30T18:04:50+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308296237",
+   "name": "캠퍼스 베어리 그립톡",
+   "url": "https://www.wconcept.co.kr/Product/308296237",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/37/308296237_YC95179.jpg",
+   "price": 16200,
+   "originalPrice": 18000,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-01T11:26:53+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308474349",
+   "name": "토이 스토리 릴리패드 파우치",
+   "url": "https://www.wconcept.co.kr/Product/308474349",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/49/308474349_XD32589.jpg",
+   "price": 26100,
+   "originalPrice": 29000,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-01T11:26:53+09:00"
   },
   {
    "store": "musinsa",
