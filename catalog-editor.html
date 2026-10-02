@@ -1,8 +1,8 @@
 <!--
 STARBUCKS HELPER
 File : catalog-editor.html
-Version : 1.1
-Updated : 2026-09-03
+Version : 1.2
+Updated : 2026-10-02
 Added : Musinsa OneLink support through local helper / clearer mobile errors
 Fixed : mobile two-column cards / autosave after product edits
 -->
@@ -309,11 +309,22 @@ Fixed : mobile two-column cards / autosave after product edits
       }
       .basket-foot {
         display: flex;
+        flex-wrap: wrap;
         justify-content: flex-end;
         align-items: center;
         gap: 12px;
         padding-top: 10px;
         border-top: 1px solid var(--line);
+      }
+      .share-guide {
+        flex: 1 1 100%;
+        color: var(--mut);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      .share-actions {
+        display: flex;
+        gap: 7px;
       }
       .notice {
         position: fixed;
@@ -444,6 +455,22 @@ Fixed : mobile two-column cards / autosave after product edits
         padding: 8px;
         border: 1px solid var(--line);
         border-radius: 8px;
+      }
+      .share-notice-setting {
+        display: grid;
+        gap: 5px;
+        margin-top: 10px;
+        color: var(--mut);
+        font-size: 11px;
+      }
+      .share-notice-setting textarea {
+        width: 100%;
+        min-height: 84px;
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font: inherit;
       }
       #policyApply {
         width: 100%;
@@ -716,7 +743,7 @@ Fixed : mobile two-column cards / autosave after product edits
         >
           정책</button
         ><a class="btn" href="catalog-preview.html" target="_blank">미리보기</a
-        ><button class="btn primary" id="save">저장</button>
+        ><button class="btn primary" id="save">저장·게시</button>
       </div>
     </header>
     <main class="wrap">
@@ -836,6 +863,10 @@ Fixed : mobile two-column cards / autosave after product edits
             <input id="policyWebFee" type="text" inputmode="decimal"
           /></label>
         </div>
+        <label class="share-notice-setting">
+          고객 안내 (이 공유 목록에만 적용)
+          <textarea id="shareNotice" maxlength="500" placeholder="배송비·케이스·쇼핑백 등 확인된 조건만 입력하세요. 비워두면 고객 화면에 표시하지 않습니다."></textarea>
+        </label>
         <button class="btn primary" id="policyApply" type="button">
           전체 상품에 적용
         </button>
@@ -885,8 +916,9 @@ Fixed : mobile two-column cards / autosave after product edits
       </div>
       <div class="basket-body" id="basketRows"></div>
       <div class="basket-foot">
-        <span id="shareStatus">고객 링크: 저장하면 자동 발행됩니다</span
-        ><button class="btn primary" id="quote">게시하기</button>
+        <span id="shareStatus">고객 링크: 저장·게시하면 같은 주소에 반영됩니다</span>
+        <div class="share-guide">변경사항 게시 후 고객 링크를 복사해 직접 전달하세요. 기존 공유 ID가 있으면 URL은 바뀌지 않습니다.</div>
+        <div class="share-actions"><button class="btn primary" id="publishShare">변경사항 게시</button><button class="btn" id="copyShareLink">고객 링크 복사</button></div>
       </div>
     </aside>
     <div class="notice" id="notice"></div>
@@ -926,6 +958,8 @@ Fixed : mobile two-column cards / autosave after product edits
       };
       data.policy.webMargin = data.policy.webMargin ?? "0";
       data.policy.webFee = data.policy.webFee ?? "0";
+      data.shareNotice =
+        typeof data.shareNotice === "string" ? data.shareNotice.slice(0, 500) : "";
       data.tumblerCategories = Array.isArray(data.tumblerCategories)
         ? data.tumblerCategories.map((category) =>
             category === "텀블러" ? "텀블러/보온병" : category,
@@ -1160,6 +1194,7 @@ Fixed : mobile two-column cards / autosave after product edits
         $("#policyMargin").value = data.policy.margin ?? "";
         $("#policyWebMargin").value = data.policy.webMargin ?? "";
         $("#policyWebFee").value = data.policy.webFee ?? "";
+        $("#shareNotice").value = data.shareNotice;
       }
       function sortProducts(mode) {
         let items = visible();
@@ -1216,6 +1251,8 @@ Fixed : mobile two-column cards / autosave after product edits
         return roundWon(marked / (1 - fee));
       }
       function calcCost(sale, category) {
+        sale = Number(sale);
+        if (!Number.isFinite(sale) || sale <= 0) return 0;
         let policy = data.policy,
           discount = Number(policy.discount || 0) / 100,
           star = Number(policy.star || 0),
@@ -1228,9 +1265,10 @@ Fixed : mobile two-column cards / autosave after product edits
         return roundWon(cost);
       }
       function calcOffer(cost, sale, category) {
+        sale = Number(sale);
+        if (!Number.isFinite(sale) || sale <= 0) return 0;
         const hasCategoryPolicy = (data.tumblerCategories || []).includes(category);
-        if (!hasCategoryPolicy && Number.isFinite(Number(sale)))
-          return roundWon(Number(sale) * 0.93);
+        if (!hasCategoryPolicy) return roundWon(sale * 0.93);
         return roundWon(cost + marginValue(cost));
       }
       function applyPricingRules(products = data.products) {
@@ -1293,6 +1331,7 @@ Fixed : mobile two-column cards / autosave after product edits
           const ref = f.doc(db, SHARE_COLLECTION, data.shareId),
             payload = {
               categories: data.categories,
+              notice: String(data.shareNotice || "").trim().slice(0, 500),
               products: data.products.map((p) => ({
                 id: p.id,
                 name: p.name,
@@ -1309,11 +1348,13 @@ Fixed : mobile two-column cards / autosave after product edits
           if ($("#shareStatus"))
             $("#shareStatus").textContent =
               `고객 링크: 저장됨 (${new Date().toLocaleTimeString("ko-KR")} 반영)`;
+          return true;
         } catch (error) {
           console.error(error);
           if ($("#shareStatus"))
             $("#shareStatus").textContent =
               "고객 링크 발행 실패 (인터넷 연결을 확인해주세요)";
+          return false;
         }
       }
       async function copyShareLink() {
@@ -1329,10 +1370,15 @@ Fixed : mobile two-column cards / autosave after product edits
           prompt("아래 링크를 복사하세요", url);
         }
       }
-      function save() {
+      async function save() {
         autosave();
-        toast("저장했습니다");
-        publishShare();
+        flushLocalSave();
+        const published = await publishShare();
+        toast(
+          published
+            ? "저장하고 같은 고객 링크에 게시했습니다"
+            : "로컬에는 저장했지만 고객 링크 게시에 실패했습니다",
+        );
       }
       function visible() {
         return data.products
@@ -1522,6 +1568,10 @@ Fixed : mobile two-column cards / autosave after product edits
                   p.offer = calcOffer(p.cost, p.sale, p.category);
                 } else if (f.dataset.k === "cost") {
                   p.offer = calcOffer(p.cost, p.sale, p.category);
+                }
+                if (!Number.isFinite(Number(p.sale)) || Number(p.sale) <= 0) {
+                  p.cost = 0;
+                  p.offer = 0;
                 }
                 touch(p);
                 autosave();
@@ -1867,6 +1917,10 @@ Fixed : mobile two-column cards / autosave after product edits
           render();
         };
       });
+      $("#shareNotice").oninput = () => {
+        data.shareNotice = $("#shareNotice").value.slice(0, 500);
+        autosave();
+      };
       $("#policyApply").onclick = () => {
         data.products.forEach((p) => {
           p.cost = calcCost(p.sale, p.category);
@@ -1896,7 +1950,8 @@ Fixed : mobile two-column cards / autosave after product edits
       $("#catalogAuditButton").onclick = renderAuditResult;
       $("#save").onclick = save;
       $("#add").onclick = add;
-      $("#quote").onclick = copyShareLink;
+      $("#publishShare").onclick = save;
+      $("#copyShareLink").onclick = copyShareLink;
       $("#import").onclick = async () => {
         let u = $("#url").value.trim(),
           button = $("#import");

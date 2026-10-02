@@ -1,10 +1,10 @@
 <!--
 STARBUCKS HELPER
 File : share.html
-Version : 1.2
-Updated : 2026-09-04
+Version : 1.3
+Updated : 2026-10-02
 Purpose : Read-only customer-facing catalog page, backed by Firestore.
-          Published from catalog-editor.html's "저장" button.
+          Published from catalog-editor.html's "저장·게시" action.
 -->
 <!doctype html>
 <html lang="ko">
@@ -147,6 +147,14 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         border-color: var(--g);
         background: #f2faf6;
       }
+      .product.unavailable {
+        background: #f6f7f6;
+        color: var(--mut);
+      }
+      .product.unavailable .photo,
+      .product.unavailable .p-name {
+        opacity: 0.72;
+      }
       .photo {
         position: relative;
         aspect-ratio: 5/6;
@@ -202,6 +210,18 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         font-size: 14px;
         font-weight: 800;
       }
+      .p-unavailable {
+        margin-top: 2px;
+        color: #b3261e;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .p-unit {
+        display: block;
+        margin-top: 3px;
+        color: var(--mut);
+        font-size: 10px;
+      }
       .meta {
         display: flex;
         align-items: center;
@@ -225,6 +245,21 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         margin-left: auto;
         color: var(--mut);
         font-size: 12px;
+      }
+      .catalog-guidance,
+      .share-notice {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f6f8f6;
+        color: #465149;
+        font-size: 11px;
+        line-height: 1.55;
+      }
+      .share-notice {
+        border: 1px solid #cddbd3;
+        background: #f1f8f4;
+        white-space: pre-wrap;
       }
       .empty-result {
         grid-column: 1/-1;
@@ -308,6 +343,57 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         margin-bottom: 10px;
         opacity: 0.6;
         font-size: 11px;
+      }
+      .contact-section {
+        margin-top: 10px;
+        padding-top: 9px;
+        border-top: 1px solid var(--line);
+      }
+      .contact-section > strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 11px;
+      }
+      .customer-fields {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+      .customer-fields label {
+        display: grid;
+        gap: 3px;
+        color: var(--mut);
+        font-size: 10px;
+      }
+      .customer-fields input {
+        min-width: 0;
+        width: 100%;
+        padding: 5px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font-size: 11px;
+      }
+      .privacy-hint {
+        display: block;
+        margin-bottom: 9px;
+        color: var(--mut);
+        font-size: 10px;
+        line-height: 1.45;
+      }
+      .save-help {
+        margin-top: 8px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: #e8f5ee;
+        color: var(--d);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      .save-help a {
+        color: var(--g);
+        font-weight: 800;
       }
       .contact-fields label {
         display: flex;
@@ -509,6 +595,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
     font-size: 12px;
     line-height: 1.25;
   }
+  .p-unavailable { font-size: 11px; }
+  .p-unit { font-size: 9px; }
   .basket {
     bottom: 6px;
     width: calc(100% - 12px);
@@ -534,6 +622,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
     margin-top: 7px;
     padding-top: 7px;
   }
+  .customer-fields { grid-template-columns: 1fr; }
   .scroll-top {
     right: 10px;
     bottom: 62px;
@@ -605,6 +694,12 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           <input class="search-field" id="productSearch" type="search" aria-label="상품 검색" placeholder="상품 검색 (1글자부터)" />
           <span class="selection-count" id="filterCount"></span>
         </div>
+        <div class="catalog-guidance">
+          선택한 가격 표시(제안가 또는 판매가)가 견적서의 실제 적용 단가입니다.
+          상품명에 2P·세트 표기가 있으면 1세트 기준, 그 외는 1개 기준이며
+          표시 단가는 부가세 포함입니다. 견적서에서는 공급가액과 부가세를 나누어 표시합니다.
+        </div>
+        <div class="share-notice" id="shareNotice" hidden></div>
       </section>
       <section class="category" id="gridSection" hidden>
         <div class="grid" id="grid"></div>
@@ -620,13 +715,26 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="totals"><span>공급가액</span><b id="supply">0원</b></div>
         <div class="totals"><span>부가세</span><b id="vat">0원</b></div>
         <div class="totals grand"><span>합계</span><b id="grand">0원</b></div>
-        <div class="contact-fields" id="contactFields">
-          <div class="company-field"><label>상호명 <input id="ctCompany" /></label><select id="issuerProfiles" class="profile-picker" aria-label="발행자 프로필 불러오기" title="발행자 프로필 불러오기"><option value=""> </option></select><button type="button" id="issuerSettings" class="profile-settings" aria-label="발행자 상세정보" title="발행자 상세정보">⚙</button></div>
-          <label>이메일 <input id="ctEmail" /></label>
-          <label>연락처 <input id="ctPhone" /></label>
-          <small id="editableHint">*수정가능</small>
+        <div class="contact-section">
+          <strong>판매자 연락처 · 견적서 발행 정보</strong>
+          <div class="contact-fields" id="contactFields">
+            <div class="company-field"><label>상호명 <input id="ctCompany" /></label><select id="issuerProfiles" class="profile-picker" aria-label="발행자 프로필 불러오기" title="발행자 프로필 불러오기"><option value=""> </option></select><button type="button" id="issuerSettings" class="profile-settings" aria-label="발행자 상세정보" title="발행자 상세정보">⚙</button></div>
+            <label>이메일 <input id="ctEmail" /></label>
+            <label>연락처 <input id="ctPhone" /></label>
+            <small id="editableHint">*견적서 하단에 표시</small>
+          </div>
         </div>
-        <button class="btn primary" id="saveBtn">저장하기</button>
+        <div class="contact-section">
+          <strong>고객 입력 · 선택 사항</strong>
+          <div class="customer-fields">
+            <label>고객명/상호 <input id="customerName" maxlength="80" autocomplete="name" /></label>
+            <label>이메일 <input id="customerEmail" type="email" maxlength="120" autocomplete="email" /></label>
+            <label>연락처 <input id="customerPhone" maxlength="40" autocomplete="tel" /></label>
+          </div>
+          <small class="privacy-hint">고객 정보는 내려받는 견적서 이미지에만 표시되며 이 페이지에서 판매자에게 자동 전송되지 않습니다.</small>
+        </div>
+        <button class="btn primary" id="saveBtn">견적서 저장</button>
+        <div class="save-help" id="saveHelp" role="status" hidden></div>
       </div>
     </aside>
     <button class="scroll-top" id="scrollTop" type="button" aria-label="화면 최상단으로 이동">↑</button>
@@ -700,7 +808,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       const params = new URLSearchParams(location.search);
       const shareId = params.get("id");
-      let shareData = { categories: [], products: [] };
+      let shareData = { categories: [], products: [], notice: "" };
       let activeCategory = "전체";
       let activeTag = "전체";
       let customOrder = null; // ids, once the viewer drags/sorts locally
@@ -708,6 +816,40 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
 
       function tagOptions() {
         return [...new Set(shareData.products.flatMap((p) => p.tags || []))];
+      }
+      function numericPrice(value) {
+        const price = Number(value);
+        return Number.isFinite(price) ? price : 0;
+      }
+      function isUnavailable(product) {
+        return numericPrice(product?.sale) <= 0;
+      }
+      function unitPrice(product, includeOffer = $("#includeOffer").checked) {
+        if (isUnavailable(product)) return 0;
+        return Math.max(0, numericPrice(includeOffer ? product.offer : product.sale));
+      }
+      function unitBasis(product) {
+        const name = String(product?.name || "");
+        return /\d+\s*P(?:\b|$)/i.test(name) || name.replace(/카세트/g, "").includes("세트")
+          ? "1세트 기준"
+          : "1개 기준";
+      }
+      function searchTokens(value) {
+        return String(value || "")
+          .normalize("NFKC")
+          .toLocaleLowerCase()
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean);
+      }
+      function matchesSearch(product, query) {
+        const terms = searchTokens(query);
+        if (!terms.length) return true;
+        const searchable = [product.name, product.category, ...(product.tags || [])]
+          .join(" ")
+          .normalize("NFKC")
+          .toLocaleLowerCase();
+        return terms.every((term) => searchable.includes(term));
       }
       function applyCustomOrder(products) {
         if (!customOrder) return products;
@@ -723,7 +865,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             ({ p }) =>
               (activeCategory === "전체" || p.category === activeCategory) &&
               (activeTag === "전체" || (p.tags || []).includes(activeTag)) &&
-              [p.name, p.category, ...(p.tags || [])].join(" ").toLocaleLowerCase().includes($("#productSearch").value.trim().toLocaleLowerCase()),
+              matchesSearch(p, $("#productSearch").value),
           );
       }
       function renderFilters() {
@@ -764,7 +906,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         if (items.length < 2) return;
         let keyFn =
           mode === "price"
-            ? (p) => (includeOffer ? p.offer : p.sale)
+            ? (p) => unitPrice(p, includeOffer)
             : mode === "added"
               ? (p) => p.id
               : (p) => p.updatedAt || p.id;
@@ -780,11 +922,15 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       function render() {
         let includeOffer = $("#includeOffer").checked,
           items = visible();
+        $("#shareNotice").hidden = !shareData.notice;
+        $("#shareNotice").textContent = shareData.notice
+          ? `이 목록 안내\n${shareData.notice}`
+          : "";
         $("#grid").innerHTML =
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[p.current || 0] || p.images[0])}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button type="button" class="photo-arrow prev" aria-label="이전 이미지">‹</button><button type="button" class="photo-arrow next" aria-label="다음 이미지">›</button><span class="photo-count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div><div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(p.offer)}</div>` : ""}</article>`,
+                `<article class="product ${isUnavailable(p) ? "unavailable" : ""}" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} ${isUnavailable(p) ? "disabled" : ""} aria-label="${i + 1}번 ${isUnavailable(p) ? "판매 중지" : "선택"}"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[p.current || 0] || p.images[0])}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button type="button" class="photo-arrow prev" aria-label="이전 이미지">‹</button><button type="button" class="photo-arrow next" aria-label="다음 이미지">›</button><span class="photo-count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div>${isUnavailable(p) ? '<div class="p-unavailable">판매 중지</div>' : `<div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(unitPrice(p, true))}</div>` : ""}<div class="p-unit">${unitBasis(p)} · 부가세 포함</div>`}</article>`,
             )
             .join("") +
           (items.length
@@ -794,6 +940,11 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           let i = +card.dataset.i,
             p = shareData.products[i];
           card.querySelector(".pick").onchange = (e) => {
+            if (isUnavailable(p)) {
+              p.selected = false;
+              e.target.checked = false;
+              return;
+            }
             p.selected = e.target.checked;
             if (p.selected && !p.qty) p.qty = 1;
             renderFilters();
@@ -839,11 +990,14 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       function renderBasket() {
         let includeOffer = $("#includeOffer").checked,
-          selected = shareData.products.filter((p) => p.selected),
-          unit = (p) => (includeOffer ? p.offer : p.sale),
+          selected = shareData.products.filter((p) => p.selected && !isUnavailable(p)),
+          unit = (p) => unitPrice(p, includeOffer),
           total = selected.reduce((s, p) => s + unit(p) * (p.qty || 1), 0),
           supply = Math.round(total / 1.1),
           vat = total - supply;
+        shareData.products.forEach((p) => {
+          if (isUnavailable(p)) p.selected = false;
+        });
         $("#basket").hidden = false;
         $("#summary").textContent = `선택 상품 ${selected.length}개 · 합계 ${money(total)}`;
         $("#supply").textContent = money(supply);
@@ -853,7 +1007,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           selected
             .map(
               (p) =>
-                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}</span><span class="qty"><button type="button" class="minus">−</button><input class="qty-input" type="number" min="1" step="1" max="999999" inputmode="numeric" aria-label="${esc(p.name)} 수량" value="${p.qty || 1}" /><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
+                `<div class="basket-row" data-id="${p.id}"><span>${esc(p.name)}<small class="p-unit">${unitBasis(p)} · 단가 ${money(unit(p))}</small></span><span class="qty"><button type="button" class="minus">−</button><input class="qty-input" type="number" min="1" step="1" max="999999" inputmode="numeric" aria-label="${esc(p.name)} 수량" value="${p.qty || 1}" /><button type="button" class="plus">＋</button></span><strong>${money(unit(p) * (p.qty || 1))}</strong></div>`,
             )
             .join("") || "<p>상품을 선택해주세요.</p>";
         document.querySelectorAll(".basket-row").forEach((r) => {
@@ -885,7 +1039,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         (button) => (button.onclick = () => sortProducts(button.dataset.sort)),
       );
       $("#selectVisible").onclick = () => {
-        visible().forEach(({ p }) => (p.selected = true));
+        visible().forEach(({ p }) => (p.selected = !isUnavailable(p)));
         render();
       };
       $("#clearVisible").onclick = () => {
@@ -1102,11 +1256,13 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       async function buildBasketImageDataUrl() {
         let includeOffer = $("#includeOffer").checked,
-          selected = shareData.products.filter((p) => p.selected),
-          unit = (p) => (includeOffer ? p.offer : p.sale),
+          selected = shareData.products.filter((p) => p.selected && !isUnavailable(p)),
+          unit = (p) => unitPrice(p, includeOffer),
           rows = selected.map((p) => ({
             name: p.name,
             qty: p.qty || 1,
+            unitPrice: unit(p),
+            unitBasis: unitBasis(p),
             lineTotal: unit(p) * (p.qty || 1),
           })),
           total = rows.reduce((s, r) => s + r.lineTotal, 0),
@@ -1116,7 +1272,15 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
             company: $("#ctCompany").value.trim(),
             email: $("#ctEmail").value.trim(),
             phone: $("#ctPhone").value.trim(),
+          },
+          customer = {
+            name: $("#customerName").value.trim(),
+            email: $("#customerEmail").value.trim(),
+            phone: $("#customerPhone").value.trim(),
           };
+        const customerLine = [customer.name, customer.email, customer.phone]
+          .filter(Boolean)
+          .join(" · ");
         const stamp = issuer.show.stamp && issuer.stamp ? await loadIssuerImage(issuer.stamp) : null;
         const W = 640,
           PAD = 28,
@@ -1133,7 +1297,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         const ROW_BASE = 30,
           ROW_LINE = 18;
         let rowsH = rowHeights.reduce((s, n) => s + ROW_BASE + n * ROW_LINE, 0),
-          headerH = 56,
+          headerH = customerLine ? 76 : 56,
           totalsH = 92,
           contactH = Math.max(40, footerLines.length * 18 + 22, stamp ? 104 : 0),
           H = headerH + rowsH + totalsH + contactH + PAD * 2;
@@ -1149,6 +1313,11 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         ctx.textAlign = "left";
         ctx.font = "800 19px Pretendard, sans-serif";
         ctx.fillText("견적서", PAD, y + 18);
+        if (customerLine) {
+          ctx.font = "400 11px Pretendard, sans-serif";
+          ctx.fillStyle = "#6a766f";
+          ctx.fillText("고객  " + customerLine, PAD, y + 40);
+        }
         y += headerH;
         rows.forEach((r, idx) => {
           let lines = wrapCanvasText(measure, r.name, W - PAD * 2 - 150, 2);
@@ -1166,7 +1335,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           let nameH = lines.length * ROW_LINE;
           ctx.font = "400 12px Pretendard, sans-serif";
           ctx.fillStyle = "#6a766f";
-          ctx.fillText(`${r.qty}개`, PAD, y + 14 + nameH + 2);
+          ctx.fillText(`${r.qty}개 · ${r.unitBasis} · 단가 ${money(r.unitPrice)}`, PAD, y + 14 + nameH + 2);
           ctx.textAlign = "right";
           ctx.font = "800 14px Pretendard, sans-serif";
           ctx.fillStyle = "#18201c";
@@ -1218,14 +1387,37 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         a.remove();
         return true;
       }
+      function renderSaveHelp(contact, downloaded) {
+        const box = $("#saveHelp");
+        box.replaceChildren();
+        const message = document.createElement("span");
+        message.textContent = downloaded
+          ? "견적서 JPG를 저장했습니다. 자동 전송되지 않으므로 아래 판매자 연락처로 직접 전달해주세요. "
+          : "견적 내용은 저장했지만 JPG 다운로드에 실패했습니다. 다시 시도한 뒤 아래 판매자 연락처로 직접 전달해주세요. ";
+        box.appendChild(message);
+        if (contact.email) {
+          const email = document.createElement("a");
+          email.href = `mailto:${contact.email}`;
+          email.textContent = contact.email;
+          box.append(" ", email);
+        }
+        if (contact.phone) {
+          const phone = document.createElement("a");
+          phone.href = `tel:${contact.phone.replace(/[^+\d]/g, "")}`;
+          phone.textContent = contact.phone;
+          box.append(contact.email ? " · " : " ", phone);
+        }
+        box.hidden = false;
+      }
       $("#saveBtn").onclick = async () => {
-        let selected = shareData.products.filter((p) => p.selected);
+        let selected = shareData.products.filter((p) => p.selected && !isUnavailable(p));
         if (!selected.length || saved || saving) return;
         let includeOffer = $("#includeOffer").checked,
-          unit = (p) => (includeOffer ? p.offer : p.sale),
+          unit = (p) => unitPrice(p, includeOffer),
           items = selected.map((p) => ({
             name: p.name,
             price: unit(p),
+            unitBasis: unitBasis(p),
             qty: p.qty || 1,
             lineTotal: unit(p) * (p.qty || 1),
           })),
@@ -1241,7 +1433,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         $("#issuerSettings").disabled = true;
         $("#issuerProfiles").disabled = true;
         $("#saveBtn").disabled = true;
-        $("#saveBtn").textContent = "저장 중…";
+        $("#saveBtn").textContent = "견적서 저장 중…";
         let downloaded = false;
         try {
           downloaded = await downloadBasketImage();
@@ -1266,20 +1458,24 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           ["ctCompany", "ctEmail", "ctPhone"].forEach(
             (id) => ($("#" + id).disabled = true),
           );
+          ["customerName", "customerEmail", "customerPhone"].forEach(
+            (id) => ($("#" + id).disabled = true),
+          );
           $("#issuerSettings").disabled = true;
           $("#issuerProfiles").disabled = true;
           $("#editableHint").hidden = true;
-          $("#saveBtn").textContent = "저장 완료";
+          $("#saveBtn").textContent = "견적서 저장 완료";
+          renderSaveHelp(contact, downloaded);
           toast(
             downloaded
-              ? "저장했습니다. 견적서 이미지 다운로드를 시작했습니다."
-              : "저장했습니다. (이미지 다운로드에는 실패했어요)",
+              ? "견적서를 저장했습니다. JPG를 판매자에게 직접 전달해주세요."
+              : "견적 내용은 저장했지만 JPG 다운로드에는 실패했습니다.",
           );
         } catch (error) {
           console.error(error);
           toast("저장에 실패했습니다. 인터넷 연결을 확인해주세요");
           $("#saveBtn").disabled = false;
-          $("#saveBtn").textContent = "저장하기";
+          $("#saveBtn").textContent = "견적서 저장";
           $("#issuerSettings").disabled = false;
           $("#issuerProfiles").disabled = false;
         } finally {
@@ -1309,17 +1505,25 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
               $("#gridSection").hidden = false;
               let incoming = snap.data();
               shareData.categories = incoming.categories || [];
+              shareData.notice =
+                typeof incoming.notice === "string"
+                  ? incoming.notice.trim().slice(0, 500)
+                  : "";
               let prevSelections = new Map(
                 shareData.products.map((p) => [p.id, { selected: p.selected, qty: p.qty, current: p.current }]),
               );
               shareData.products = applyCustomOrder(
-                (incoming.products || []).map((p) => ({
-                  ...p,
-                  images: uniqueProductImages(p.images),
-                  selected: prevSelections.get(p.id)?.selected || false,
-                  qty: prevSelections.get(p.id)?.qty || 1,
-                  current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, uniqueProductImages(p.images).length - 1)),
-                })),
+                (incoming.products || []).map((p) => {
+                  const unavailable = isUnavailable(p);
+                  return {
+                    ...p,
+                    offer: unavailable ? 0 : Math.max(0, numericPrice(p.offer)),
+                    images: uniqueProductImages(p.images),
+                    selected: unavailable ? false : prevSelections.get(p.id)?.selected || false,
+                    qty: prevSelections.get(p.id)?.qty || 1,
+                    current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, uniqueProductImages(p.images).length - 1)),
+                  };
+                }),
               );
               render();
             },
