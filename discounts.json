@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-02T00:40:54+09:00",
+ "updatedAt": "2026-10-02T11:35:19+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-02T00:40:54+09:00",
-   "lastSuccessAt": "2026-10-02T00:40:54+09:00",
+   "checkedAt": "2026-10-02T11:35:19+09:00",
+   "lastSuccessAt": "2026-10-02T11:35:19+09:00",
    "scanned": 243,
    "discounted": 7,
    "error": ""
@@ -14,27 +14,27 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-02T00:40:54+09:00",
-   "lastSuccessAt": "2026-10-02T00:40:54+09:00",
+   "checkedAt": "2026-10-02T11:35:19+09:00",
+   "lastSuccessAt": "2026-10-02T11:35:19+09:00",
    "scanned": 292,
    "discounted": 0,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
-   "ok": false,
-   "checkedAt": "2026-10-02T00:40:54+09:00",
-   "lastSuccessAt": "2026-10-01T11:26:53+09:00",
-   "scanned": 278,
+   "ok": true,
+   "checkedAt": "2026-10-02T11:35:19+09:00",
+   "lastSuccessAt": "2026-10-02T11:35:19+09:00",
+   "scanned": 268,
    "discounted": 3,
-   "error": "https://gw-front.wconcept.co.kr/display/api/brand/v1/products/116134 -> HTTP Error 403: Forbidden"
+   "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-02T00:40:54+09:00",
-   "lastSuccessAt": "2026-10-02T00:40:54+09:00",
-   "scanned": 92,
+   "checkedAt": "2026-10-02T11:35:19+09:00",
+   "lastSuccessAt": "2026-10-02T11:35:19+09:00",
+   "scanned": 93,
    "discounted": 4,
    "error": ""
   }
