@@ -42,7 +42,7 @@ function go(id){$$('.step').forEach(x=>x.classList.toggle('on',x.dataset.tab===i
 $$('.step').forEach(x=>x.onclick=()=>go(x.dataset.tab));
 function syncWork(){const data=$('#data').checked;$('#dataPick').classList.toggle('on',data);$('#cropPick').classList.toggle('on',!data);$('#dataOptions').classList.toggle('hidden',!data);$('#cropOptions').classList.toggle('hidden',data)}
 $$('input[name="workType"]').forEach(x=>x.addEventListener('change',syncWork));syncWork();
-$('[data-coupon-type]').forEach(b=>b.onclick=()=>{couponType=b.dataset.couponType;$('[data-coupon-type]').forEach(x=>x.classList.toggle('on',x===b));$('#fixedCodePanel').classList.toggle('hidden',couponType!=='454')});
+$$('[data-coupon-type]').forEach(b=>b.onclick=()=>{couponType=b.dataset.couponType;$$('[data-coupon-type]').forEach(x=>x.classList.toggle('on',x===b));$('#fixedCodePanel').classList.toggle('hidden',couponType!=='454')});
 function refreshArtifactSummary(){const el=$('#artifactSummary');$('#writeModePanel').classList.toggle('hidden',server==='none');if(server==='none'){el.innerHTML='<b>서버 미반영</b>최종 CSV + 원본대조 크롭 ZIP만 Google Drive에 저장'}else{const m=writeMode==='append'?'기존 데이터 뒤에 이어붙이기':'현재 서버 전체를 이번 배치로 교체';el.innerHTML=`<b>${server}서버 반영 · ${m}</b>원본대조 크롭 ZIP만 Google Drive에 저장하고, 검수된 데이터는 GitHub coupons${server}.json에 반영`}}
 $$('[data-server]').forEach(b=>b.onclick=()=>{server=b.dataset.server;$$('[data-server]').forEach(x=>x.classList.toggle('on',x===b));refreshArtifactSummary()});
 $$('[data-mode]').forEach(b=>b.onclick=()=>{writeMode=b.dataset.mode;$$('[data-mode]').forEach(x=>x.classList.toggle('on',x===b));refreshArtifactSummary()});refreshArtifactSummary();
@@ -52,14 +52,14 @@ function makePrompt(){
  const count=$('#count').value.trim();
  const data=$('#data').checked;
  const fixedRegCode=$('#fixedRegCode')?.value.trim()||'01027953730';
- if(couponType==='454'&&!/^\\d{1,20}$/.test(fixedRegCode)){alert('고정 Registration Code는 숫자로 입력해주세요.');go('work');return}
+ if(couponType==='454'&&!/^\d{1,20}$/.test(fixedRegCode)){alert('고정 Registration Code는 숫자로 입력해주세요.');go('work');return}
  const couponRule=couponType==='454'
-  ?`- [COUPON_TYPE_454] 이 배치는 4-5-4형 쿠폰이다. 원본의 ####-#####-#### 형태 Coupon No.만 추출·전수 육안대조한다. CSV/서버 coupon_number에는 하이픈을 제거한 13자리 숫자 문자열로 저장한다.\\n- [FIXED_REGISTRATION_CODE] Registration Code는 원본에서 추출하지 않는다. 전건 지정값 ${fixedRegCode}을 동일 적용한다. 일반 8자리 등록코드 규칙을 이 유형에 적용하지 않는다.\\n- [454_DUPLICATE_POLICY] Coupon No. 중복이 확인되면 최초 원본 1건만 유지하고 후속 동일 쿠폰은 제거한다. 제거 후 최종 no를 1부터 다시 연속 부여하고 전체 중복/건수/순번 무결성을 재검사한다.\\n`
-  :`- [PAIR_BY_IMAGE] 원본 이미지 1장 = 데이터 1건. Coupon No.(17자리), 등록코드(8자리), 유효기간 시작일은 반드시 같은 원본 이미지에서 확인한다.\\n- [CHECK_EVERY_DIGIT] Coupon No. 17자리와 등록코드 8자리를 각각 한 자리씩 대조한다. 특히 0/6/8/9, 1/7, 2/7, 3/8, 5/6/9 혼동을 확대 확인한다.\\n`;
+  ?`- [COUPON_TYPE_454] 이 배치는 4-5-4형 쿠폰이다. 원본의 ####-#####-#### 형태 Coupon No.만 추출·전수 육안대조한다. CSV/서버 coupon_number에는 하이픈을 제거한 13자리 숫자 문자열로 저장한다.\n- [FIXED_REGISTRATION_CODE] Registration Code는 원본에서 추출하지 않는다. 전건 지정값 ${fixedRegCode}을 동일 적용한다. 일반 8자리 등록코드 규칙을 이 유형에 적용하지 않는다.\n- [454_DUPLICATE_POLICY] Coupon No. 중복이 확인되면 최초 원본 1건만 유지하고 후속 동일 쿠폰은 제거한다. 제거 후 최종 no를 1부터 다시 연속 부여하고 전체 중복/건수/순번 무결성을 재검사한다.\n`
+  :`- [PAIR_BY_IMAGE] 원본 이미지 1장 = 데이터 1건. Coupon No.(17자리), 등록코드(8자리), 유효기간 시작일은 반드시 같은 원본 이미지에서 확인한다.\n- [CHECK_EVERY_DIGIT] Coupon No. 17자리와 등록코드 8자리를 각각 한 자리씩 대조한다. 특히 0/6/8/9, 1/7, 2/7, 3/8, 5/6/9 혼동을 확대 확인한다.\n`;
  const validityRule=couponType==='454'
-  ?`- [454_VALIDITY_EXCEPTION] 원본 화면에 '사용 유효기간 YYYY.MM.DD까지'처럼 종료일만 있고 시작일이 없으면 시작일을 추측하지 않는다. 시작일을 확인할 수 있는 경우에만 기존 최소~최대 범위를 사용하고, 확인할 수 없으면 배치명을 총개수_작업일자_VALIDITY_PENDING 형식으로 저장한다.\\n`
-  :`- [VALIDITY_EXTRACT] 모든 원본 이미지에서 사용 유효기간의 시작일을 YYMMDD 6자리로 추출한다.\\n- [VALIDITY_RANGE] 전체 시작일 중 최소값~최대값을 계산하여 파일명에 사용한다.\\n- [VALIDITY_ABORT] 유효기간 시작일이 한 건이라도 불확실하면 파일명을 추측해 확정하지 말고 해당 순번을 보고한다.\\n`;
- const typeSelection=couponType==='454'?`선택 쿠폰 유형\\n- 4-5-4형 / 고정 Registration Code: ${fixedRegCode}\\n\\n`:`선택 쿠폰 유형\\n- 일반 17자리 + 등록코드 8자리\\n\\n`;
+  ?`- [454_VALIDITY_EXCEPTION] 원본 화면에 '사용 유효기간 YYYY.MM.DD까지'처럼 종료일만 있고 시작일이 없으면 시작일을 추측하지 않는다. 시작일을 확인할 수 있는 경우에만 기존 최소~최대 범위를 사용하고, 확인할 수 없으면 배치명을 총개수_작업일자_VALIDITY_PENDING 형식으로 저장한다.\n`
+  :`- [VALIDITY_EXTRACT] 모든 원본 이미지에서 사용 유효기간의 시작일을 YYMMDD 6자리로 추출한다.\n- [VALIDITY_RANGE] 전체 시작일 중 최소값~최대값을 계산하여 파일명에 사용한다.\n- [VALIDITY_ABORT] 유효기간 시작일이 한 건이라도 불확실하면 파일명을 추측해 확정하지 말고 해당 순번을 보고한다.\n`;
+ const typeSelection=couponType==='454'?`선택 쿠폰 유형\n- 4-5-4형 / 고정 Registration Code: ${fixedRegCode}\n\n`:`선택 쿠폰 유형\n- 일반 17자리 + 등록코드 8자리\n\n`;
  const common=`[STARBUCKS HELPER · 쿠폰 작업지시서 v2.4]\n\n원본 파일\n${link}\n\n${typeSelection}`;
  if(!data){
   $('#prompt').textContent=common+`선택 작업\n- 쿠폰 이미지 개별 확인 크롭\n\n이미지 크롭 HARD RULE\n- [ONE_DOWNLOAD] 원본 ZIP은 한 번만 내려받아 로컬에서 작업한다. 같은 원본을 반복 다운로드하지 않는다.\n- [SAFE_BATCH_CROP] 먼저 전체 이미지의 레이아웃을 빠르게 분류하고, 동일 레이아웃끼리는 안전 여백 좌표를 재사용할 수 있다. 단 결과 이미지는 전건 확인한다.\n- 최종 크롭에는 쿠폰명 → 수신일시 → 사용 유효기간 → 바코드 전체 → Coupon No. 전체를 남긴다.\n- 불필요한 e-Coupon 안내, 날짜 헤더, 브라우저/카카오 UI, Coupon No. 아래 안내영역은 제거한다.\n- 바코드와 Coupon No.는 일부라도 잘리면 안 된다.\n- [CROP_RECHECK_ONCE] 전체 크롭 결과를 한 번 전수검수하고, 잘림/위치 이상 건만 원본에서 개별 재크롭한다. 정상 건을 반복 재크롭하지 않는다.\n- 이미지 파일은 001.jpg, 002.jpg ... 순번을 유지한다.\n${count?`- 원본 이미지 수와 최종 크롭 수가 모두 ${count}개인지 확인한다.\n`:''}- 최종 원본대조 크롭 ZIP을 Google Drive에 저장한다.\n- [NO_SOURCE_DELETE] 원본 ZIP 또는 관련 없는 Drive 파일을 삭제·이름변경·덮어쓰기 하지 않는다. 정리 작업은 사용자가 명시적으로 지시한 정확한 파일에만 수행한다.\n- 완료 후 원본 수량 / 크롭 수량 / 재조정 수량 / 불확실 수를 보고한다.\n- 중간 설명만 하고 멈추지 말고 실제 결과물 저장까지 수행한다.`;
