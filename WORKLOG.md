@@ -12,6 +12,20 @@
 - 대상 파일: `image-extractor.html`, `COUPON_WORK_INSTRUCTIONS.md`, `START_HERE.md`, `WORKLOG.md`.
 - 유지: 기존 일반 17자리 + 8자리 쿠폰 흐름, 쿠폰3 16자리 예외, 서버 선택/이어붙이기/전체교체, Drive 산출물 정책, 원본 보존 규칙, 기존 UI 스타일은 변경하지 않는다.
 
+### 작업 후 기록
+- `image-extractor.html`을 v3.0으로 올리고 쿠폰 데이터 추출 화면에 `일반 · 17자리 + 등록코드 8자리` / `4-5-4형` 선택을 추가했다.
+- 4-5-4형을 선택하면 고정 Registration Code 입력칸이 나타나며 기본값은 `01027953730`이다. 배치별로 값 변경 가능하고 숫자 입력 검증을 거친다.
+- 생성 작업지시서에 4-5-4형 전용 규칙을 자동 삽입한다: Coupon No. ####-#####-#### 원본 전수검수, 저장 시 하이픈 제거 13자리, 원본 등록코드 추출 생략, 지정 고정값 전건 적용, 최초 1건 유지 방식의 중복 제거 후 no 재부여·무결성 재검사.
+- 유효기간 시작일이 없는 4-5-4형은 추측하지 않고 `총개수_작업일자_VALIDITY_PENDING` 파일명 규칙을 자동 안내한다.
+- `COUPON_WORK_INSTRUCTIONS.md`를 v4.2 / 2026-10-05로 갱신하고 4-5-4형 전용 규칙을 기준 문서에 추가했다.
+- `START_HERE.md`의 쿠폰 반복 금지 실수/운영 기준에도 같은 확정 규칙을 추가해 다른 작업자가 시작 시 바로 확인하도록 했다.
+- 기존 일반형의 17자리 + 8자리 Pair 검수, 서버 append/replace, Drive 보관, NO_SOURCE_DELETE 규칙은 유지했다.
+- 검수 중 쿠폰 유형 버튼 핸들러의 selector 오타를 발견해 즉시 수정했다. 원격 main READBACK 후 `image-extractor.html`의 인라인 JavaScript를 V8 `new Function`으로 문법 파싱했고 결과 `ok`. 일반형/4-5-4형 규칙, 기본 고정값, VALIDITY_PENDING, 서버 append/replace, NO_SOURCE_DELETE 존재도 재확인했다.
+- 관련 커밋: 작업 전 기록 `778e6f765a8f3a3510def59fb404c732d8e23fa5`; 기능 `2dcbc6125bd8ede835daf82735bbaa9cfe325030`; 작업지시서 기준 `5c9da4cdd98b6e2cf1806173d4c2df370cc43cc3`; START_HERE `bd18754814e6dbf133d305f7d5df04746b00eab8`; selector/escape 수정 `803ff53059ed0846114e7ca6093c47148b1e292d`; 기준 문서 v4.2 표기 `9630252ce59d212f265baa70bbc79f682aad86f3`.
+- 데이터 영향: coupons JSON, Firestore, 기존 Drive 쿠폰 데이터에는 쓰기 없음. UI 영향은 이미지 추출기 쿠폰 데이터 작업 화면의 유형 선택 1개 추가뿐이며 기존 기본값은 일반형이다.
+- 배포: main 반영 완료. GitHub Pages 배포는 저장소의 기존 자동 배포 흐름을 따른다.
+- 남은 문제: 없음. 실제 4-5-4 배치를 다음에 만들 때는 헬퍼에서 유형만 선택하면 반복 설명 없이 동일 규칙이 지시서에 포함된다.
+
 ## 2026-10-03 — ChatGPT (9/26 쿠폰 등록코드 오류 원본 재검수 및 정정)
 
 ### 작업 전 기록
