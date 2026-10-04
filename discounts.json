@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-03T22:56:04+09:00",
+ "updatedAt": "2026-10-04T11:52:18+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-03T22:56:04+09:00",
-   "lastSuccessAt": "2026-10-03T22:56:04+09:00",
+   "checkedAt": "2026-10-04T11:52:18+09:00",
+   "lastSuccessAt": "2026-10-04T11:52:18+09:00",
    "scanned": 238,
    "discounted": 7,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-03T22:56:04+09:00",
-   "lastSuccessAt": "2026-10-03T22:56:04+09:00",
+   "checkedAt": "2026-10-04T11:52:18+09:00",
+   "lastSuccessAt": "2026-10-04T11:52:18+09:00",
    "scanned": 285,
    "discounted": 0,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-03T22:56:04+09:00",
-   "lastSuccessAt": "2026-10-03T22:56:04+09:00",
+   "checkedAt": "2026-10-04T11:52:18+09:00",
+   "lastSuccessAt": "2026-10-04T11:52:18+09:00",
    "scanned": 267,
    "discounted": 3,
    "error": ""
@@ -32,9 +32,9 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-03T22:56:04+09:00",
-   "lastSuccessAt": "2026-10-03T22:56:04+09:00",
-   "scanned": 92,
+   "checkedAt": "2026-10-04T11:52:18+09:00",
+   "lastSuccessAt": "2026-10-04T11:52:18+09:00",
+   "scanned": 93,
    "discounted": 4,
    "error": ""
   }
