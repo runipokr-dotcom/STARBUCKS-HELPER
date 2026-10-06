@@ -27,6 +27,26 @@ button.danger{background:#fff;color:#b42318;border-color:#f0c4bd;min-height:34px
 button:disabled{opacity:.5;cursor:default}
 .formActions{margin-top:12px;display:flex;justify-content:flex-end}
 .note{display:block;margin-top:8px;color:#64736d;font-size:12px;line-height:1.4}
+.composerIntro{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.composerIntro h2{margin-bottom:4px}
+.adultBadge{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border-radius:99px;background:#eef5f1;color:#006241;font-size:12px;font-weight:900;white-space:nowrap}
+.termGroups{display:grid;gap:12px}
+.termGroup{border-top:1px solid #e5ebe8;padding-top:10px}
+.termGroup:first-child{border-top:0;padding-top:0}
+.termGroupTitle{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;font-weight:900;color:#33423c}
+.termGroupCount{color:#8a978f;font-size:11px}
+.termChips{display:flex;flex-wrap:wrap;gap:7px}
+.termChip{min-height:40px;padding:7px 11px;border-radius:99px;background:#fff;color:#33423c;border-color:#cbd7d1;font-size:13px;font-weight:700;line-height:1.2}
+.termChip:hover{border-color:#006241;color:#006241}
+.termChip[aria-pressed="true"]{background:#006241;color:#fff;border-color:#006241;box-shadow:0 0 0 2px #dcefe7}
+.composerResult{margin-top:14px;padding-top:14px;border-top:1px solid #dce3df}
+.composerResultHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.composerResultHead label{margin:0}
+.selectedCount{font-size:12px;font-weight:900;color:#006241}
+#composerOutput{min-height:96px;background:#f9fbfa}
+.composerActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
+.composerActions button{min-height:42px}
+.composerActions .primaryAction{background:#006241;color:#fff}
 .searchBar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
 .searchBar input{flex:1}
 .count{font-size:12px;color:#64736d;font-weight:800;white-space:nowrap}
@@ -48,6 +68,11 @@ button:disabled{opacity:.5;cursor:default}
   .row{grid-template-columns:1fr}
   h1{font-size:22px}
   section,.panel{padding:12px}
+  .composerIntro{display:block}
+  .adultBadge{margin-top:5px}
+  .termChip{min-height:44px;padding:8px 12px}
+  .composerActions{display:grid;grid-template-columns:1fr 1fr}
+  .composerActions button{width:100%;min-height:44px;padding:0 8px}
 }
 </style>
 </head>
@@ -57,6 +82,33 @@ button:disabled{opacity:.5;cursor:default}
     <h1>프롬프트 저장소</h1>
     <p class="sub">인터넷에서 줍줍한 프롬프트를 저장해두는 곳. 여기 저장하면 PC와 모바일 어디서든 바로 볼 수 있어요.</p>
   </header>
+
+  <section class="panel" aria-labelledby="composerTitle">
+    <div class="composerIntro">
+      <div>
+        <h2 id="composerTitle">클릭해서 프롬프트 조합</h2>
+        <p class="sub">원하는 항목을 누르면 선택한 순서대로 이어집니다. 선택된 항목을 다시 누르면 빠집니다.</p>
+      </div>
+      <span class="adultBadge">성인(25+) 전용</span>
+    </div>
+    <div class="termGroups" id="termGroups"></div>
+
+    <div class="composerResult">
+      <div class="composerResultHead">
+        <label for="composerOutput">조합 결과</label>
+        <span class="selectedCount" id="selectedCount">선택 0개</span>
+      </div>
+      <textarea id="composerOutput" readonly aria-describedby="composerHelp"></textarea>
+      <p class="note" id="composerHelp">성인 기준 문구는 항상 맨 앞에 들어갑니다. 외부 채팅창에는 자동 전송하지 않아요.</p>
+      <div class="composerActions">
+        <button type="button" class="secondary" id="undoTermBtn">한 단계 취소</button>
+        <button type="button" class="secondary" id="clearTermsBtn">전체 지우기</button>
+        <button type="button" class="secondary" id="sendToBodyBtn">저장칸에 넣기</button>
+        <button type="button" class="primaryAction" id="copyComposerBtn">조합문 복사</button>
+      </div>
+      <p class="note" id="composerNote" role="status">항목을 골라 조합해 보세요.</p>
+    </div>
+  </section>
 
   <section class="panel">
     <h2>새 프롬프트 추가</h2>
@@ -114,6 +166,251 @@ button:disabled{opacity:.5;cursor:default}
   const cardList = document.getElementById('cardList');
   const emptyText = document.getElementById('emptyText');
   const countText = document.getElementById('countText');
+
+  const termGroups = document.getElementById('termGroups');
+  const composerOutput = document.getElementById('composerOutput');
+  const selectedCount = document.getElementById('selectedCount');
+  const undoTermBtn = document.getElementById('undoTermBtn');
+  const clearTermsBtn = document.getElementById('clearTermsBtn');
+  const sendToBodyBtn = document.getElementById('sendToBodyBtn');
+  const copyComposerBtn = document.getElementById('copyComposerBtn');
+  const composerNote = document.getElementById('composerNote');
+
+  const BASE_TERM = 'clearly adult woman, age 25 or older';
+  const TERM_GROUPS = [
+    {title:'의상 종류', terms:[
+      ['오버사이즈 흰 셔츠','oversized white shirt'],
+      ['검은 미니 원피스','black mini dress'],
+      ['니트 원피스','fitted knit dress'],
+      ['새틴 슬립 원피스','satin slip dress'],
+      ['블라우스와 미니스커트','blouse and mini skirt'],
+      ['오버사이즈 스웨터','oversized sweater'],
+      ['카디건과 스커트','cardigan and skirt'],
+      ['블레이저와 숏팬츠','blazer and tailored shorts'],
+      ['터틀넥과 미니스커트','turtleneck and mini skirt'],
+      ['캐미솔과 스커트','camisole and skirt'],
+      ['심플한 검은 속옷','simple black underwear, fully covering'],
+      ['열린 셔츠 아래 속옷','black underwear visible beneath an open oversized shirt']
+    ]},
+    {title:'스타킹 색상', terms:[
+      ['제트 블랙','jet black stockings'],
+      ['소프트 블랙','soft black stockings'],
+      ['차콜','charcoal stockings'],
+      ['다크 그레이','dark gray stockings'],
+      ['커피 브라운','coffee brown stockings'],
+      ['다크 브라운','dark brown stockings'],
+      ['베이지','beige stockings'],
+      ['누드톤','natural nude-tone stockings'],
+      ['아이보리','ivory stockings'],
+      ['화이트','white stockings'],
+      ['버건디','burgundy stockings'],
+      ['네이비','navy stockings'],
+      ['올리브','olive stockings'],
+      ['더스티 핑크','dusty pink stockings']
+    ]},
+    {title:'스타킹 종류', terms:[
+      ['팬티스타킹','sheer pantyhose'],
+      ['허벅지 스타킹','thigh-high stockings'],
+      ['오버니 스타킹','over-the-knee stockings'],
+      ['홀드업 스타킹','hold-up stockings'],
+      ['레이스 밴드','lace-top stockings'],
+      ['심플 밴드','plain-top stockings'],
+      ['백심 스타킹','back-seam stockings'],
+      ['쿠반힐','Cuban-heel stockings'],
+      ['발끝 보강','reinforced-toe stockings'],
+      ['샌들토','sandal-toe stockings'],
+      ['미세 망사','micro-fishnet stockings'],
+      ['망사','fishnet stockings'],
+      ['도트 패턴','polka-dot stockings'],
+      ['세로 리브','ribbed tights'],
+      ['불투명 타이츠','opaque tights']
+    ]},
+    {title:'비침 · 질감', terms:[
+      ['초극세 시스루','ultra-sheer fabric'],
+      ['매우 얇은 비침','very sheer fabric'],
+      ['자연스러운 비침','natural sheer transparency'],
+      ['은은한 비침','subtle transparency'],
+      ['반투명','translucent fabric'],
+      ['세미 오페이크','semi-opaque fabric'],
+      ['불투명','fully opaque fabric'],
+      ['매트','matte finish'],
+      ['은은한 광택','subtle silky sheen'],
+      ['매끄러운 광택','smooth glossy finish'],
+      ['섬세한 직조','fine visible weave'],
+      ['피부 밀착','natural close fit']
+    ]},
+    {title:'데니아', terms:[
+      ['5D','5 denier'],['8D','8 denier'],['10D','10 denier'],['12D','12 denier'],
+      ['15D','15 denier'],['20D','20 denier'],['30D','30 denier'],['40D','40 denier'],
+      ['50D','50 denier'],['60D','60 denier'],['80D','80 denier'],['100D','100 denier'],
+      ['120D','120 denier'],['150D','150 denier'],['200D','200 denier']
+    ]},
+    {title:'포즈 · 시선', terms:[
+      ['편하게 서기','relaxed standing pose'],
+      ['침대 끝에 앉기','sitting naturally on the edge of a bed'],
+      ['소파에 앉기','sitting casually on a sofa'],
+      ['벽에 기대기','leaning lightly against a wall'],
+      ['한쪽 무릎 굽힘','one knee softly bent'],
+      ['한쪽 발 앞으로','one foot slightly forward'],
+      ['다리 살짝 벌림','legs slightly apart in a natural stance'],
+      ['무릎 모으기','knees together, feet naturally placed'],
+      ['옆으로 기대기','reclining naturally on one side'],
+      ['무릎 세워 앉기','seated with one knee raised naturally'],
+      ['무릎 꿇고 앉기','upright kneeling pose'],
+      ['네발 3/4 측면','natural all-fours pose, restrained three-quarter side view, fully covered'],
+      ['카메라를 봄','looking naturally toward the camera'],
+      ['시선 피하기','looking slightly away from the camera'],
+      ['어깨 너머 시선','subtle over-the-shoulder glance']
+    ]},
+    {title:'카메라 · 구도', terms:[
+      ['머리부터 발끝 전신','full body, head to toe, both feet visible'],
+      ['3/4 측면 25도','natural three-quarter angle, 25 degrees off-center'],
+      ['측면 30도','natural side angle, 30 degrees off-center'],
+      ['눈높이','camera at eye level'],
+      ['가슴 높이','camera at chest height'],
+      ['허리 높이','camera at waist height'],
+      ['약한 하이앵글','slight high angle'],
+      ['충분한 촬영 거리','camera several steps away'],
+      ['50mm 렌즈','50mm-equivalent lens'],
+      ['85mm 렌즈','85mm portrait lens'],
+      ['살짝 비대칭','slightly off-center candid framing'],
+      ['자연스러운 원근','natural perspective, no wide-angle distortion']
+    ]},
+    {title:'배경 · 광원', terms:[
+      ['평범한 침실','ordinary tidy bedroom'],
+      ['생활감 있는 침실','lived-in bedroom with natural bedding wrinkles'],
+      ['아파트 거실','ordinary apartment living room'],
+      ['창가','beside a window'],
+      ['심플한 스튜디오','simple understated studio'],
+      ['호텔 객실','quiet hotel room'],
+      ['부드러운 창문광','soft daylight through a window'],
+      ['흐린 날 자연광','soft overcast daylight'],
+      ['따뜻한 실내등','warm ordinary room lighting'],
+      ['은은한 역광','subtle natural backlight'],
+      ['현실적인 그림자','realistic soft shadows'],
+      ['자연스러운 노출','natural exposure and color balance']
+    ]},
+    {title:'사실감 · 인체비율', terms:[
+      ['평균 키와 체형','average height and everyday body type'],
+      ['7~7.5등신','realistic 7 to 7.5-head body proportions'],
+      ['정상 다리 길이','normal-length legs and torso'],
+      ['자연스러운 관절','anatomically correct joints'],
+      ['현실적인 손발','realistically sized hands and feet'],
+      ['자연스러운 피부결','natural skin texture'],
+      ['작은 피부 결점','subtle natural skin imperfections'],
+      ['옅은 화장','understated makeup'],
+      ['흐트러진 머리','slightly loose casual hair'],
+      ['옷감 주름','natural fabric wrinkles'],
+      ['생활사진','unretouched everyday candid photograph'],
+      ['최소 보정','minimal retouching, realistic colors']
+    ]},
+    {title:'왜곡 방지', terms:[
+      ['긴 다리 과장 금지','no elongated legs'],
+      ['작은 머리 금지','no tiny head'],
+      ['늘어난 몸 금지','no stretched torso'],
+      ['과장 체형 금지','no exaggerated body shape'],
+      ['광각 왜곡 금지','no wide-angle distortion'],
+      ['로우앵글 금지','no extreme low angle'],
+      ['인형 피부 금지','no plastic doll-like skin'],
+      ['비틀린 관절 금지','no twisted joints or limbs'],
+      ['추가 손가락 금지','no extra fingers'],
+      ['추가 팔다리 금지','no extra limbs'],
+      ['텍스트 금지','no text'],
+      ['워터마크 금지','no watermark']
+    ]}
+  ];
+
+  const selectedTerms = [];
+  const termButtons = new Map();
+
+  function renderComposer() {
+    composerOutput.value = [BASE_TERM, ...selectedTerms.map(term => term.value)].join(', ');
+    selectedCount.textContent = `선택 ${selectedTerms.length}개`;
+    undoTermBtn.disabled = clearTermsBtn.disabled = selectedTerms.length === 0;
+    for (const [value, button] of termButtons) {
+      button.setAttribute('aria-pressed', String(selectedTerms.some(term => term.value === value)));
+    }
+  }
+
+  function toggleTerm(label, value) {
+    const index = selectedTerms.findIndex(term => term.value === value);
+    if (index >= 0) {
+      selectedTerms.splice(index, 1);
+      composerNote.textContent = `“${label}” 항목을 뺐어요.`;
+    } else {
+      selectedTerms.push({label, value});
+      composerNote.textContent = `“${label}” 항목을 ${selectedTerms.length}번째로 추가했어요.`;
+    }
+    renderComposer();
+  }
+
+  function buildTermGroups() {
+    for (const group of TERM_GROUPS) {
+      const wrap = document.createElement('div');
+      wrap.className = 'termGroup';
+      const heading = document.createElement('div');
+      heading.className = 'termGroupTitle';
+      heading.textContent = group.title;
+      const count = document.createElement('span');
+      count.className = 'termGroupCount';
+      count.textContent = `${group.terms.length}개`;
+      heading.appendChild(count);
+      wrap.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'termChips';
+      for (const [label, value] of group.terms) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'termChip';
+        button.textContent = label;
+        button.setAttribute('aria-pressed', 'false');
+        button.title = value;
+        button.addEventListener('click', () => toggleTerm(label, value));
+        termButtons.set(value, button);
+        chips.appendChild(button);
+      }
+      wrap.appendChild(chips);
+      termGroups.appendChild(wrap);
+    }
+  }
+
+  undoTermBtn.addEventListener('click', () => {
+    const removed = selectedTerms.pop();
+    if (removed) composerNote.textContent = `마지막 “${removed.label}” 항목을 취소했어요.`;
+    renderComposer();
+  });
+
+  clearTermsBtn.addEventListener('click', () => {
+    selectedTerms.length = 0;
+    composerNote.textContent = '선택 항목을 모두 지웠어요.';
+    renderComposer();
+  });
+
+  sendToBodyBtn.addEventListener('click', () => {
+    const next = composerOutput.value.trim();
+    if (bodyInput.value.trim() && bodyInput.value !== next && !confirm('프롬프트 원문에 입력된 내용을 조합 결과로 바꿀까요?')) return;
+    bodyInput.value = next;
+    bodyInput.scrollIntoView({behavior:'smooth', block:'center'});
+    bodyInput.focus();
+    composerNote.textContent = '조합 결과를 아래 프롬프트 원문에 넣었어요. 제목을 적고 저장하면 됩니다.';
+  });
+
+  copyComposerBtn.addEventListener('click', async () => {
+    const text = composerOutput.value;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyComposerBtn.textContent = '복사됨!';
+      composerNote.textContent = '조합문을 복사했어요. 원하는 채팅창에 붙여넣으세요.';
+    } catch {
+      composerOutput.focus();
+      composerOutput.select();
+      composerNote.textContent = '자동 복사가 제한됐어요. 선택된 조합문을 길게 눌러 복사해 주세요.';
+    }
+    setTimeout(() => { copyComposerBtn.textContent = '조합문 복사'; }, 1400);
+  });
+
+  buildTermGroups();
+  renderComposer();
 
   let items = [], ready = false, busy = false, query = '', expanded = new Set();
   let ref, f, db;
