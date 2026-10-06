@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-06T02:25:03+09:00",
+ "updatedAt": "2026-10-06T12:20:32+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-06T02:25:03+09:00",
-   "lastSuccessAt": "2026-10-06T02:25:03+09:00",
+   "checkedAt": "2026-10-06T12:20:32+09:00",
+   "lastSuccessAt": "2026-10-06T12:20:32+09:00",
    "scanned": 238,
    "discounted": 7,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-06T02:25:03+09:00",
-   "lastSuccessAt": "2026-10-06T02:25:03+09:00",
+   "checkedAt": "2026-10-06T12:20:32+09:00",
+   "lastSuccessAt": "2026-10-06T12:20:32+09:00",
    "scanned": 283,
    "discounted": 0,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-06T02:25:03+09:00",
-   "lastSuccessAt": "2026-10-06T02:25:03+09:00",
+   "checkedAt": "2026-10-06T12:20:32+09:00",
+   "lastSuccessAt": "2026-10-06T12:20:32+09:00",
    "scanned": 267,
    "discounted": 251,
    "error": ""
@@ -32,9 +32,9 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-06T02:25:03+09:00",
-   "lastSuccessAt": "2026-10-06T02:25:03+09:00",
-   "scanned": 92,
+   "checkedAt": "2026-10-06T12:20:32+09:00",
+   "lastSuccessAt": "2026-10-06T12:20:32+09:00",
+   "scanned": 91,
    "discounted": 0,
    "error": ""
   }
@@ -333,7 +333,7 @@
    "id": "307482112",
    "name": "SS 나수 하우스 텀블러 355ml",
    "url": "https://www.wconcept.co.kr/Product/307482112",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/12/307482112_SN14900.jpg",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/12/307482112_YD56295.jpg",
    "price": 30400,
    "originalPrice": 32000,
    "rate": 5,
@@ -729,7 +729,7 @@
    "id": "307481182",
    "name": "SS 시그니처 콩코드 텀블러 591ml",
    "url": "https://www.wconcept.co.kr/Product/307481182",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/82/307481182_XH66699.jpg",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/82/307481182_OK77171.jpg",
    "price": 39900,
    "originalPrice": 42000,
    "rate": 5,
