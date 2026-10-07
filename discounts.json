@@ -1,41 +1,41 @@
 {
  "version": 1,
- "updatedAt": "2026-10-07T11:41:51+09:00",
+ "updatedAt": "2026-10-08T00:46:52+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-07T11:41:51+09:00",
-   "lastSuccessAt": "2026-10-07T11:41:51+09:00",
-   "scanned": 238,
+   "checkedAt": "2026-10-08T00:46:52+09:00",
+   "lastSuccessAt": "2026-10-08T00:46:52+09:00",
+   "scanned": 245,
    "discounted": 7,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-07T11:41:51+09:00",
-   "lastSuccessAt": "2026-10-07T11:41:51+09:00",
+   "checkedAt": "2026-10-08T00:46:52+09:00",
+   "lastSuccessAt": "2026-10-08T00:46:52+09:00",
    "scanned": 283,
    "discounted": 0,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
-   "ok": true,
-   "checkedAt": "2026-10-07T11:41:51+09:00",
+   "ok": false,
+   "checkedAt": "2026-10-08T00:46:52+09:00",
    "lastSuccessAt": "2026-10-07T11:41:51+09:00",
    "scanned": 267,
    "discounted": 251,
-   "error": ""
+   "error": "https://gw-front.wconcept.co.kr/display/api/brand/v1/products/116134 -> HTTP Error 403: Forbidden"
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-07T11:41:51+09:00",
-   "lastSuccessAt": "2026-10-07T11:41:51+09:00",
-   "scanned": 91,
-   "discounted": 0,
+   "checkedAt": "2026-10-08T00:46:52+09:00",
+   "lastSuccessAt": "2026-10-08T00:46:52+09:00",
+   "scanned": 92,
+   "discounted": 1,
    "error": ""
   }
  },
@@ -147,6 +147,18 @@
    "rate": 30,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "9158489",
+   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (3종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/9158489",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928130138_9f94c82ef4344d09a039ab2873f71e7c.png",
+   "price": 26250,
+   "originalPrice": 0,
+   "rate": 25,
+   "soldOut": false,
+   "firstSeen": "2026-10-08T00:46:52+09:00"
   },
   {
    "store": "wconcept",
