@@ -7,8 +7,11 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f4;color:#17211d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body.wordBankOpen{overflow:hidden}
 main{width:min(880px,calc(100% - 24px));margin:18px auto 80px}
 header{margin-bottom:14px}
+.pageHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pageHeaderCopy{min-width:0}
 h1{font-size:26px;margin:0;letter-spacing:0}
 .sub{color:#64736d;font-size:14px;line-height:1.5;margin-top:4px}
 section,.panel{background:#fff;border:1px solid #dce3df;border-radius:8px;padding:14px}
@@ -27,23 +30,44 @@ button.danger{background:#fff;color:#b42318;border-color:#f0c4bd;min-height:34px
 button:disabled{opacity:.5;cursor:default}
 .formActions{margin-top:12px;display:flex;justify-content:flex-end}
 .note{display:block;margin-top:8px;color:#64736d;font-size:12px;line-height:1.4}
-.composerIntro{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
-.composerIntro h2{margin-bottom:4px}
-.adultBadge{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border-radius:99px;background:#eef5f1;color:#006241;font-size:12px;font-weight:900;white-space:nowrap}
-.termGroups{display:grid;gap:12px}
-.termGroup{border-top:1px solid #e5ebe8;padding-top:10px}
-.termGroup:first-child{border-top:0;padding-top:0}
+.cloudButton{flex:0 0 auto;width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;background:#fff;color:#5d767e;border-color:#cbdadf;box-shadow:0 3px 10px rgba(36,71,78,.1);display:inline-flex;align-items:center;justify-content:center}
+.cloudButton:hover{background:#f2f8fa;border-color:#8fb0b8;color:#315b66}
+.cloudButton svg{width:25px;height:25px;display:block}
+.wordBankOverlay{position:fixed;inset:0;z-index:10000;background:rgba(17,30,26,.45);padding:18px;display:flex;align-items:center;justify-content:center}
+.wordBankOverlay[hidden]{display:none}
+.wordBankPanel{width:min(980px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border:1px solid #d6e0dc;border-radius:14px;box-shadow:0 22px 70px rgba(0,0,0,.24);padding:16px}
+.wordBankHead{position:sticky;top:-16px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:-16px -16px 14px;padding:16px;background:rgba(255,255,255,.97);border-bottom:1px solid #e3e9e6;border-radius:14px 14px 0 0}
+.wordBankHead h2{font-size:18px;margin:0 0 4px}
+.closeWordBank{width:42px;min-width:42px;padding:0;border-radius:50%;background:#fff;color:#33423c;border-color:#cbd7d1;font-size:22px;font-weight:500}
+.adultBadge{display:inline-flex;align-items:center;min-height:28px;margin-top:8px;padding:0 9px;border-radius:99px;background:#eef5f1;color:#006241;font-size:12px;font-weight:900;white-space:nowrap}
+.localOnlyNote{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#f5f8f6;color:#53635d;font-size:12px;line-height:1.5}
+.categoryEditor{margin-bottom:14px;border:1px solid #dce3df;border-radius:9px;background:#fbfcfb}
+.categoryEditor summary{padding:11px 12px;cursor:pointer;color:#33423c;font-size:13px;font-weight:900}
+.editorBody{padding:0 12px 12px}
+.editorBody label{margin-top:8px}
+select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;background:#fff;color:#17211d;font-size:14px;padding:0 10px;font-family:inherit}
+#categoryTermsInput{min-height:128px}
+.editorActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
+.heightComposer{margin-bottom:14px;border:1px solid #dce3df;border-radius:9px;background:#fbfcfb;padding:11px 12px}
+.heightComposerTitle{font-size:13px;font-weight:900;color:#33423c}
+.heightComposerRow{display:grid;grid-template-columns:minmax(0,220px) auto;align-items:end;gap:8px;margin-top:8px}
+.heightComposerRow label{margin:0}
+.heightComposerRow button{white-space:nowrap}
+.termGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.termGroup{border:1px solid #e1e8e4;border-radius:9px;padding:10px;background:#fff}
 .termGroupTitle{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;font-weight:900;color:#33423c}
 .termGroupCount{color:#8a978f;font-size:11px}
 .termChips{display:flex;flex-wrap:wrap;gap:7px}
-.termChip{min-height:40px;padding:7px 11px;border-radius:99px;background:#fff;color:#33423c;border-color:#cbd7d1;font-size:13px;font-weight:700;line-height:1.2}
+.termChip{min-height:40px;max-width:100%;padding:7px 11px;border-radius:12px;background:#fff;color:#33423c;border-color:#cbd7d1;font-size:13px;font-weight:700;line-height:1.2;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;white-space:normal}
+.termChipValue{margin-top:3px;color:#6c7d75;font-size:11px;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
 .termChip:hover{border-color:#006241;color:#006241}
 .termChip[aria-pressed="true"]{background:#006241;color:#fff;border-color:#006241;box-shadow:0 0 0 2px #dcefe7}
+.termChip[aria-pressed="true"] .termChipValue{color:#e4f4ed}
 .composerResult{margin-top:14px;padding-top:14px;border-top:1px solid #dce3df}
 .composerResultHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 .composerResultHead label{margin:0}
 .selectedCount{font-size:12px;font-weight:900;color:#006241}
-#composerOutput{min-height:96px;background:#f9fbfa}
+#composerOutput{min-height:110px;background:#f9fbfa}
 .composerActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
 .composerActions button{min-height:42px}
 .composerActions .primaryAction{background:#006241;color:#fff}
@@ -68,8 +92,13 @@ button:disabled{opacity:.5;cursor:default}
   .row{grid-template-columns:1fr}
   h1{font-size:22px}
   section,.panel{padding:12px}
-  .composerIntro{display:block}
-  .adultBadge{margin-top:5px}
+  .wordBankOverlay{padding:0;align-items:stretch}
+  .wordBankPanel{max-height:100vh;max-height:100dvh;height:100vh;height:100dvh;border:0;border-radius:0;padding:12px}
+  .wordBankHead{top:-12px;margin:-12px -12px 12px;padding:12px;border-radius:0}
+  .wordBankHead h2{font-size:17px}
+  .heightComposerRow{grid-template-columns:1fr}
+  .heightComposerRow button{width:100%;min-height:44px}
+  .termGroups{grid-template-columns:1fr}
   .termChip{min-height:44px;padding:8px 12px}
   .composerActions{display:grid;grid-template-columns:1fr 1fr}
   .composerActions button{width:100%;min-height:44px;padding:0 8px}
@@ -78,37 +107,74 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <main>
-  <header>
-    <h1>프롬프트 저장소</h1>
-    <p class="sub">인터넷에서 줍줍한 프롬프트를 저장해두는 곳. 여기 저장하면 PC와 모바일 어디서든 바로 볼 수 있어요.</p>
+  <header class="pageHeader">
+    <div class="pageHeaderCopy">
+      <h1>프롬프트 저장소</h1>
+      <p class="sub">인터넷에서 줍줍한 프롬프트를 저장해두는 곳. 여기 저장하면 PC와 모바일 어디서든 바로 볼 수 있어요.</p>
+    </div>
+    <button type="button" class="cloudButton" id="openWordBankBtn" aria-label="패션 단어 저장소 열기" aria-controls="wordBankOverlay" aria-expanded="false" title="패션 단어 저장소">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="M15.3 37.2h21.2a8.5 8.5 0 0 0 .7-17A13.4 13.4 0 0 0 11.8 18a9.7 9.7 0 0 0 3.5 19.2Z"/><path fill="#fff" opacity=".48" d="M12.5 28.5a6.2 6.2 0 0 1 6.1-6.2 9.7 9.7 0 0 1 17-1.8 8.5 8.5 0 0 0-23.1 8Z"/></svg>
+    </button>
   </header>
 
-  <section class="panel" aria-labelledby="composerTitle">
-    <div class="composerIntro">
+  <div class="wordBankOverlay" id="wordBankOverlay" hidden>
+    <section class="wordBankPanel" id="wordBankPanel" role="dialog" aria-modal="true" aria-labelledby="composerTitle" aria-describedby="wordBankDescription" tabindex="-1">
+      <div class="wordBankHead">
       <div>
-        <h2 id="composerTitle">클릭해서 프롬프트 조합</h2>
-        <p class="sub">원하는 항목을 누르면 선택한 순서대로 이어집니다. 선택된 항목을 다시 누르면 빠집니다.</p>
+          <h2 id="composerTitle">일반 성인 패션 단어 저장소</h2>
+          <p class="sub" id="wordBankDescription">단어를 누른 순서대로 조합하고, 입력칸에서 자유롭게 다듬어 복사하세요.</p>
+          <span class="adultBadge">성인 패션 화보 전용</span>
+        </div>
+        <button type="button" class="closeWordBank" id="closeWordBankBtn" aria-label="단어 저장소 닫기">×</button>
       </div>
-      <span class="adultBadge">성인(25+) 전용</span>
-    </div>
-    <div class="termGroups" id="termGroups"></div>
 
-    <div class="composerResult">
-      <div class="composerResultHead">
-        <label for="composerOutput">조합 결과</label>
-        <span class="selectedCount" id="selectedCount">선택 0개</span>
+      <p class="localOnlyNote">추가·수정한 단어는 이 브라우저에만 저장됩니다. 다른 기기와 동기화되지 않으며, 브라우저 데이터를 지우면 사라집니다. Firestore나 외부 서비스에는 자동 저장·전송하지 않습니다.</p>
+
+      <details class="categoryEditor" id="categoryEditor">
+        <summary>내 단어 추가·수정</summary>
+        <div class="editorBody">
+          <label for="editCategorySelect">분류</label>
+          <select id="editCategorySelect"></select>
+          <label for="categoryTermsInput">단어 목록 (한 줄에 하나)</label>
+          <textarea id="categoryTermsInput" maxlength="5000" autocomplete="off"></textarea>
+          <div class="editorActions">
+            <button type="button" class="secondary" id="resetCategoryBtn">이 분류 기본값 복원</button>
+            <button type="button" id="saveCategoryBtn">이 브라우저에 저장</button>
+          </div>
+          <p class="note" id="editorNote" role="status">한글명과 영문 출력이 다르면 `한글명 | English output`으로 입력하세요. 개인 단어는 공개 코드나 기존 프롬프트 서버에 저장되지 않습니다.</p>
+        </div>
+      </details>
+
+      <div class="heightComposer">
+        <div class="heightComposerTitle">키</div>
+        <div class="heightComposerRow">
+          <label for="heightCmInput">키(cm)
+            <input id="heightCmInput" type="number" min="100" max="250" step="1" inputmode="numeric" placeholder="예: 170" autocomplete="off" aria-describedby="heightNote">
+          </label>
+          <button type="button" id="addHeightBtn">키 영문으로 추가</button>
+        </div>
+        <p class="note" id="heightNote" role="status">100~250 사이의 정수를 입력하면 `170 cm tall` 형식으로 조합합니다.</p>
       </div>
-      <textarea id="composerOutput" readonly aria-describedby="composerHelp"></textarea>
-      <p class="note" id="composerHelp">성인 기준 문구는 항상 맨 앞에 들어갑니다. 외부 채팅창에는 자동 전송하지 않아요.</p>
-      <div class="composerActions">
-        <button type="button" class="secondary" id="undoTermBtn">한 단계 취소</button>
-        <button type="button" class="secondary" id="clearTermsBtn">전체 지우기</button>
-        <button type="button" class="secondary" id="sendToBodyBtn">저장칸에 넣기</button>
-        <button type="button" class="primaryAction" id="copyComposerBtn">조합문 복사</button>
+
+      <div class="termGroups" id="termGroups"></div>
+
+      <div class="composerResult">
+        <div class="composerResultHead">
+          <label for="composerOutput">조합 입력</label>
+          <span class="selectedCount" id="selectedCount">선택 0개</span>
+        </div>
+        <textarea id="composerOutput" placeholder="단어를 누르거나 여기에 직접 입력하세요" autocomplete="off" aria-describedby="composerHelp"></textarea>
+        <p class="note" id="composerHelp">선택 항목을 다시 누르면 해당 단어가 빠집니다. 직접 입력한 내용도 복사할 수 있으며 외부로 자동 전송하지 않습니다.</p>
+        <div class="composerActions">
+          <button type="button" class="secondary" id="undoTermBtn">마지막 선택 취소</button>
+          <button type="button" class="secondary" id="clearTermsBtn">전체 비우기</button>
+          <button type="button" class="secondary" id="sendToBodyBtn">프롬프트 원문에 넣기</button>
+          <button type="button" class="primaryAction" id="copyComposerBtn">전체 복사</button>
+        </div>
+        <p class="note" id="composerNote" role="status">항목을 골라 조합해 보세요.</p>
       </div>
-      <p class="note" id="composerNote" role="status">항목을 골라 조합해 보세요.</p>
-    </div>
-  </section>
+    </section>
+  </div>
 
   <section class="panel">
     <h2>새 프롬프트 추가</h2>
@@ -167,6 +233,10 @@ button:disabled{opacity:.5;cursor:default}
   const emptyText = document.getElementById('emptyText');
   const countText = document.getElementById('countText');
 
+  const openWordBankBtn = document.getElementById('openWordBankBtn');
+  const closeWordBankBtn = document.getElementById('closeWordBankBtn');
+  const wordBankOverlay = document.getElementById('wordBankOverlay');
+  const wordBankPanel = document.getElementById('wordBankPanel');
   const termGroups = document.getElementById('termGroups');
   const composerOutput = document.getElementById('composerOutput');
   const selectedCount = document.getElementById('selectedCount');
@@ -175,177 +245,209 @@ button:disabled{opacity:.5;cursor:default}
   const sendToBodyBtn = document.getElementById('sendToBodyBtn');
   const copyComposerBtn = document.getElementById('copyComposerBtn');
   const composerNote = document.getElementById('composerNote');
+  const editCategorySelect = document.getElementById('editCategorySelect');
+  const categoryTermsInput = document.getElementById('categoryTermsInput');
+  const resetCategoryBtn = document.getElementById('resetCategoryBtn');
+  const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+  const editorNote = document.getElementById('editorNote');
+  const heightCmInput = document.getElementById('heightCmInput');
+  const addHeightBtn = document.getElementById('addHeightBtn');
+  const heightNote = document.getElementById('heightNote');
 
-  const BASE_TERM = 'clearly adult woman, age 25 or older';
-  const TERM_GROUPS = [
-    {title:'의상 종류', terms:[
-      ['오버사이즈 흰 셔츠','oversized white shirt'],
-      ['검은 미니 원피스','black mini dress'],
-      ['니트 원피스','fitted knit dress'],
-      ['새틴 슬립 원피스','satin slip dress'],
-      ['블라우스와 미니스커트','blouse and mini skirt'],
-      ['오버사이즈 스웨터','oversized sweater'],
-      ['카디건과 스커트','cardigan and skirt'],
-      ['블레이저와 숏팬츠','blazer and tailored shorts'],
-      ['터틀넥과 미니스커트','turtleneck and mini skirt'],
-      ['캐미솔과 스커트','camisole and skirt'],
-      ['심플한 검은 속옷','simple black underwear, fully covering'],
-      ['열린 셔츠 아래 속옷','black underwear visible beneath an open oversized shirt']
-    ]},
-    {title:'스타킹 색상', terms:[
-      ['제트 블랙','jet black stockings'],
-      ['소프트 블랙','soft black stockings'],
-      ['차콜','charcoal stockings'],
-      ['다크 그레이','dark gray stockings'],
-      ['커피 브라운','coffee brown stockings'],
-      ['다크 브라운','dark brown stockings'],
-      ['베이지','beige stockings'],
-      ['누드톤','natural nude-tone stockings'],
-      ['아이보리','ivory stockings'],
-      ['화이트','white stockings'],
-      ['버건디','burgundy stockings'],
-      ['네이비','navy stockings'],
-      ['올리브','olive stockings'],
-      ['더스티 핑크','dusty pink stockings']
-    ]},
-    {title:'스타킹 종류', terms:[
-      ['팬티스타킹','sheer pantyhose'],
-      ['허벅지 스타킹','thigh-high stockings'],
-      ['오버니 스타킹','over-the-knee stockings'],
-      ['홀드업 스타킹','hold-up stockings'],
-      ['레이스 밴드','lace-top stockings'],
-      ['심플 밴드','plain-top stockings'],
-      ['백심 스타킹','back-seam stockings'],
-      ['쿠반힐','Cuban-heel stockings'],
-      ['발끝 보강','reinforced-toe stockings'],
-      ['샌들토','sandal-toe stockings'],
-      ['미세 망사','micro-fishnet stockings'],
-      ['망사','fishnet stockings'],
-      ['도트 패턴','polka-dot stockings'],
-      ['세로 리브','ribbed tights'],
-      ['불투명 타이츠','opaque tights']
-    ]},
-    {title:'비침 · 질감', terms:[
-      ['초극세 시스루','ultra-sheer fabric'],
-      ['매우 얇은 비침','very sheer fabric'],
-      ['자연스러운 비침','natural sheer transparency'],
-      ['은은한 비침','subtle transparency'],
-      ['반투명','translucent fabric'],
-      ['세미 오페이크','semi-opaque fabric'],
-      ['불투명','fully opaque fabric'],
-      ['매트','matte finish'],
-      ['은은한 광택','subtle silky sheen'],
-      ['매끄러운 광택','smooth glossy finish'],
-      ['섬세한 직조','fine visible weave'],
-      ['피부 밀착','natural close fit']
-    ]},
-    {title:'데니아', terms:[
-      ['5D','5 denier'],['8D','8 denier'],['10D','10 denier'],['12D','12 denier'],
-      ['15D','15 denier'],['20D','20 denier'],['30D','30 denier'],['40D','40 denier'],
-      ['50D','50 denier'],['60D','60 denier'],['80D','80 denier'],['100D','100 denier'],
-      ['120D','120 denier'],['150D','150 denier'],['200D','200 denier']
-    ]},
-    {title:'포즈 · 시선', terms:[
-      ['편하게 서기','relaxed standing pose'],
-      ['침대 끝에 앉기','sitting naturally on the edge of a bed'],
-      ['소파에 앉기','sitting casually on a sofa'],
-      ['벽에 기대기','leaning lightly against a wall'],
-      ['한쪽 무릎 굽힘','one knee softly bent'],
-      ['한쪽 발 앞으로','one foot slightly forward'],
-      ['다리 살짝 벌림','legs slightly apart in a natural stance'],
-      ['무릎 모으기','knees together, feet naturally placed'],
-      ['옆으로 기대기','reclining naturally on one side'],
-      ['무릎 세워 앉기','seated with one knee raised naturally'],
-      ['무릎 꿇고 앉기','upright kneeling pose'],
-      ['네발 3/4 측면','natural all-fours pose, restrained three-quarter side view, fully covered'],
-      ['카메라를 봄','looking naturally toward the camera'],
-      ['시선 피하기','looking slightly away from the camera'],
-      ['어깨 너머 시선','subtle over-the-shoulder glance']
-    ]},
-    {title:'카메라 · 구도', terms:[
-      ['머리부터 발끝 전신','full body, head to toe, both feet visible'],
-      ['3/4 측면 25도','natural three-quarter angle, 25 degrees off-center'],
-      ['측면 30도','natural side angle, 30 degrees off-center'],
-      ['눈높이','camera at eye level'],
-      ['가슴 높이','camera at chest height'],
-      ['허리 높이','camera at waist height'],
-      ['약한 하이앵글','slight high angle'],
-      ['충분한 촬영 거리','camera several steps away'],
-      ['50mm 렌즈','50mm-equivalent lens'],
-      ['85mm 렌즈','85mm portrait lens'],
-      ['살짝 비대칭','slightly off-center candid framing'],
-      ['자연스러운 원근','natural perspective, no wide-angle distortion']
-    ]},
-    {title:'배경 · 광원', terms:[
-      ['평범한 침실','ordinary tidy bedroom'],
-      ['생활감 있는 침실','lived-in bedroom with natural bedding wrinkles'],
-      ['아파트 거실','ordinary apartment living room'],
-      ['창가','beside a window'],
-      ['심플한 스튜디오','simple understated studio'],
-      ['호텔 객실','quiet hotel room'],
-      ['부드러운 창문광','soft daylight through a window'],
-      ['흐린 날 자연광','soft overcast daylight'],
-      ['따뜻한 실내등','warm ordinary room lighting'],
-      ['은은한 역광','subtle natural backlight'],
-      ['현실적인 그림자','realistic soft shadows'],
-      ['자연스러운 노출','natural exposure and color balance']
-    ]},
-    {title:'사실감 · 인체비율', terms:[
-      ['평균 키와 체형','average height and everyday body type'],
-      ['7~7.5등신','realistic 7 to 7.5-head body proportions'],
-      ['정상 다리 길이','normal-length legs and torso'],
-      ['자연스러운 관절','anatomically correct joints'],
-      ['현실적인 손발','realistically sized hands and feet'],
-      ['자연스러운 피부결','natural skin texture'],
-      ['작은 피부 결점','subtle natural skin imperfections'],
-      ['옅은 화장','understated makeup'],
-      ['흐트러진 머리','slightly loose casual hair'],
-      ['옷감 주름','natural fabric wrinkles'],
-      ['생활사진','unretouched everyday candid photograph'],
-      ['최소 보정','minimal retouching, realistic colors']
-    ]},
-    {title:'왜곡 방지', terms:[
-      ['긴 다리 과장 금지','no elongated legs'],
-      ['작은 머리 금지','no tiny head'],
-      ['늘어난 몸 금지','no stretched torso'],
-      ['과장 체형 금지','no exaggerated body shape'],
-      ['광각 왜곡 금지','no wide-angle distortion'],
-      ['로우앵글 금지','no extreme low angle'],
-      ['인형 피부 금지','no plastic doll-like skin'],
-      ['비틀린 관절 금지','no twisted joints or limbs'],
-      ['추가 손가락 금지','no extra fingers'],
-      ['추가 팔다리 금지','no extra limbs'],
-      ['텍스트 금지','no text'],
-      ['워터마크 금지','no watermark']
-    ]}
+  const WORD_BANK_STORAGE_KEY = 'starbucks-helper-fashion-word-bank-v1';
+  const WORD_BANK_HASH = '#word-bank';
+  const NATURAL_PERSPECTIVE_PROMPT = 'Adjust the camera angle to match the body’s orientation, keeping the anatomy and perspective natural.';
+  const DEFAULT_TERM_GROUPS = [
+    {id:'stockingColor', title:'스타킹 색상', terms:['블랙','살색','커피색']},
+    {id:'denier', title:'데니어', terms:['10D','15D','20D','30D','40D','60D','80D','100D','120D']},
+    {id:'clothing', title:'의상', terms:['셔츠','블라우스','티셔츠','니트','터틀넥','카디건','베스트','블레이저','트렌치코트','울코트','원피스','셔츠드레스','슬랙스','청바지','와이드팬츠','점프슈트',
+      {label:'가벼운 티셔츠', value:'lightweight T-shirt'}, {label:'잠옷', value:'pajamas'}, {label:'파자마 상의', value:'pajama top'}, {label:'수면 셔츠', value:'sleep shirt'}]},
+    {id:'skirt', title:'치마', terms:['A라인','H라인','플레어','플리츠','펜슬','랩','머메이드','티어드','벌룬','튤','데님','카고']},
+    {id:'skirtLength', title:'치마 길이', terms:['미니','무릎길이','미디','맥시']},
+    {id:'shoes', title:'구두', terms:['펌프스','슬링백','메리제인','로퍼','옥스퍼드','더비','발레플랫','뮬','앵클부츠','롱부츠']},
+    {id:'pose', title:'포즈', terms:['정면서기','측면서기','걷기','뒤돌아보기','의자앉기','벤치앉기','벽기대기','팔짱','주머니에손넣기','가방들기','책읽기','창밖보기','소매정리','코트여미기','양손·양무릎짚기 (on all fours)']},
+    {id:'age', title:'연령', terms:['20대','30대','40대','50대','60대이상']},
+    {id:'build', title:'체형', terms:[{label:'보통 체형', value:'average build'}, {label:'날씬한 체형', value:'slim build'}, {label:'탄탄한 체형', value:'athletic build'}]},
+    {id:'place', title:'공간', terms:['스튜디오','흰배경','회색배경','카페','서점','도서관','갤러리','사무실','호텔로비','테라스','공원','정원','가로수길','도심거리','해변','기차역','자동차조수석','자동차뒷좌석','주차된차옆']},
+    {id:'prop', title:'소품', terms:['책','잡지','신문','안경','선글라스','모자','스카프','장갑','손목시계','귀걸이','목걸이','토트백','숄더백','크로스백','서류가방','우산','꽃다발','머그컵','텀블러','카메라','노트북']},
+    {id:'shot', title:'샷 크기', terms:[{label:'전신 샷', value:'full-body shot'}, {label:'3/4 샷', value:'three-quarter shot'}, {label:'미디엄 샷', value:'medium shot'}, {label:'클로즈업', value:'close-up shot'}, {label:'와이드 샷', value:'wide shot'}]},
+    {id:'angle', title:'각도·구도 보정', terms:[{label:'눈높이', value:'eye-level'}, {label:'낮은 각도', value:'low-angle'}, {label:'높은 각도', value:'high-angle'}, {label:'인체·원근 자연스럽게', value:NATURAL_PERSPECTIVE_PROMPT}]},
+    {id:'viewDirection', title:'촬영 방향', terms:[{label:'정면', value:'front view'}, {label:'측면', value:'side view'}, {label:'후면', value:'rear view'}, {label:'3/4 방향', value:'three-quarter view'}]},
+    {id:'viewpoint', title:'시점', terms:['1인칭','3인칭']}
   ];
+
+  const REQUIRED_NEW_TERMS = Object.fromEntries(DEFAULT_TERM_GROUPS
+    .filter(group => ['clothing','build','shot','angle','viewDirection'].includes(group.id))
+    .map(group => [group.id, group.id === 'clothing' ? group.terms.slice(-4) : group.terms]));
+  const LEGACY_TERM_UPGRADES = {
+    angle: {
+      '아이레벨': {label:'눈높이', value:'eye-level'},
+      '로우앵글': {label:'낮은 각도', value:'low-angle'},
+      '하이앵글': {label:'높은 각도', value:'high-angle'}
+    }
+  };
 
   const selectedTerms = [];
   const termButtons = new Map();
+  let termGroupData = loadTermGroups();
+  let wordBankIsOpen = false;
+  let focusBeforeWordBank = null;
 
-  function renderComposer() {
-    composerOutput.value = [BASE_TERM, ...selectedTerms.map(term => term.value)].join(', ');
-    selectedCount.textContent = `선택 ${selectedTerms.length}개`;
-    undoTermBtn.disabled = clearTermsBtn.disabled = selectedTerms.length === 0;
-    for (const [value, button] of termButtons) {
-      button.setAttribute('aria-pressed', String(selectedTerms.some(term => term.value === value)));
+  function cleanText(value, maxLength) {
+    if (typeof value !== 'string') return '';
+    return value.trim().replace(/\s+/g, ' ').slice(0, maxLength);
+  }
+
+  function normalizeTerm(raw) {
+    if (typeof raw === 'string') {
+      const value = cleanText(raw, 300);
+      return value ? {label:value.slice(0, 80), value} : null;
+    }
+    if (!raw || typeof raw !== 'object') return null;
+    const label = cleanText(raw.label, 80);
+    const value = cleanText(raw.value, 300);
+    return label && value ? {label, value} : null;
+  }
+
+  function termIdentity(term) {
+    return term.value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  function cleanTerms(values) {
+    if (!Array.isArray(values)) return null;
+    const unique = [];
+    const seen = new Set();
+    for (const raw of values.slice(0, 150)) {
+      const term = normalizeTerm(raw);
+      if (!term) continue;
+      const identity = termIdentity(term);
+      if (seen.has(identity)) continue;
+      seen.add(identity);
+      unique.push(term);
+    }
+    return unique;
+  }
+
+  function mergeTerms(existing, additions) {
+    const merged = existing.map(term => ({...term}));
+    for (const raw of additions || []) {
+      const next = normalizeTerm(raw);
+      if (!next) continue;
+      const valueIndex = merged.findIndex(term => termIdentity(term) === termIdentity(next));
+      const labelIndex = merged.findIndex(term => term.label.toLocaleLowerCase() === next.label.toLocaleLowerCase());
+      const index = valueIndex >= 0 ? valueIndex : labelIndex;
+      if (index < 0) merged.push(next);
+      else if (merged[index].label === merged[index].value) merged[index] = next;
+    }
+    return cleanTerms(merged) || [];
+  }
+
+  function upgradeLegacyTerms(groupId, terms) {
+    const upgrades = LEGACY_TERM_UPGRADES[groupId];
+    if (!upgrades) return terms;
+    return cleanTerms(terms.map(term => upgrades[term.value] || term)) || [];
+  }
+
+  function defaultGroups() {
+    return DEFAULT_TERM_GROUPS.map(group => ({...group, terms:cleanTerms(group.terms) || []}));
+  }
+
+  function loadTermGroups() {
+    const defaults = defaultGroups();
+    try {
+      const saved = JSON.parse(localStorage.getItem(WORD_BANK_STORAGE_KEY) || 'null');
+      if (!saved || ![1,2].includes(saved.version) || !saved.groups || typeof saved.groups !== 'object') return defaults;
+      return defaults.map(group => {
+        if (!Object.prototype.hasOwnProperty.call(saved.groups, group.id)) return group;
+        const localTerms = cleanTerms(saved.groups[group.id]);
+        if (!localTerms) return group;
+        if (saved.version === 2) return {...group, terms:localTerms};
+        const upgraded = upgradeLegacyTerms(group.id, localTerms);
+        return {...group, terms:mergeTerms(upgraded, REQUIRED_NEW_TERMS[group.id])};
+      });
+    } catch {
+      return defaults;
     }
   }
 
-  function toggleTerm(label, value) {
-    const index = selectedTerms.findIndex(term => term.value === value);
+  function saveTermGroups(nextGroups) {
+    const groups = Object.fromEntries(nextGroups.map(group => [group.id, group.terms]));
+    try {
+      localStorage.setItem(WORD_BANK_STORAGE_KEY, JSON.stringify({version:2, groups}));
+      return true;
+    } catch {
+      editorNote.textContent = '이 브라우저에 저장하지 못했어요. 브라우저 저장 공간 설정을 확인해 주세요.';
+      return false;
+    }
+  }
+
+  function selectedKey(groupId, value) { return `${groupId}\u0000${value}`; }
+
+  function removeLastExactTerm(value) {
+    const current = composerOutput.value;
+    let index = current.lastIndexOf(value);
+    while (index >= 0) {
+      const end = index + value.length;
+      const startsAtBoundary = index === 0 || current.slice(index - 2, index) === ', ';
+      const endsAtBoundary = end === current.length || current.slice(end, end + 2) === ', ';
+      if (startsAtBoundary && endsAtBoundary) break;
+      index = current.lastIndexOf(value, index - 1);
+    }
+    if (index < 0) return;
+    let start = index;
+    let end = index + value.length;
+    if (current.slice(Math.max(0, start - 2), start) === ', ') start -= 2;
+    else if (current.slice(end, end + 2) === ', ') end += 2;
+    composerOutput.value = `${current.slice(0, start)}${current.slice(end)}`.trim().replace(/^,\s*|,\s*$/g, '');
+  }
+
+  function renderComposer() {
+    const hasText = Boolean(composerOutput.value.trim());
+    selectedCount.textContent = `선택 ${selectedTerms.length}개`;
+    undoTermBtn.disabled = selectedTerms.length === 0;
+    clearTermsBtn.disabled = !hasText && selectedTerms.length === 0;
+    sendToBodyBtn.disabled = copyComposerBtn.disabled = !hasText;
+    for (const [key, button] of termButtons) {
+      button.setAttribute('aria-pressed', String(selectedTerms.some(term => term.key === key)));
+    }
+  }
+
+  function appendSelectedTerm(groupId, term) {
+    const key = selectedKey(groupId, term.value);
+    selectedTerms.push({key, groupId, label:term.label, value:term.value});
+    const current = composerOutput.value.trim();
+    composerOutput.value = current ? `${current.replace(/,\s*$/, '')}, ${term.value}` : term.value;
+  }
+
+  function toggleTerm(groupId, term) {
+    const key = selectedKey(groupId, term.value);
+    const index = selectedTerms.findIndex(item => item.key === key);
     if (index >= 0) {
       selectedTerms.splice(index, 1);
-      composerNote.textContent = `“${label}” 항목을 뺐어요.`;
+      removeLastExactTerm(term.value);
+      composerNote.textContent = `“${term.label}” 선택을 취소했어요.`;
     } else {
-      selectedTerms.push({label, value});
-      composerNote.textContent = `“${label}” 항목을 ${selectedTerms.length}번째로 추가했어요.`;
+      if (selectedTerms.some(item => item.value === term.value)) {
+        composerNote.textContent = `영문 “${term.value}”은(는) 이미 조합에 들어 있어요.`;
+        return;
+      }
+      appendSelectedTerm(groupId, term);
+      composerNote.textContent = `“${term.label}”을(를) 영문 “${term.value}”로 ${selectedTerms.length}번째에 추가했어요.`;
     }
     renderComposer();
   }
 
   function buildTermGroups() {
-    for (const group of TERM_GROUPS) {
+    termGroups.replaceChildren();
+    termButtons.clear();
+    const visibleKeys = new Set(termGroupData.flatMap(group => group.terms.map(term => selectedKey(group.id, term.value))));
+    for (const selected of selectedTerms) {
+      if (selected.groupId === 'height') visibleKeys.add(selected.key);
+    }
+    for (let index = selectedTerms.length - 1; index >= 0; index--) {
+      if (!visibleKeys.has(selectedTerms[index].key)) selectedTerms.splice(index, 1);
+    }
+    for (const group of termGroupData) {
       const wrap = document.createElement('div');
       wrap.className = 'termGroup';
       const heading = document.createElement('div');
@@ -358,15 +460,24 @@ button:disabled{opacity:.5;cursor:default}
       wrap.appendChild(heading);
       const chips = document.createElement('div');
       chips.className = 'termChips';
-      for (const [label, value] of group.terms) {
+      for (const term of group.terms) {
         const button = document.createElement('button');
+        const key = selectedKey(group.id, term.value);
         button.type = 'button';
         button.className = 'termChip';
-        button.textContent = label;
-        button.setAttribute('aria-pressed', 'false');
-        button.title = value;
-        button.addEventListener('click', () => toggleTerm(label, value));
-        termButtons.set(value, button);
+        const label = document.createElement('span');
+        label.textContent = term.label;
+        button.appendChild(label);
+        if (term.label !== term.value) {
+          const value = document.createElement('span');
+          value.className = 'termChipValue';
+          value.textContent = term.value;
+          button.appendChild(value);
+        }
+        button.setAttribute('aria-label', `${term.label}: ${term.value}`);
+        button.setAttribute('aria-pressed', String(selectedTerms.some(item => item.key === key)));
+        button.addEventListener('click', () => toggleTerm(group.id, term));
+        termButtons.set(key, button);
         chips.appendChild(button);
       }
       wrap.appendChild(chips);
@@ -374,25 +485,182 @@ button:disabled{opacity:.5;cursor:default}
     }
   }
 
+  function loadCategoryEditor() {
+    const group = termGroupData.find(item => item.id === editCategorySelect.value) || termGroupData[0];
+    editCategorySelect.value = group.id;
+    categoryTermsInput.value = group.terms.map(term => term.label === term.value ? term.label : `${term.label} | ${term.value}`).join('\n');
+  }
+
+  function parseEditorTerms() {
+    const lines = categoryTermsInput.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (lines.length > 150) return {error:'한 분류에는 단어를 최대 150개까지 저장할 수 있어요.'};
+    const rawTerms = [];
+    for (const line of lines) {
+      const separatorIndex = line.indexOf('|');
+      const label = separatorIndex < 0 ? line : line.slice(0, separatorIndex).trim();
+      const value = separatorIndex < 0 ? line : line.slice(separatorIndex + 1).trim();
+      if (!label || !value) return {error:'`한글명 | English output` 형식에서 양쪽 내용을 모두 입력해 주세요.'};
+      if (label.length > 80 || value.length > 300) return {error:'한글명은 80자, 출력값은 300자 이내로 입력해 주세요.'};
+      rawTerms.push({label, value});
+    }
+    const terms = cleanTerms(rawTerms) || [];
+    return {terms, duplicates:rawTerms.length - terms.length};
+  }
+
+  function buildCategoryEditor() {
+    editCategorySelect.replaceChildren();
+    for (const group of termGroupData) {
+      const option = document.createElement('option');
+      option.value = group.id;
+      option.textContent = group.title;
+      editCategorySelect.appendChild(option);
+    }
+    loadCategoryEditor();
+  }
+
+  function showWordBank(pushHistory) {
+    if (wordBankIsOpen) return;
+    wordBankIsOpen = true;
+    focusBeforeWordBank = document.activeElement;
+    wordBankOverlay.hidden = false;
+    document.body.classList.add('wordBankOpen');
+    openWordBankBtn.setAttribute('aria-expanded', 'true');
+    if (pushHistory && location.hash !== WORD_BANK_HASH) {
+      history.pushState({...history.state, helperWordBank:true}, '', WORD_BANK_HASH);
+    }
+    requestAnimationFrame(() => wordBankPanel.focus());
+  }
+
+  function hideWordBank() {
+    if (!wordBankIsOpen) return;
+    wordBankIsOpen = false;
+    wordBankOverlay.hidden = true;
+    document.body.classList.remove('wordBankOpen');
+    openWordBankBtn.setAttribute('aria-expanded', 'false');
+    if (focusBeforeWordBank && typeof focusBeforeWordBank.focus === 'function') focusBeforeWordBank.focus();
+  }
+
+  function requestWordBankClose() {
+    if (location.hash === WORD_BANK_HASH && history.state && history.state.helperWordBank) history.back();
+    else {
+      if (location.hash === WORD_BANK_HASH) history.replaceState(history.state, '', `${location.pathname}${location.search}`);
+      hideWordBank();
+    }
+  }
+
+  openWordBankBtn.addEventListener('click', () => showWordBank(true));
+  closeWordBankBtn.addEventListener('click', requestWordBankClose);
+  wordBankOverlay.addEventListener('click', event => {
+    if (event.target === wordBankOverlay) requestWordBankClose();
+  });
+  window.addEventListener('popstate', () => {
+    if (location.hash === WORD_BANK_HASH) showWordBank(false);
+    else hideWordBank();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && wordBankIsOpen) requestWordBankClose();
+  });
+
+  editCategorySelect.addEventListener('change', loadCategoryEditor);
+  saveCategoryBtn.addEventListener('click', () => {
+    const parsed = parseEditorTerms();
+    if (parsed.error) {
+      editorNote.textContent = parsed.error;
+      return;
+    }
+    const terms = parsed.terms;
+    const nextGroups = termGroupData.map(group => group.id === editCategorySelect.value ? {...group, terms} : group);
+    if (!saveTermGroups(nextGroups)) return;
+    termGroupData = nextGroups;
+    buildTermGroups();
+    renderComposer();
+    loadCategoryEditor();
+    const duplicateNote = parsed.duplicates ? ` 중복 출력값 ${parsed.duplicates}개는 한 번만 저장했습니다.` : '';
+    editorNote.textContent = `${termGroupData.find(group => group.id === editCategorySelect.value).title} 단어 ${terms.length}개를 이 브라우저에 저장했어요.${duplicateNote}`;
+  });
+  resetCategoryBtn.addEventListener('click', () => {
+    const current = termGroupData.find(group => group.id === editCategorySelect.value);
+    const original = DEFAULT_TERM_GROUPS.find(group => group.id === editCategorySelect.value);
+    if (!current || !original || !confirm(`${current.title} 단어를 기본값으로 되돌릴까요?`)) return;
+    const nextGroups = termGroupData.map(group => group.id === original.id ? {...group, terms:cleanTerms(original.terms) || []} : group);
+    if (!saveTermGroups(nextGroups)) return;
+    termGroupData = nextGroups;
+    buildTermGroups();
+    renderComposer();
+    loadCategoryEditor();
+    editorNote.textContent = `${current.title} 단어를 기본값으로 복원했어요.`;
+  });
+
   undoTermBtn.addEventListener('click', () => {
     const removed = selectedTerms.pop();
-    if (removed) composerNote.textContent = `마지막 “${removed.label}” 항목을 취소했어요.`;
+    if (removed) {
+      removeLastExactTerm(removed.value);
+      composerNote.textContent = `마지막 “${removed.label}” 선택을 취소했어요.`;
+    }
     renderComposer();
+  });
+
+  function addHeight() {
+    const raw = heightCmInput.value.trim();
+    const cm = Number(raw);
+    if (!/^\d+$/.test(raw) || !Number.isInteger(cm) || cm < 100 || cm > 250) {
+      heightCmInput.setAttribute('aria-invalid', 'true');
+      heightNote.textContent = '키는 100~250 사이의 정수(cm)로 입력해 주세요.';
+      heightCmInput.focus();
+      return;
+    }
+    heightCmInput.removeAttribute('aria-invalid');
+    const term = {label:`키 ${cm}cm`, value:`${cm} cm tall`};
+    const currentHeightIndex = selectedTerms.findIndex(item => item.groupId === 'height');
+    if (currentHeightIndex >= 0) {
+      const currentHeight = selectedTerms[currentHeightIndex];
+      if (currentHeight.value === term.value) {
+        heightNote.textContent = `이미 “${term.value}”이(가) 조합에 들어 있어요.`;
+        return;
+      }
+      selectedTerms.splice(currentHeightIndex, 1);
+      removeLastExactTerm(currentHeight.value);
+    }
+    appendSelectedTerm('height', term);
+    heightNote.textContent = `키를 영문 “${term.value}”로 추가했어요.`;
+    composerNote.textContent = `“${term.label}”을(를) 영문 “${term.value}”로 ${selectedTerms.length}번째에 추가했어요.`;
+    renderComposer();
+  }
+
+  addHeightBtn.addEventListener('click', addHeight);
+  heightCmInput.addEventListener('input', () => {
+    heightCmInput.removeAttribute('aria-invalid');
+    heightNote.textContent = '100~250 사이의 정수를 입력하면 `170 cm tall` 형식으로 조합합니다.';
+  });
+  heightCmInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addHeight();
+    }
   });
 
   clearTermsBtn.addEventListener('click', () => {
     selectedTerms.length = 0;
-    composerNote.textContent = '선택 항목을 모두 지웠어요.';
+    composerOutput.value = '';
+    heightCmInput.value = '';
+    heightCmInput.removeAttribute('aria-invalid');
+    heightNote.textContent = '100~250 사이의 정수를 입력하면 `170 cm tall` 형식으로 조합합니다.';
+    composerNote.textContent = '선택과 입력 내용을 모두 비웠어요.';
     renderComposer();
   });
+
+  composerOutput.addEventListener('input', renderComposer);
 
   sendToBodyBtn.addEventListener('click', () => {
     const next = composerOutput.value.trim();
     if (bodyInput.value.trim() && bodyInput.value !== next && !confirm('프롬프트 원문에 입력된 내용을 조합 결과로 바꿀까요?')) return;
     bodyInput.value = next;
-    bodyInput.scrollIntoView({behavior:'smooth', block:'center'});
-    bodyInput.focus();
     composerNote.textContent = '조합 결과를 아래 프롬프트 원문에 넣었어요. 제목을 적고 저장하면 됩니다.';
+    requestWordBankClose();
+    setTimeout(() => {
+      bodyInput.scrollIntoView({behavior:'smooth', block:'center'});
+      bodyInput.focus();
+    }, 80);
   });
 
   copyComposerBtn.addEventListener('click', async () => {
@@ -406,11 +674,13 @@ button:disabled{opacity:.5;cursor:default}
       composerOutput.select();
       composerNote.textContent = '자동 복사가 제한됐어요. 선택된 조합문을 길게 눌러 복사해 주세요.';
     }
-    setTimeout(() => { copyComposerBtn.textContent = '조합문 복사'; }, 1400);
+    setTimeout(() => { copyComposerBtn.textContent = '전체 복사'; }, 1400);
   });
 
   buildTermGroups();
+  buildCategoryEditor();
   renderComposer();
+  if (location.hash === WORD_BANK_HASH) showWordBank(false);
 
   let items = [], ready = false, busy = false, query = '', expanded = new Set();
   let ref, f, db;
