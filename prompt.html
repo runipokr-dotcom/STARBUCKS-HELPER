@@ -53,10 +53,15 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
 .heightComposerRow{display:grid;grid-template-columns:minmax(0,220px) auto;align-items:end;gap:8px;margin-top:8px}
 .heightComposerRow label{margin:0}
 .heightComposerRow button{white-space:nowrap}
+.wordBankSearch{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.wordBankSearch input{flex:1}
+.wordBankSearch .count{min-width:58px;text-align:right}
+.wordBankEmpty{margin:0 0 14px;padding:16px;border:1px dashed #cbd7d1;border-radius:9px;color:#64736d;font-size:13px;text-align:center}
 .termGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .termGroup{border:1px solid #e1e8e4;border-radius:9px;padding:10px;background:#fff}
 .termGroupTitle{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;font-weight:900;color:#33423c}
 .termGroupCount{color:#8a978f;font-size:11px}
+.termGroupNote{margin:-2px 0 8px;color:#7a6551;font-size:11px;line-height:1.4}
 .termChips{display:flex;flex-wrap:wrap;gap:7px}
 .termChip{min-height:40px;max-width:100%;padding:7px 11px;border-radius:12px;background:#fff;color:#33423c;border-color:#cbd7d1;font-size:13px;font-weight:700;line-height:1.2;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;white-space:normal}
 .termChipValue{margin-top:3px;color:#6c7d75;font-size:11px;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
@@ -98,6 +103,8 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   .wordBankHead h2{font-size:17px}
   .heightComposerRow{grid-template-columns:1fr}
   .heightComposerRow button{width:100%;min-height:44px}
+  .wordBankSearch{align-items:stretch}
+  .wordBankSearch input{height:44px}
   .termGroups{grid-template-columns:1fr}
   .termChip{min-height:44px;padding:8px 12px}
   .composerActions{display:grid;grid-template-columns:1fr 1fr}
@@ -155,6 +162,12 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
         </div>
         <p class="note" id="heightNote" role="status">100~250 사이의 정수를 입력하면 `170 cm tall` 형식으로 조합합니다.</p>
       </div>
+
+      <div class="wordBankSearch">
+        <input id="termSearchInput" type="search" placeholder="분류·단어 검색" autocomplete="off" aria-label="단어 저장소 검색">
+        <span class="count" id="termSearchCount">전체 0개</span>
+      </div>
+      <p class="wordBankEmpty" id="termSearchEmpty" hidden>일치하는 단어가 없어요.</p>
 
       <div class="termGroups" id="termGroups"></div>
 
@@ -253,8 +266,12 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   const heightCmInput = document.getElementById('heightCmInput');
   const addHeightBtn = document.getElementById('addHeightBtn');
   const heightNote = document.getElementById('heightNote');
+  const termSearchInput = document.getElementById('termSearchInput');
+  const termSearchCount = document.getElementById('termSearchCount');
+  const termSearchEmpty = document.getElementById('termSearchEmpty');
 
   const WORD_BANK_STORAGE_KEY = 'starbucks-helper-fashion-word-bank-v1';
+  const WORD_BANK_CATALOG_REVISION = '2026-10-07-supplied-lists-v1';
   const WORD_BANK_HASH = '#word-bank';
   const NATURAL_PERSPECTIVE_PROMPT = 'Adjust the camera angle to match the body’s orientation, keeping the anatomy and perspective natural.';
   const DEFAULT_TERM_GROUPS = [
@@ -276,6 +293,31 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
     {id:'viewpoint', title:'시점', terms:['1인칭','3인칭']}
   ];
 
+  const SUPPLIED_TERM_GROUPS = [
+    {id:'clothing', title:'의상', mode:'merge', terms:['오버사이즈 셔츠','흰색 와이셔츠','스트라이프 셔츠','실크 셔츠','시스루 블라우스','새틴 블라우스','크롭 셔츠','루즈핏 니트','오버사이즈 스웨터','터틀넥 니트','슬림핏 니트','니트 원피스','미니 원피스','슬립 원피스','새틴 원피스','셔츠 원피스','타이트 원피스','바디콘 원피스','오프숄더 원피스','홀터넥 원피스','랩 원피스','블레이저','오버사이즈 재킷','가죽 재킷','트렌치코트','롱코트','카디건','볼레로','새틴 가운','실크 로브','흰색 셔츠','열린 셔츠']},
+    {id:'underwear', title:'이너웨어', mode:'merge', terms:['캐미솔','새틴 캐미솔','레이스 캐미솔','브라렛','심플한 검은색 속옷','심플한 흰색 속옷','하이웨이스트 속옷','레이스 속옷','보이쇼츠','검은색 속옷','심플한 속옷','속옷 살짝 노출']},
+    {id:'skirt', title:'치마', mode:'merge', terms:['미니스커트','플리츠 미니스커트','타이트 미니스커트','가죽 미니스커트','데님 미니스커트','테니스 스커트','펜슬 스커트','슬릿 스커트','랩 스커트','A라인 스커트','짧은 스커트','살짝 올라간 스커트']},
+    {id:'bottoms', title:'하의', mode:'merge', terms:['숏팬츠','핫팬츠','데님 쇼츠','하이웨이스트 쇼츠']},
+    {id:'stockingColor', title:'스타킹 색상', mode:'replaceLegacyDefaultsPreserveCustom', terms:['검은색 스타킹','제트블랙 스타킹','소프트블랙 스타킹','차콜 스타킹','다크그레이 스타킹','그레이 스타킹','라이트그레이 스타킹','회갈색 스타킹','커피색 스타킹','초콜릿색 스타킹','브라운 스타킹','다크브라운 스타킹','베이지 스타킹','누드톤 스타킹','살구색 스타킹','스킨톤 스타킹','태닝톤 스타킹','아이보리 스타킹','크림색 스타킹','흰색 스타킹','와인색 스타킹','버건디 스타킹','빨간색 스타킹','다크레드 스타킹','네이비 스타킹','다크블루 스타킹','코발트블루 스타킹','올리브 스타킹','다크그린 스타킹','에메랄드 스타킹','연분홍 스타킹','더스티핑크 스타킹','보라색 스타킹','라벤더 스타킹']},
+    {id:'stockingType', title:'스타킹 종류·디테일', mode:'merge', terms:['팬티스타킹','타이츠','허벅지 스타킹','오버니 스타킹','니하이 스타킹','홀드업 스타킹','실리콘 밴드 스타킹','가터 스타킹','서스펜더 스타킹','가터벨트 스타킹','레이스 밴드 스타킹','와이드 밴드 스타킹','심플 밴드 스타킹','백심 스타킹','뒷선 스타킹','쿠반힐 스타킹','포인트힐 스타킹','리인포스드 토 스타킹','샌들토 스타킹','노토 스타킹','오픈토 스타킹','발목 스타킹','시스루 스타킹','밴드 스타킹','스타킹 밴드 노출','스타킹 끝단 노출','발끝까지 덮인 스타킹']},
+    {id:'stockingPattern', title:'스타킹 패턴·기능', mode:'merge', terms:['망사 스타킹','미세 망사 스타킹','큰 망사 스타킹','다이아몬드 망사 스타킹','펜스넷 스타킹','패턴 스타킹','도트 스타킹','하트 패턴 스타킹','플라워 패턴 스타킹','세로줄 스타킹','리브드 스타킹','케이블 니트 타이츠','로고 패턴 스타킹','글리터 스타킹','광택 스타킹','매트 스타킹','벨벳 타이츠','압박 스타킹','컨트롤탑 팬티스타킹']},
+    {id:'stockingFinish', title:'스타킹 비침·광택·직조', mode:'merge', terms:['극도로 투명한','초박형','매우 얇은','얇은','은은하게 비치는','자연스럽게 비치는','피부가 선명하게 비치는','피부톤이 비치는','반투명','중간 비침','살짝 불투명한','세미 오페이크','불투명한','완전 불투명한','매트한','은은한 광택','고광택','실키한 광택','젖은 듯한 광택','피부 밀착','균일한 직조','섬세한 직조','촘촘한 직조','두꺼운 직조','은은한 비침','자연스러운 광택','섬세한 스타킹 질감']},
+    {id:'denier', title:'데니어', mode:'merge', terms:['5데니아','8데니아','10데니아','12데니아','15데니아','20데니아','30데니아','40데니아','50데니아','60데니아','70데니아','80데니아','100데니아','120데니아','150데니아','180데니아','200데니아','300데니아']},
+    {id:'denierDescription', title:'데니어·비침 묘사', mode:'merge', note:'사용자가 제공한 표현을 분류한 것이며 실제 제품의 비침·두께·보온 특성을 보장하지 않습니다.', terms:['5데니아 초극세 시스루','8데니아 울트라 시어','10데니아 매우 얇은 시스루','15데니아 클래식 시스루','20데니아 자연스러운 비침','30데니아 은은한 비침','40데니아 반투명','50데니아 중간 비침','60데니아 세미 오페이크','80데니아 짙은 세미 오페이크','100데니아 불투명','120데니아 두꺼운 불투명','150데니아 겨울용 타이츠','200데니아 완전 불투명','300데니아 기모 타이츠']},
+    {id:'subject', title:'인물', mode:'merge', terms:['성인 여성','한국인 여성']},
+    {id:'age', title:'연령', mode:'merge', terms:['20대 후반']},
+    {id:'body', title:'얼굴·체형·인체', mode:'merge', terms:['자연스러운 얼굴','평균 체형','현실적인 체형','7등신','정상적인 다리 길이','자연스러운 허리','자연스러운 골반','현실적인 손','현실적인 발']},
+    {id:'shot', title:'샷 크기', mode:'merge', terms:['전신','머리부터 발끝까지','양쪽 다리 전체']},
+    {id:'pose', title:'포즈', mode:'merge', terms:['다리 살짝 벌림','한쪽 무릎 굽힘','한쪽 발 앞으로','편안한 자세','자연스러운 자세','무심한 표정','시선 피하기','카메라를 보지 않음','침대 가장자리에 앉기','소파에 앉기','침대 옆에 서기','벽에 가볍게 기대기','네발 자세','침대 위 네발 자세','자연스러운 네발 자세','중립적인 허리','현실적인 체중 분산']},
+    {id:'camera', title:'카메라·구도', mode:'merge', terms:['3/4 측면 각도','비스듬한 측면','30도 측면','눈높이 카메라','가슴 높이 카메라','허리 높이 카메라','약한 하이앵글','자연스러운 원근감','50mm 렌즈','85mm 렌즈','카메라와 충분한 거리','살짝 비대칭 구도','자연스러운 스냅사진','연인이 찍은 듯한 사진']},
+    {id:'place', title:'공간', mode:'merge', terms:['평범한 침실','정돈된 침실','구겨진 침구','창가']},
+    {id:'lighting', title:'광원·그림자', mode:'merge', terms:['부드러운 자연광','창문으로 들어오는 빛','은은한 실내 조명','현실적인 그림자']},
+    {id:'realism', title:'사실감·스타일', mode:'merge', terms:['자연스러운 피부결','작은 피부 결점','옅은 화장','흐트러진 머리','자연스러운 머리카락','구겨진 옷감','현실적인 색감','최소한의 보정','비연출 사진','생활사진','솔직한 사진','포토리얼','사실적인 사진']},
+    {id:'mood', title:'분위기·표현', mode:'merge', terms:['은근한 분위기','관능적인 분위기','세련된 분위기','과장 없는 표현']},
+    {id:'contentRestrictions', title:'노출·연령 제한', mode:'merge', terms:['비노출','성기 노출 없음','유두 노출 없음','성행위 없음','미성년자 없음']},
+    {id:'negativeConstraints', title:'왜곡·오류 방지', mode:'merge', terms:['왜곡 없음','광각 왜곡 없음','긴 다리 과장 없음','작은 머리 없음','인형 피부 없음','과장된 몸매 없음','패션모델 비율 없음','비현실적인 자세 없음','추가 팔다리 없음','추가 손가락 없음','텍스트 없음','워터마크 없음']}
+  ];
+
   const REQUIRED_NEW_TERMS = Object.fromEntries(DEFAULT_TERM_GROUPS
     .filter(group => ['clothing','build','shot','angle','viewDirection'].includes(group.id))
     .map(group => [group.id, group.id === 'clothing' ? group.terms.slice(-4) : group.terms]));
@@ -286,10 +328,12 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
       '하이앵글': {label:'높은 각도', value:'high-angle'}
     }
   };
+  const LEGACY_STOCKING_COLOR_DEFAULTS = new Set(['블랙','살색','커피색']);
 
   const selectedTerms = [];
   const termButtons = new Map();
   let termGroupData = loadTermGroups();
+  let termQuery = '';
   let wordBankIsOpen = false;
   let focusBeforeWordBank = null;
 
@@ -309,8 +353,8 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
     return label && value ? {label, value} : null;
   }
 
-  function termIdentity(term) {
-    return term.value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+  function exactTermIdentity(term) {
+    return `${term.label}\u0000${term.value}`;
   }
 
   function cleanTerms(values) {
@@ -320,7 +364,7 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
     for (const raw of values.slice(0, 150)) {
       const term = normalizeTerm(raw);
       if (!term) continue;
-      const identity = termIdentity(term);
+      const identity = exactTermIdentity(term);
       if (seen.has(identity)) continue;
       seen.add(identity);
       unique.push(term);
@@ -330,14 +374,14 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
 
   function mergeTerms(existing, additions) {
     const merged = existing.map(term => ({...term}));
+    const seen = new Set(merged.map(exactTermIdentity));
     for (const raw of additions || []) {
       const next = normalizeTerm(raw);
       if (!next) continue;
-      const valueIndex = merged.findIndex(term => termIdentity(term) === termIdentity(next));
-      const labelIndex = merged.findIndex(term => term.label.toLocaleLowerCase() === next.label.toLocaleLowerCase());
-      const index = valueIndex >= 0 ? valueIndex : labelIndex;
-      if (index < 0) merged.push(next);
-      else if (merged[index].label === merged[index].value) merged[index] = next;
+      const identity = exactTermIdentity(next);
+      if (seen.has(identity)) continue;
+      seen.add(identity);
+      merged.push(next);
     }
     return cleanTerms(merged) || [];
   }
@@ -349,22 +393,50 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   }
 
   function defaultGroups() {
-    return DEFAULT_TERM_GROUPS.map(group => ({...group, terms:cleanTerms(group.terms) || []}));
+    const groups = DEFAULT_TERM_GROUPS.map(group => ({...group, terms:cleanTerms(group.terms) || []}));
+    const groupIndexes = new Map(groups.map((group, index) => [group.id, index]));
+    for (const supplied of SUPPLIED_TERM_GROUPS) {
+      const additions = cleanTerms(supplied.terms) || [];
+      if (!groupIndexes.has(supplied.id)) {
+        groupIndexes.set(supplied.id, groups.length);
+        groups.push({id:supplied.id, title:supplied.title, ...(supplied.note ? {note:supplied.note} : {}), terms:additions});
+        continue;
+      }
+      const index = groupIndexes.get(supplied.id);
+      const current = groups[index];
+      const existing = supplied.mode === 'replaceLegacyDefaultsPreserveCustom' ? [] : current.terms;
+      groups[index] = {...current, ...(supplied.note ? {note:supplied.note} : {}), terms:mergeTerms(existing, additions)};
+    }
+    return groups;
   }
 
   function loadTermGroups() {
     const defaults = defaultGroups();
     try {
       const saved = JSON.parse(localStorage.getItem(WORD_BANK_STORAGE_KEY) || 'null');
-      if (!saved || ![1,2].includes(saved.version) || !saved.groups || typeof saved.groups !== 'object') return defaults;
-      return defaults.map(group => {
+      if (!saved || ![1,2,3].includes(saved.version) || !saved.groups || typeof saved.groups !== 'object') return defaults;
+      const currentRevision = saved.version === 3 && saved.catalogRevision === WORD_BANK_CATALOG_REVISION;
+      const nextGroups = defaults.map(group => {
         if (!Object.prototype.hasOwnProperty.call(saved.groups, group.id)) return group;
         const localTerms = cleanTerms(saved.groups[group.id]);
         if (!localTerms) return group;
-        if (saved.version === 2) return {...group, terms:localTerms};
-        const upgraded = upgradeLegacyTerms(group.id, localTerms);
-        return {...group, terms:mergeTerms(upgraded, REQUIRED_NEW_TERMS[group.id])};
+        if (currentRevision) return {...group, terms:localTerms};
+        let migrated = saved.version === 1
+          ? mergeTerms(upgradeLegacyTerms(group.id, localTerms), REQUIRED_NEW_TERMS[group.id])
+          : localTerms;
+        if (group.id === 'stockingColor') {
+          migrated = migrated.filter(term => !(term.label === term.value && LEGACY_STOCKING_COLOR_DEFAULTS.has(term.value)));
+        }
+        const supplied = SUPPLIED_TERM_GROUPS.find(item => item.id === group.id);
+        return {...group, terms:mergeTerms(migrated, supplied?.terms)};
       });
+      if (!currentRevision) {
+        const groups = Object.fromEntries(nextGroups.map(group => [group.id, group.terms]));
+        try {
+          localStorage.setItem(WORD_BANK_STORAGE_KEY, JSON.stringify({version:3, catalogRevision:WORD_BANK_CATALOG_REVISION, groups}));
+        } catch {}
+      }
+      return nextGroups;
     } catch {
       return defaults;
     }
@@ -373,7 +445,7 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   function saveTermGroups(nextGroups) {
     const groups = Object.fromEntries(nextGroups.map(group => [group.id, group.terms]));
     try {
-      localStorage.setItem(WORD_BANK_STORAGE_KEY, JSON.stringify({version:2, groups}));
+      localStorage.setItem(WORD_BANK_STORAGE_KEY, JSON.stringify({version:3, catalogRevision:WORD_BANK_CATALOG_REVISION, groups}));
       return true;
     } catch {
       editorNote.textContent = '이 브라우저에 저장하지 못했어요. 브라우저 저장 공간 설정을 확인해 주세요.';
@@ -440,6 +512,9 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   function buildTermGroups() {
     termGroups.replaceChildren();
     termButtons.clear();
+    const query = termQuery.trim().toLocaleLowerCase();
+    const totalTerms = termGroupData.reduce((sum, group) => sum + group.terms.length, 0);
+    let matchedTerms = 0;
     const visibleKeys = new Set(termGroupData.flatMap(group => group.terms.map(term => selectedKey(group.id, term.value))));
     for (const selected of selectedTerms) {
       if (selected.groupId === 'height') visibleKeys.add(selected.key);
@@ -448,6 +523,12 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
       if (!visibleKeys.has(selectedTerms[index].key)) selectedTerms.splice(index, 1);
     }
     for (const group of termGroupData) {
+      const groupMatches = group.title.toLocaleLowerCase().includes(query);
+      const visibleTerms = query && !groupMatches
+        ? group.terms.filter(term => `${term.label} ${term.value}`.toLocaleLowerCase().includes(query))
+        : group.terms;
+      if (!visibleTerms.length) continue;
+      matchedTerms += visibleTerms.length;
       const wrap = document.createElement('div');
       wrap.className = 'termGroup';
       const heading = document.createElement('div');
@@ -455,12 +536,20 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
       heading.textContent = group.title;
       const count = document.createElement('span');
       count.className = 'termGroupCount';
-      count.textContent = `${group.terms.length}개`;
+      count.textContent = query && visibleTerms.length !== group.terms.length
+        ? `${visibleTerms.length}/${group.terms.length}개`
+        : `${group.terms.length}개`;
       heading.appendChild(count);
       wrap.appendChild(heading);
+      if (group.note) {
+        const note = document.createElement('p');
+        note.className = 'termGroupNote';
+        note.textContent = group.note;
+        wrap.appendChild(note);
+      }
       const chips = document.createElement('div');
       chips.className = 'termChips';
-      for (const term of group.terms) {
+      for (const term of visibleTerms) {
         const button = document.createElement('button');
         const key = selectedKey(group.id, term.value);
         button.type = 'button';
@@ -483,6 +572,8 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
       wrap.appendChild(chips);
       termGroups.appendChild(wrap);
     }
+    termSearchCount.textContent = query ? `${matchedTerms}/${totalTerms}개` : `전체 ${totalTerms}개`;
+    termSearchEmpty.hidden = matchedTerms > 0;
   }
 
   function loadCategoryEditor() {
@@ -562,6 +653,11 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
   });
 
   editCategorySelect.addEventListener('change', loadCategoryEditor);
+  termSearchInput.addEventListener('input', () => {
+    termQuery = termSearchInput.value;
+    buildTermGroups();
+    renderComposer();
+  });
   saveCategoryBtn.addEventListener('click', () => {
     const parsed = parseEditorTerms();
     if (parsed.error) {
@@ -575,12 +671,12 @@ select{width:100%;height:42px;border:1px solid #d6dfda;border-radius:7px;backgro
     buildTermGroups();
     renderComposer();
     loadCategoryEditor();
-    const duplicateNote = parsed.duplicates ? ` 중복 출력값 ${parsed.duplicates}개는 한 번만 저장했습니다.` : '';
+    const duplicateNote = parsed.duplicates ? ` 정확히 같은 항목 ${parsed.duplicates}개는 한 번만 저장했습니다.` : '';
     editorNote.textContent = `${termGroupData.find(group => group.id === editCategorySelect.value).title} 단어 ${terms.length}개를 이 브라우저에 저장했어요.${duplicateNote}`;
   });
   resetCategoryBtn.addEventListener('click', () => {
     const current = termGroupData.find(group => group.id === editCategorySelect.value);
-    const original = DEFAULT_TERM_GROUPS.find(group => group.id === editCategorySelect.value);
+    const original = defaultGroups().find(group => group.id === editCategorySelect.value);
     if (!current || !original || !confirm(`${current.title} 단어를 기본값으로 되돌릴까요?`)) return;
     const nextGroups = termGroupData.map(group => group.id === original.id ? {...group, terms:cleanTerms(original.terms) || []} : group);
     if (!saveTermGroups(nextGroups)) return;
