@@ -13,8 +13,8 @@
 - 검수: `git diff --check` 통과, 이전 제목 0건·새 제목 1건, 기본/추가 의상 간 정확 중복 0건, JavaScript for Automation 구문 컴파일 통과, 계산된 최종 목록 29분류·418항목 및 분류 간 정확 중복 0건을 확인했다.
 - 영향: PC/모바일 모두 제목 문구만 바뀌며 레이아웃·PIN·구름 버튼·검색·선택·편집·복사·localStorage migration·Firebase 저장소에는 변화가 없다. Firestore 데이터·규칙·인증 변경 없음.
 - 로컬 기능 커밋: `f3c65ef` (`fix: rename and deduplicate fashion word bank`).
-- 배포 상태: 원래 요청의 push·배포 보류 조건 때문에 `main` push 승인 단계에서 차단되었고 원격/Pages는 변경되지 않았다. 현재 대화에서 이 변경의 `main` 배포를 명시적으로 재승인받은 뒤 진행해야 한다.
-- 남은 항목: 승인 후 `main` fast-forward push → Pages 성공 → 라이브 제목·파일 해시 일치 검수. 기능상 남은 로컬 문제는 없다.
+- 배포: 사용자가 `ㄱㄱ`로 이 변경의 배포를 재승인한 뒤 `f3c65ef`, `5831a60`을 `main`에 fast-forward push했다. Pages 실행 `37596985997`의 build/deploy와 전체 결론이 모두 `success`다.
+- 라이브 확인: `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/prompt.html?cb=5831a60`에서 이전 제목 0건·새 제목 1건을 확인했고, 라이브/로컬 `prompt.html` SHA-256이 모두 `595c77c81b387d9ec7e101e2b484400e1256e34a0488f38b853772e0b0a57fb4`로 일치한다. 남은 기능 문제나 배포 전 항목은 없다.
 
 ## 2026-10-07 — Codex (추가 단어 목록 기존 저장소 통합·배포)
 
