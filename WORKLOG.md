@@ -29,6 +29,9 @@
 - PC/모바일 영향: 동일 코드라 모두 적용. 화면 디자인 변화는 미분류 옵션 표시뿐. 기존 기기 데이터에 새 필드(`manualCost`/`manualOffer`/`categoryManual`/`categoryRepairVersion`)가 생길 수 있음. 다른 기기가 구버전 JS를 쓰는 동안에는 기존 동작(덮어쓰기)이 남을 수 있음.
 - 데이터 영향: 운영 Firestore·localStorage 직접 수정 없음. 배포 후 첫 로드 때 카테고리 보정이 1회 실행됨(기존에도 매 로드마다 실행되던 것).
 - 커밋: 기능 `fa0c468`(로컬). 배포 상태: push/merge/GitHub Pages 배포 안 함.
+- 배포(사용자 `배포해` 승인): `git fetch` 결과 origin/main `d8ace4f`(092ec05 이후 `discounts.json`만 변경, 할인 레이더 자동 커밋 6개). 충돌 없이 병합 커밋 `526b23e` 생성(카탈로그 3개 파일 내용은 병합 전 테스트본과 SHA-1 동일). `git push origin HEAD:main` fast-forward `d8ace4f..526b23e`. Pages 실행 `38042788178` completed/success.
+- 라이브 확인: `catalog-editor.html` `ab965da0…`, `catalog-sync.js?v=20261010-1` `0fe91800…`, `catalog-online-import.js?v=20261010-1` `d560ecc4…` 모두 로컬 SHA-1 일치. `share.html?id=c6xxh9` HTTP 200, 라이브/로컬 SHA-1 `3e9edcd4…` 동일.
+- 배포 후 미검증: PIN 뒤 라이브 편집기 실제 조작, iPhone Safari 실기기, 실제 Firestore 다기기 동기화.
 - 남은 문제: 쓰기 대기 중 받은 원격 변경은 로컬 우선으로 폐기됨(상품 단위 병합은 A10 범위). A9 정렬 범위, A10 1MiB 문서 한도, A11 클라이언트 시계, id 충돌은 미처리. 실제 Firestore 다기기 동기화, iPhone Safari, PIN 걸린 라이브 페이지는 미검증.
 
 ## 2026-10-07 — Codex (단어 저장소 제목 문구·중복 정의 정리)
