@@ -12,6 +12,25 @@
 - 결정한 방식: 수동 가격 플래그를 `applyPricingRules`가 존중(정책 일괄적용·판매가 직접 수정·카테고리 변경 시에는 기존처럼 재계산하고 플래그 해제). 원격 반영 시 같은 id의 로컬 `idb:` 이미지와 `current`/`selected`를 보존. 로컬 cloud write 대기 중이거나 입력칸 포커스 중이면 원격 반영을 보류(대기 중 쓰기는 로컬 우선; 상품 단위 병합은 A10 범위로 남김). 대분류는 우선순위로 정렬만 하고 추가하지 않음. 카테고리 자동 보정은 버전 플래그로 1회만, 사용자가 직접 고른 분류는 건너뜀. JS 변경 파일 cachebuster 갱신.
 - 주의: 실제 Firestore 쓰기 테스트 금지(가짜 Firestore로만 검수). commit은 로컬만, push/merge/배포 없음. 새 브랜치 `codex/catalog-bugfix-perf`(기준 HEAD `092ec05`).
 
+### 작업 후 기록
+- 수정 파일: `catalog-editor.html`, `catalog-sync.js`(v1.5), `catalog-online-import.js`(v1.5), `WORKLOG.md`. 신규·삭제 저장소 파일 없음. `share.html` 변경 없음(diff 0), 고객 URL `share.html?id=c6xxh9`·`publishShare` payload 변경 없음.
+- cachebuster: `catalog-online-import.js?v=20261010-1`, `catalog-sync.js?v=20261010-1`.
+- 변경 내용:
+  - A1 `applyPricingRules()`가 `manualCost`/`manualOffer`를 존중. 매입가 직접 입력→`manualCost`, 제안가 직접 입력→`manualOffer`. 판매가 직접 수정·카테고리 변경·정책 일괄적용은 기존처럼 재계산하고 플래그 해제.
+  - A2 원격 반영 시 같은 id 상품의 로컬 `idb:` 이미지를 유지해 원격 이미지와 합침(최대 5장).
+  - A3 초기 `render()` 뒤 `hydrateAll()` 호출(로컬 `idb:` 이미지가 있을 때만 재렌더).
+  - A4 로컬 cloud write 대기 중이거나 입력칸 포커스 중이면 원격 반영 보류 → 쓰기 완료/포커스 해제 후 최신 원격만 반영. 보류 중 로컬 저장이 더 최신이면 원격은 폐기(로컬 우선, console 경고).
+  - A5 `normalizeCatalogCategories()`가 우선순위 대분류를 강제 추가하지 않고 정렬만 함. 빈 카테고리를 첫 대분류로 바꾸던 처리 제거(sync와 editor 로드부 모두).
+  - A6 기존 상품 카테고리 자동 보정은 `data.categoryRepairVersion="20261010-1"`로 버전당 1회만, 사용자가 선택칸에서 고른 상품(`categoryManual`)은 제외.
+  - A7 카테고리 선택칸 `esc()` 적용 + 미분류/목록 밖 분류 옵션 표시. A8 보이는 상품 전체 선택/해제 시 `autosave()`.
+  - B1 상품명/카테고리/태그 변경은 카드 단위 갱신(필터에서 빠지면 기존처럼 전체 render). B2 이미지 정규화를 배열 참조 기준으로 메모이즈(바뀐 상품만 재정규화). B3 글자 크기 슬라이더는 CSS 변수만 갱신. B6 `current`/`selected`를 클라우드 payload에서 제외하고 원격 반영 시 로컬 값 유지(선택/이미지 넘김만으로는 Firestore write 없음).
+- 검수(제 컴퓨터 jsdom + 가짜 Firestore, 실제 Firestore 접속·쓰기 없음): 수정본 21/21 통과, 같은 테스트로 원본은 5/21(원본 버그 재현 확인). `node --check`(두 JS + 인라인 스크립트) 통과, `git diff --check` 통과, Mac 반영 파일과 테스트 파일 SHA-1 일치.
+- 성능(jsdom 측정, 실제 브라우저보다 느림·비율 참고): 300개 기준 상품명 변경 554→78ms, 카테고리 변경 546→70ms, 태그 변경 646→123ms, 슬라이더 1틱 600→7.5ms, 전체 render 590→398ms. 1000개 기준 상품명 2245→371ms, 카테고리 2193→311ms, 태그 2617→435ms, 슬라이더 2418→23ms, 전체 render 2141→1616ms.
+- PC/모바일 영향: 동일 코드라 모두 적용. 화면 디자인 변화는 미분류 옵션 표시뿐. 기존 기기 데이터에 새 필드(`manualCost`/`manualOffer`/`categoryManual`/`categoryRepairVersion`)가 생길 수 있음. 다른 기기가 구버전 JS를 쓰는 동안에는 기존 동작(덮어쓰기)이 남을 수 있음.
+- 데이터 영향: 운영 Firestore·localStorage 직접 수정 없음. 배포 후 첫 로드 때 카테고리 보정이 1회 실행됨(기존에도 매 로드마다 실행되던 것).
+- 커밋: 기능 `fa0c468`(로컬). 배포 상태: push/merge/GitHub Pages 배포 안 함.
+- 남은 문제: 쓰기 대기 중 받은 원격 변경은 로컬 우선으로 폐기됨(상품 단위 병합은 A10 범위). A9 정렬 범위, A10 1MiB 문서 한도, A11 클라이언트 시계, id 충돌은 미처리. 실제 Firestore 다기기 동기화, iPhone Safari, PIN 걸린 라이브 페이지는 미검증.
+
 ## 2026-10-07 — Codex (단어 저장소 제목 문구·중복 정의 정리)
 
 ### 작업 전 기록
