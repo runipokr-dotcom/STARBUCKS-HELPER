@@ -1,5 +1,17 @@
 # WORKLOG
 
+## 2026-10-10 — Grok Bot (카탈로그 버그 수정 A1~A8 + 편집 성능 B1~B3·B6)
+
+### 작업 전 기록
+- 사용자 요청: 읽기 전용 감사(2026-10-10)에서 확인한 카탈로그 버그 A1~A7(+선택 저장 A8)과 편집 성능 B1~B3, B6을 수정. A9(정렬 범위), A10/A11(문서 분할·serverTimestamp), 상품 id 변경은 하지 않음.
+- 배경: 수동 매입가/제안가가 로드·원격 반영 시 `applyPricingRules()`로 덮어써짐, 원격 반영 시 로컬 `idb:` 이미지 삭제, `hydrateAll()` 미호출로 수동 이미지 깨짐, 편집 중 원격 snapshot이 로컬 변경/입력을 덮음, 삭제한 대분류가 `normalizeCatalogCategories()`로 부활하고 빈 분류가 `categories[0]`으로 바뀜, `repairExistingCategories()`가 매 로드마다 사용자 분류를 되돌림, 전체 선택/해제 미저장. 성능은 jsdom 측정상 `render()`(300개 ≈495ms)가 지배적이고 그중 이미지 정규화가 약 30%.
+- 목표: 데이터 손실·사용자 수정 덮어쓰기 제거, 상품명/카테고리/태그 변경 시 전체 render 대신 카드 단위 갱신, 이미지 정규화를 변경된 상품만 수행, 글자 크기 슬라이더 render 제거, 기기별 화면 상태(`current` 이미지 위치, `selected`)를 클라우드 payload에서 제외.
+- 대상 파일: `catalog-editor.html`, `catalog-sync.js`, `catalog-online-import.js`, `WORKLOG.md`. `share.html`·shareId `c6xxh9`·고객 URL은 변경하지 않음.
+- 보존: 상품 데이터 구조(필드 추가만: `manualCost`, `manualOffer`, `categoryManual`, `data.categoryRepairVersion`), Firestore 문서 경로/구조, 고객 게시(publishShare) payload, PC 로컬 추출, 모바일 온라인 추출·링크 큐, 이미지 재검수, 정렬/필터/가격 계산식, UI 디자인.
+- B6 사전 확인: `share.html`은 `catalogShares/c6xxh9` 게시본만 읽고, `quote.html`은 워크스페이스 문서에서 `quoteTemplate`만 읽음. 워크스페이스 `catalogData`의 `selected`/`current`를 읽는 다른 페이지 없음(저장소 grep 확인).
+- 결정한 방식: 수동 가격 플래그를 `applyPricingRules`가 존중(정책 일괄적용·판매가 직접 수정·카테고리 변경 시에는 기존처럼 재계산하고 플래그 해제). 원격 반영 시 같은 id의 로컬 `idb:` 이미지와 `current`/`selected`를 보존. 로컬 cloud write 대기 중이거나 입력칸 포커스 중이면 원격 반영을 보류(대기 중 쓰기는 로컬 우선; 상품 단위 병합은 A10 범위로 남김). 대분류는 우선순위로 정렬만 하고 추가하지 않음. 카테고리 자동 보정은 버전 플래그로 1회만, 사용자가 직접 고른 분류는 건너뜀. JS 변경 파일 cachebuster 갱신.
+- 주의: 실제 Firestore 쓰기 테스트 금지(가짜 Firestore로만 검수). commit은 로컬만, push/merge/배포 없음. 새 브랜치 `codex/catalog-bugfix-perf`(기준 HEAD `092ec05`).
+
 ## 2026-10-07 — Codex (단어 저장소 제목 문구·중복 정의 정리)
 
 ### 작업 전 기록

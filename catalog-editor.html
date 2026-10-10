@@ -969,7 +969,7 @@ Fixed : mobile two-column cards / autosave after product edits
         data.tumblerCategories.push("텀블러/보온병");
       data.products.forEach((p) => {
         if (p.category === "텀블러") p.category = "텀블러/보온병";
-        p.category = p.category || data.categories[0] || "";
+        p.category = p.category || ""; // 미분류는 미분류로 유지(첫 대분류로 강제 지정하지 않음)
         p.tags = Array.isArray(p.tags) ? p.tags : [];
         p.cost = Number.isFinite(p.cost) ? p.cost : 0;
         p.updatedAt = p.updatedAt || p.id || Date.now();
@@ -1047,15 +1047,25 @@ Fixed : mobile two-column cards / autosave after product edits
           return true;
         });
       }
+      const normalizedImageArrays = new WeakSet();
       function normalizeProductImages(p) {
-        p.images = deduplicateImages(p.images);
-        p.remoteImages = deduplicateImages(p.remoteImages);
+        // 성능: 이미 정규화한 배열(같은 참조)은 다시 URL 파싱하지 않는다. 이미지가 바뀌면 새 배열이 할당되므로 다시 정규화된다.
+        if (!(Array.isArray(p.images) && normalizedImageArrays.has(p.images))) {
+          p.images = deduplicateImages(p.images);
+          normalizedImageArrays.add(p.images);
+        }
+        if (!(Array.isArray(p.remoteImages) && normalizedImageArrays.has(p.remoteImages))) {
+          p.remoteImages = deduplicateImages(p.remoteImages);
+          normalizedImageArrays.add(p.remoteImages);
+        }
         p.current = Math.min(Number(p.current || 0), Math.max(0, p.images.length - 1));
       }
       async function hydrateAll() {
-        await Promise.all(
-          data.products.flatMap((p) => (p.images || []).map(hydrateImage)),
+        const refs = data.products.flatMap((p) =>
+          (p.images || []).filter((ref) => typeof ref === "string" && ref.startsWith("idb:") && !imageCache.has(ref)),
         );
+        if (!refs.length) return;
+        await Promise.all(refs.map((ref) => hydrateImage(ref).catch(() => {})));
         render();
       }
       let toastTimer;
@@ -1272,10 +1282,15 @@ Fixed : mobile two-column cards / autosave after product edits
         return roundWon(cost + marginValue(cost));
       }
       function applyPricingRules(products = data.products) {
+        // 사용자가 직접 입력한 매입가/제안가(manualCost/manualOffer)는 자동 재계산으로 덮어쓰지 않는다.
         products.forEach((p) => {
-          p.cost = calcCost(Number(p.sale || 0), p.category);
-          p.offer = calcOffer(p.cost, Number(p.sale || 0), p.category);
+          if (!p.manualCost) p.cost = calcCost(Number(p.sale || 0), p.category);
+          if (!p.manualOffer) p.offer = calcOffer(p.cost, Number(p.sale || 0), p.category);
         });
+      }
+      function clearManualPrice(p) {
+        delete p.manualCost;
+        delete p.manualOffer;
       }
       applyPricingRules();
       autosave();
@@ -1470,6 +1485,34 @@ Fixed : mobile two-column cards / autosave after product edits
           ? `상품 ${result.total}개 · 문제 ${result.issues.length}건\n` + result.issues.slice(0, 80).join("\n") + (result.issues.length > 80 ? `\n… 외 ${result.issues.length - 80}건` : "")
           : `상품 ${result.total}개 · 문제 없음`;
       }
+      function categoryOptionsHtml(p) {
+        const cats = data.categories.includes(p.category) ? data.categories : [p.category || "", ...data.categories];
+        return cats
+          .map((c) => `<option value="${esc(c)}" ${c === (p.category || "") ? "selected" : ""}>${c ? esc(c) : "미분류"}</option>`)
+          .join("");
+      }
+      function isProductVisible(p) {
+        return (
+          (activeCategory === "전체" || p.category === activeCategory) &&
+          (activeTag === "전체" || p.tags.includes(activeTag))
+        );
+      }
+      function patchProductCard(card, p) {
+        // 성능: 상품명/카테고리/태그 변경 시 해당 카드만 갱신한다. 현재 필터에서 빠지면 기존처럼 전체 render.
+        if (!card || !p || !isProductVisible(p)) return render();
+        const select = card.querySelector(".category-select");
+        if (select) {
+          select.innerHTML = categoryOptionsHtml(p);
+          select.value = p.category || "";
+        }
+        card.querySelectorAll("[data-product-tag]").forEach((button) =>
+          button.classList.toggle("active", p.tags.includes(button.dataset.productTag)),
+        );
+        const img = card.querySelector(".photo img");
+        if (img) img.alt = p.name;
+        refreshProductCard(card, p);
+        renderFilters();
+      }
       function render() {
         data.products.forEach(normalizeProductImages);
         document.documentElement.style.setProperty(
@@ -1489,7 +1532,7 @@ Fixed : mobile two-column cards / autosave after product edits
           items
             .map(
               ({ p, i }) =>
-                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><textarea class="field name" data-k="name" rows="2">${esc(p.name)}</textarea><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><div class="web-price">웹판매가 ${money(calcWebPrice(p.cost))}</div><select class="category-select">${data.categories.map((c) => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
+                `<article class="product" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input class="pick" type="checkbox" ${p.selected ? "checked" : ""} aria-label="${i + 1}번 선택"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo" title="클릭하여 이미지 관리"><img src="${esc(imageSrc(p.images[p.current || 0] || ""))}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button class="arrow prev" aria-label="이전 이미지">‹</button><button class="arrow next" aria-label="다음 이미지">›</button><span class="count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}</div><textarea class="field name" data-k="name" rows="2">${esc(p.name)}</textarea><input class="field sale" data-k="sale" value="판매가 ${money(p.sale)}"><input class="field cost" data-k="cost" value="매입가 ${money(p.cost)}"><input class="field offer" data-k="offer" value="제안가 ${money(p.offer)}"><div class="web-price">웹판매가 ${money(calcWebPrice(p.cost))}</div><select class="category-select">${categoryOptionsHtml(p)}</select><div class="tag-picker" aria-label="소분류">${tagOptions()
                   .map(
                     (tag) =>
                       `<button type="button" class="tag-chip ${p.tags.includes(tag) ? "active" : ""}" data-product-tag="${esc(tag)}">${esc(tag)}</button>`,
@@ -1558,16 +1601,24 @@ Fixed : mobile two-column cards / autosave after product edits
               (f.onchange = () => {
                 if (f.dataset.k === "name") {
                   p.name = f.value;
-                  p.category = categoryForProductName(p.name, p.category);
-                  p.cost = calcCost(p.sale, p.category);
-                  p.offer = calcOffer(p.cost, p.sale, p.category);
+                  const nextCategory = categoryForProductName(p.name, p.category);
+                  if (nextCategory !== p.category) {
+                    p.category = nextCategory;
+                    clearManualPrice(p);
+                  }
+                  applyPricingRules([p]);
                 }
                 else p[f.dataset.k] = Number(f.value.replace(/\D/g, ""));
                 if (f.dataset.k === "sale") {
+                  clearManualPrice(p);
                   p.cost = calcCost(p.sale, p.category);
                   p.offer = calcOffer(p.cost, p.sale, p.category);
                 } else if (f.dataset.k === "cost") {
+                  p.manualCost = true;
+                  delete p.manualOffer;
                   p.offer = calcOffer(p.cost, p.sale, p.category);
+                } else if (f.dataset.k === "offer") {
+                  p.manualOffer = true;
                 }
                 if (!Number.isFinite(Number(p.sale)) || Number(p.sale) <= 0) {
                   p.cost = 0;
@@ -1575,18 +1626,20 @@ Fixed : mobile two-column cards / autosave after product edits
                 }
                 touch(p);
                 autosave();
-                if (f.dataset.k === "name") render();
+                if (f.dataset.k === "name") patchProductCard(card, p);
                 else if (f.dataset.k === "sale" || f.dataset.k === "cost") refreshProductCard(card, p);
                 else basket();
               }),
           );
           card.querySelector(".category-select").onchange = (e) => {
             p.category = e.target.value;
+            p.categoryManual = true;
+            clearManualPrice(p);
             p.cost = calcCost(p.sale, p.category);
             p.offer = calcOffer(p.cost, p.sale, p.category);
             touch(p);
             autosave();
-            render();
+            patchProductCard(card, p);
           };
           card.querySelectorAll("[data-product-tag]").forEach(
             (button) =>
@@ -1597,7 +1650,7 @@ Fixed : mobile two-column cards / autosave after product edits
                   : [...p.tags, tag];
                 touch(p);
                 autosave();
-                render();
+                patchProductCard(card, p);
               }),
           );
           card.querySelector(".clone").onclick = () => {
@@ -1793,8 +1846,8 @@ Fixed : mobile two-column cards / autosave after product edits
         input.oninput = () => {
           data.sizes[k] = +input.value;
           out.value = input.value + "px";
+          document.documentElement.style.setProperty("--" + k, data.sizes[k] + "px");
           autosave();
-          render();
         };
       });
       async function extractFromHelper(url) {
@@ -1923,6 +1976,7 @@ Fixed : mobile two-column cards / autosave after product edits
       };
       $("#policyApply").onclick = () => {
         data.products.forEach((p) => {
+          clearManualPrice(p);
           p.cost = calcCost(p.sale, p.category);
           p.offer = calcOffer(p.cost, p.sale, p.category);
           p.updatedAt = Date.now();
@@ -1941,10 +1995,12 @@ Fixed : mobile two-column cards / autosave after product edits
       };
       $("#selectVisible").onclick = () => {
         visible().forEach(({ p }) => (p.selected = true));
+        autosave();
         render();
       };
       $("#clearVisible").onclick = () => {
         visible().forEach(({ p }) => (p.selected = false));
+        autosave();
         render();
       };
       $("#catalogAuditButton").onclick = renderAuditResult;
@@ -2020,8 +2076,9 @@ Fixed : mobile two-column cards / autosave after product edits
       const scrollTopButton = $("#scrollTop");
       scrollTopButton.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
       render();
+      hydrateAll().catch((error) => console.warn("[catalog] hydrate images", error));
     </script>
-    <script src="catalog-online-import.js?v=20260904-4"></script>
-    <script src="catalog-sync.js?v=20260925-2"></script>
+    <script src="catalog-online-import.js?v=20261010-1"></script>
+    <script src="catalog-sync.js?v=20261010-1"></script>
   </body>
 </html>

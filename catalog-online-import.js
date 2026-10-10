@@ -1,8 +1,8 @@
 /*
 STARBUCKS HELPER
 File : catalog-online-import.js
-Version : 1.4
-Updated : 2026-09-04
+Version : 1.5
+Updated : 2026-10-10
 Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + catalog category repair.
 
 - Runs before catalog-sync.js so mobile import does not fall into the PC queue.
@@ -28,23 +28,30 @@ Purpose : Mobile-first online Musinsa + Starbucks import through Vercel API + ca
     return fallback;
   }
 
+  // 기존 상품 카테고리 자동 보정은 버전당 1회만 실행하고, 사용자가 직접 고른 분류(categoryManual)는 건너뛴다.
+  const CATEGORY_REPAIR_VERSION = "20261010-1";
+
   function repairExistingCategories() {
     try {
       if (typeof data !== "object" || !Array.isArray(data.products)) return;
-      let changed = false;
+      if (data.categoryRepairVersion === CATEGORY_REPAIR_VERSION) return;
+      data.categoryRepairVersion = CATEGORY_REPAIR_VERSION;
       for (const product of data.products) {
+        if (product.categoryManual) continue;
         const next = classifyProductName(product.name, product.category);
         if (!next || next === product.category) continue;
         product.category = next;
-        if (typeof calcCost === "function") {
-          product.cost = calcCost(Number(product.sale || 0), product.category);
+        if (typeof applyPricingRules === "function") {
+          applyPricingRules([product]);
+        } else {
+          if (typeof calcCost === "function") {
+            product.cost = calcCost(Number(product.sale || 0), product.category);
+          }
+          if (typeof calcOffer === "function") {
+            product.offer = calcOffer(Number(product.cost || 0), Number(product.sale || 0), product.category);
+          }
         }
-        if (typeof calcOffer === "function") {
-          product.offer = calcOffer(Number(product.cost || 0), Number(product.sale || 0), product.category);
-        }
-        changed = true;
       }
-      if (!changed) return;
       if (typeof autosave === "function") autosave();
       else if (typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(data));
       if (typeof render === "function") render();

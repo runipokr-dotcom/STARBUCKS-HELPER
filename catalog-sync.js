@@ -1,8 +1,8 @@
 /*
 STARBUCKS HELPER
 File : catalog-sync.js
-Version : 1.4
-Updated : 2026-09-25
+Version : 1.5
+Updated : 2026-10-10
 Purpose : Cross-device catalog sync + mobile link queue + category-priority sorting + source image repair.
 
 - PC keeps the existing localhost extractor.
@@ -61,6 +61,9 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   let imageRecheckBusy = false;
   let latestQueue = [];
   let lastCloudSignature = "";
+  let deferredRemote = null;
+  // 기기별 화면 상태: 클라우드에 올리지 않고 원격 반영 시 로컬 값을 유지한다.
+  const DEVICE_VIEW_FIELDS = ["current", "selected"];
 
   const deviceId = (() => {
     let id = localStorage.getItem(DEVICE_ID_KEY);
@@ -86,15 +89,20 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   function normalizeCatalogCategories(target) {
     if (!target || typeof target !== "object") return target;
 
-    const existing = safeArray(target.categories)
+    // 사용자가 삭제한 대분류를 되살리지 않는다: 기존 목록을 우선순위로 정렬만 한다. 목록이 비어 있을 때만 기본값.
+    const existing = [...new Set(safeArray(target.categories)
       .map(normalizeCategoryName)
-      .filter(Boolean);
-    const extras = existing.filter((category) => !CATEGORY_PRIORITY.includes(category));
-    target.categories = [...new Set([...CATEGORY_PRIORITY, ...extras])];
+      .filter(Boolean))];
+    target.categories = existing.length
+      ? existing
+          .map((category, index) => ({ category, index }))
+          .sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.index - b.index)
+          .map(({ category }) => category)
+      : [...CATEGORY_PRIORITY];
 
+    // 빈 카테고리(미분류)는 그대로 둔다.
     target.products = safeArray(target.products).map((product) => {
       product.category = normalizeCategoryName(product.category);
-      if (!product.category) product.category = target.categories[0] || "";
       return product;
     });
 
@@ -173,6 +181,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     p.images = (remote.length ? remote : httpImages).slice(0, 5);
     if (remote.length) p.remoteImages = remote.slice(0, 5);
     delete p.downloadFolder;
+    DEVICE_VIEW_FIELDS.forEach((key) => delete p[key]);
     return p;
   }
 
@@ -193,6 +202,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       p.images = safeArray(p.images).filter((url) => /^https?:\/\//i.test(url));
       p.remoteImages = safeArray(p.remoteImages).filter((url) => /^https?:\/\//i.test(url));
       if (!p.images.length && p.remoteImages.length) p.images = p.remoteImages.slice(0, 5);
+      DEVICE_VIEW_FIELDS.forEach((key) => delete p[key]);
       return p;
     });
     return next;
@@ -212,8 +222,64 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     }
   }
 
+  function isEditingField() {
+    const el = document.activeElement;
+    return !!(el && el.matches && el.matches("input, textarea, select, [contenteditable='true']") && !el.closest("#catalogSyncPanel"));
+  }
+
+  function hasPendingLocalWrite() {
+    return !!writeTimer;
+  }
+
+  function mergeLocalDeviceState(next) {
+    // 같은 id 상품의 로컬 전용 이미지(idb:)와 기기별 화면 상태를 보존한다.
+    const localById = new Map(safeArray(data.products).map((p) => [String(p.id), p]));
+    next.products = safeArray(next.products).map((p) => {
+      const local = localById.get(String(p.id));
+      if (!local) {
+        p.current = 0;
+        p.selected = false;
+        return p;
+      }
+      const localImages = safeArray(local.images);
+      if (localImages.some((src) => typeof src === "string" && src.startsWith("idb:"))) {
+        const incomingImages = safeArray(p.images);
+        const keptLocal = localImages.filter((src) => src.startsWith?.("idb:") || incomingImages.includes(src));
+        p.images = [...new Set([...keptLocal, ...incomingImages])].slice(0, 5);
+      }
+      DEVICE_VIEW_FIELDS.forEach((key) => {
+        if (key in local) p[key] = local[key];
+      });
+      p.current = Math.min(Number(p.current || 0), Math.max(0, safeArray(p.images).length - 1));
+      return p;
+    });
+    return next;
+  }
+
+  function deferRemoteCatalog(incoming, stamp) {
+    if (!deferredRemote || Number(stamp || 0) >= Number(deferredRemote.stamp || 0)) {
+      deferredRemote = { incoming, stamp };
+    }
+    updateSyncBadge("편집 중 · 원격 변경 보류", "busy");
+  }
+
+  function flushDeferredRemote() {
+    if (!deferredRemote || hasPendingLocalWrite() || isEditingField()) return;
+    const { incoming, stamp } = deferredRemote;
+    deferredRemote = null;
+    const localKnown = Number(localStorage.getItem(SYNC_STAMP_KEY) || 0);
+    if (Number(stamp || 0) <= localKnown) {
+      // 보류 중 로컬 변경이 먼저 클라우드에 기록됨(로컬 우선). 상품 단위 병합은 아직 미지원.
+      console.warn("[catalog-sync] 보류된 원격 변경이 더 최신 로컬 저장으로 대체되었습니다", stamp, localKnown);
+      updateSyncBadge("동기화됨", "ok");
+      return;
+    }
+    applyRemoteCatalog(incoming, stamp);
+  }
+
   function applyRemoteCatalog(incoming, stamp) {
     if (!incoming || typeof incoming !== "object") return;
+    if (hasPendingLocalWrite() || isEditingField()) return deferRemoteCatalog(incoming, stamp);
     applyingRemote = true;
     try {
       const next = normalizeIncomingData(incoming);
@@ -224,6 +290,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
         lastCloudSignature = incomingSignature;
         return;
       }
+      mergeLocalDeviceState(next);
       for (const key of Object.keys(data)) delete data[key];
       Object.assign(data, next);
       applyCategoryPriorityOrder();
@@ -241,12 +308,14 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   }
 
   async function pushCatalog() {
+    writeTimer = null;
     if (!initialized || applyingRemote || !ref) return;
     const catalogData = cloudSafeData();
     if (!catalogData) return;
     const signature = catalogSignature(catalogData);
     if (signature && signature === lastCloudSignature) {
       updateSyncBadge("동기화됨", "ok");
+      flushDeferredRemote();
       return;
     }
     const stamp = now();
@@ -265,6 +334,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       localStorage.setItem(SYNC_STAMP_KEY, String(stamp));
       if (signature) lastCloudSignature = signature;
       updateSyncBadge("동기화됨", "ok");
+      flushDeferredRemote();
     } catch (error) {
       console.error("[catalog-sync] push", error);
       updateSyncBadge("동기화 오류", "error");
@@ -425,6 +495,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       }
 
       if (repaired) {
+        if (typeof normalizeProductImages === "function") data.products.forEach(normalizeProductImages);
         localStorage.setItem(KEY, JSON.stringify(data));
         if (typeof render === "function") render();
         scheduleCatalogPush();
@@ -643,6 +714,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
         updateSyncBadge("동기화 오류", "error");
       });
 
+      document.addEventListener("focusout", () => setTimeout(flushDeferredRemote, 0));
       window.addEventListener("focus", () => processPendingQueue(latestQueue));
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) processPendingQueue(latestQueue);
