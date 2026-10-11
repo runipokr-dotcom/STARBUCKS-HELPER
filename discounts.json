@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-10-11T11:12:06+09:00",
+ "updatedAt": "2026-10-12T00:05:27+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-11T11:12:06+09:00",
-   "lastSuccessAt": "2026-10-11T11:12:06+09:00",
-   "scanned": 246,
+   "checkedAt": "2026-10-12T00:05:27+09:00",
+   "lastSuccessAt": "2026-10-12T00:05:27+09:00",
+   "scanned": 245,
    "discounted": 0,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-11T11:12:06+09:00",
-   "lastSuccessAt": "2026-10-11T11:12:06+09:00",
+   "checkedAt": "2026-10-12T00:05:27+09:00",
+   "lastSuccessAt": "2026-10-12T00:05:27+09:00",
    "scanned": 284,
    "discounted": 0,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-11T11:12:06+09:00",
-   "lastSuccessAt": "2026-10-11T11:12:06+09:00",
+   "checkedAt": "2026-10-12T00:05:27+09:00",
+   "lastSuccessAt": "2026-10-12T00:05:27+09:00",
    "scanned": 268,
    "discounted": 252,
    "error": ""
@@ -32,10 +32,10 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-11T11:12:06+09:00",
-   "lastSuccessAt": "2026-10-11T11:12:06+09:00",
-   "scanned": 98,
-   "discounted": 1,
+   "checkedAt": "2026-10-12T00:05:27+09:00",
+   "lastSuccessAt": "2026-10-12T00:05:27+09:00",
+   "scanned": 96,
+   "discounted": 12,
    "error": ""
   }
  },
@@ -161,6 +161,78 @@
    "firstSeen": "2026-10-08T00:46:52+09:00"
   },
   {
+   "store": "kakao",
+   "id": "11466755",
+   "name": "\"넉넉한 데일리 텀블러\" SS 시그니처 웬디 텀블러 621ml (그레이 or 그린) +에코텀블러음료쿠폰(카톡발송) (실용적인 선물, 대용량 텀블러)",
+   "url": "https://gift.kakao.com/product/11466755",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261001174152_84331424f1884b02a2546045e41d75eb.png",
+   "price": 34400,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "10151707",
+   "name": "\"대용량 인기 텀블러\" SS 스탠리 켄처 텀블러 1183ml (3종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/10151707",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261001175554_4397348b44b4468bb8561297f588281e.png",
+   "price": 54400,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "10942640",
+   "name": "\"소중한 마음을 담아\" 스타벅스 사이렌 핸들 글라스 500ml(2P) (결혼/집들이 선물)",
+   "url": "https://gift.kakao.com/product/10942640",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260805164305_732eab35053e4193b60d5f50abdac4bd.png",
+   "price": 18400,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "9755693",
+   "name": "\"진심으로 축하해요\" 사이렌 글라스볼&우드스푼 세트 (결혼/집들이 선물)",
+   "url": "https://gift.kakao.com/product/9755693",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260806134009_c9d9dbb8a17941cd8f80b9c0a3c303d6.png",
+   "price": 17600,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12109009",
+   "name": "\"퍼스널컬러\" SS 단테 텀블러 710ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/12109009",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928105139_ab7d7eda946e4ab88a22ebb7617778a5.png",
+   "price": 39200,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "13239227",
+   "name": "[각인] SS 코튼캔디 스탠리 켄처 텀블러 1183ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/13239227",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261001180344_284c663a331540e6ba6b2349a45d4793.png",
+   "price": 54400,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
    "store": "wconcept",
    "id": "308803788",
    "name": "유어 서머 하네스&미니 백팩 세트",
@@ -183,6 +255,66 @@
    "rate": 15,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "7712218",
+   "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/7712218",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928114856_bb9867ae8b464613a018484dbf5df0c1.png",
+   "price": 28800,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "2244072",
+   "name": "\"넉넉한 벤티\" SS 콩코드 사이렌 화이트 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/2244072",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261001174915_4876c2b33c54417eb4e900000b2371f5.png",
+   "price": 31500,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "10038304",
+   "name": "SS 블랙 매트 데비 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/10038304",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261001181643_8cded689bc4b4c8dbff50bfbff815d54.png",
+   "price": 30600,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "3502937",
+   "name": "그린 사이렌 도트 머그 355ml*2ea 세트",
+   "url": "https://gift.kakao.com/product/3502937",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928172020_9eb8523fc1b2435da8ac11e5bbadb613.png",
+   "price": 26100,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "11467014",
+   "name": "시그니처 사이렌 머그 355ml 2P (4종 택 1) (집들이/결혼/자취선물)",
+   "url": "https://gift.kakao.com/product/11467014",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928164639_8d6e168e41104fb9a825536cbff26db3.png",
+   "price": 34200,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
   },
   {
    "store": "wconcept",
