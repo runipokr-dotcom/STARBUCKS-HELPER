@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-14T11:10:20+09:00",
+ "updatedAt": "2026-10-14T23:03:28+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-14T11:10:20+09:00",
-   "lastSuccessAt": "2026-10-14T11:10:20+09:00",
+   "checkedAt": "2026-10-14T23:03:28+09:00",
+   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
    "scanned": 248,
    "discounted": 0,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-14T11:10:20+09:00",
-   "lastSuccessAt": "2026-10-14T11:10:20+09:00",
+   "checkedAt": "2026-10-14T23:03:28+09:00",
+   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
    "scanned": 285,
    "discounted": 0,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-14T11:10:20+09:00",
-   "lastSuccessAt": "2026-10-14T11:10:20+09:00",
+   "checkedAt": "2026-10-14T23:03:28+09:00",
+   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
    "scanned": 268,
    "discounted": 252,
    "error": ""
@@ -32,8 +32,8 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-14T11:10:20+09:00",
-   "lastSuccessAt": "2026-10-14T11:10:20+09:00",
+   "checkedAt": "2026-10-14T23:03:28+09:00",
+   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
    "scanned": 158,
    "discounted": 26,
    "error": ""
@@ -465,7 +465,7 @@
    "id": "11467014",
    "name": "시그니처 사이렌 머그 355ml 2P (4종 택 1) (집들이/결혼/자취선물)",
    "url": "https://gift.kakao.com/product/11467014",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928164639_8d6e168e41104fb9a825536cbff26db3.png",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261014145621_cbf994d4187347dda269307386ef6ad0.png",
    "price": 34200,
    "originalPrice": 0,
    "rate": 10,
