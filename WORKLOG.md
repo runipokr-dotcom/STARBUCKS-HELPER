@@ -15,6 +15,22 @@
 
 # WORKLOG
 
+## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
+
+### 작업 전 기록
+- 사용자 요청: 기존 approved owner-only 백업을 재사용해 카탈로그 전용 백업·격리 복원과 내부 workspace 전건 대조를 완료할 수 있는 적용 직전 산출물을 최신 `origin/main` 위에 준비한다. 서버3 데이터 조사·복원·이관, 운영 데이터/Rules 변경, capability 생성은 제외한다.
+- 배경/목표: 기존 Firebase Console은 큰 중첩 map/array를 접어 표시하므로 카탈로그 문서 전체 값을 로컬 demo 복원 파일로 취득할 수 없다. 동일 GitHub Pages origin의 기존 owner 세션으로 verified backup의 카탈로그 copy와 현재 카탈로그를 완전한 JSON으로 읽어 문서별 manifest hash를 대조·내보내는 읽기 전용 페이지가 필요하다.
+- 대상/보존: 신규 `catalog-backup-core.js`, `issue2-catalog-export.html`, 본 운영 기준과 WORKLOG만 포함한다. `share.html?id=c6xxh9`, 상품/주문/workspace 원본, 서버3 데이터·권한, 기존 `issue2-migration.html`을 변경하지 않는다.
+- 금지: Firestore write API, 새 로그인/계정/credential, 서버3 live 경로 접근, 운영 Auth/Rules/데이터 쓰기, 이전에 거절된 push 재시도, 배포·PR·이슈 댓글을 하지 않는다. export 파일의 내부 가격·주문 데이터는 Git/WORKLOG/공개 위치에 기록하지 않는다.
+- 검수 계획: exact owner·token refresh·local persistence, catalog path allowlist, Firestore write API 부재, 서버3 live 경로 부재, 화면에는 건수/hash만 표시, module 구문, 최신 main과 기존 share/discounts 파일 불변을 확인한다. 전체 restore 검증기는 별도 로컬 격리 브랜치에서 합성 Emulator로 확인한다.
+
+### 작업 후 기록
+- 최소 배포 파일: `catalog-backup-core.js`는 기존 migration manifest와 같은 정규화·SHA-256, catalog-only 경로 검사, 문서 집계 hash와 값 없는 변경 집계를 제공한다. `issue2-catalog-export.html`은 기존 exact owner 세션과 강제 token refresh 뒤에만 활성화되며 Firestore read API만 import한다.
+- 읽기 범위: existing verified backup의 `catalogShares`, `adminCatalogs`, `partnerCatalogShares`, exact partner config manifest/copy와 현재 같은 catalog 범위만 읽는다. 현재/백업 내부 workspace hash, 전체 문서 집계 hash, 공개/내부 상품 건수와 공개 offer 건수를 파일에 기록하되 화면에는 값 대신 건수와 hash만 표시한다. 서버3 live 데이터·쿠폰 파일은 읽지 않는다.
+- 로컬 검수 증거: 공용 core 4/4, export 정적 보안 3/3, HTML module 구문, `git diff --check`가 통과했다. 별도 격리 브랜치의 deny-all demo Firestore에서 합성 verified/current snapshot 복원·전건 hash READBACK과 변조 거부 2/2가 통과했다.
+- 운영/데이터 영향: 현재 브랜치는 최신 `origin/main`에서 분기한 로컬 준비본이다. `share.html`, `discounts.json`, 운영 Rules/Auth/Firestore/쿠폰·카탈로그·주문, capability와 서버3에는 변경이 없다. push·PR·배포를 하지 않았다.
+- 실제 완료 조건/차단점: Firebase 브라우저 owner persistence는 origin에 종속되므로 실제 export·workspace 대조는 이 정적 페이지가 Pages에 반영된 뒤 버튼을 한 번 실행해야 한다. feature commit은 `713d54c`이며 이전 거절 push를 재시도하지 않았다. 실제 파일을 demo Emulator에 복원해 전건 hash를 확인하기 전에는 Rules·workspace 복사·공개본 재게시를 실행하지 않는다.
+
 ## 2026-10-15 — Codex Work (이슈 #2 임시 이관 페이지 최신 main 재준비)
 
 ### 작업 전 기록
