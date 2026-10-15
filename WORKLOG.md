@@ -15,6 +15,188 @@
 
 # WORKLOG
 
+## 2026-10-15 — Codex Work (이슈 #2 임시 이관 페이지 최신 main 재준비)
+
+### 작업 전 기록
+- 사용자 요청: 이전 기준 커밋 위에서 만든 임시 이관 페이지를 실제 원격 `main`의 최신 상태를 기준으로 격리된 로컬 작업 사본에 다시 준비하고, 충돌·변경 목록·테스트를 확인한다. 기존에 거절된 push와 운영 Firebase 변경은 재시도하지 않는다.
+- 배경/문제: 로컬 이관 후보는 기준 `d9389f1` 위의 `199413a`였지만 실제 원격 `main`은 할인 정보 갱신 2건이 추가된 `5506565`로 전진했다. 과거 직접 push 명령은 비 fast-forward가 될 수 있고 최신 할인 정보를 덮어쓸 위험이 있으므로 그대로 사용하면 안 된다.
+- 목표/결정 방식: 최신 원격 `5506565`에서 분기한 격리 worktree와 로컬 브랜치에서 `199413a`의 owner-only 백업 실행 페이지 및 관련 작업일지만 재적용한다. 원격 할인 변경을 기준선으로 보존하고 force push 없이 병합 가능한 준비본과 검증 증거만 만든다.
+- 대상 파일/기능: `issue2-migration.html`, `WORKLOG.md`. 임시 페이지의 기존 Firebase 소유자 로그인, 원본 삭제 없는 owner-only 백업, READBACK 건수·정규화 해시 비교 동작을 유지한다.
+- 보존: `discounts.json` 최신 원격 내용, 기존 고객 URL `share.html?id=c6xxh9`, 쿠폰 서버1/2/3·카탈로그·주문·관리자 데이터, 현재 기본 작업 폴더의 미커밋 파일과 다른 작업자의 오리가미 브라우저 탭을 변경하지 않는다.
+- 금지/제외: push·force push·PR·배포, 운영 Auth/Rules/Firestore/쿠폰 데이터 쓰기, 쿠폰 사용·등록, 새 자격증명·권한 승인, 비밀번호·토큰 수집·우회, 기존 브라우저 탭 조작을 하지 않는다.
+- 검수 계획: 기준 SHA와 할인 변경 보존, 적용 충돌 여부와 최종 diff 파일 목록, HTML 인라인 스크립트 구문, 민감 원문·자격증명 패턴, 기존 demo Emulator Rules 회귀, `git diff --check`를 확인한다. 실제 Pages와 Firebase 운영 READBACK이 없으므로 배포 완료로 보고하지 않는다.
+
+## 2026-10-14 — Codex Work (이슈 #2 운영 보안 전환 실행)
+
+### 작업 전 기록
+- 사용자 승인: dot이 `관리자 데이터는 기존 관리자 계정 로그인 후에만 열리게 잠그고, 기존 고객 링크는 유지하되 제안가는 빼고, 제안가 전용 링크는 별도로 만드는 변경`의 운영 배포와 접근권한 변경을 직접 확인했고 사용자가 답장으로 승인했다. 본 Work는 이 승인 범위의 백업·이관·Rules·정적 페이지·공개 카탈로그 전환과 배포 후 검증을 실제 수행한다.
+- 배경/문제: 공개 정적 쿠폰 JSON 3개와 광범위한 Firestore 호환 규칙, 공개 `catalogShares/c6xxh9`의 제안가 필드 때문에 정적 PIN만으로는 쿠폰·관리자·제안가 데이터를 보호할 수 없다. 현재 고객 QR URL과 상품·판매가·이미지·카테고리·주문 기능은 유지해야 한다.
+- 목표: 기존 Firebase Email/Password 소유자 계정을 재사용해 쿠폰 서버1/2/3, 쿠폰 작업상태, TODO, 프롬프트, 견적·사업자료, 내부 카탈로그를 서버 측 owner-only 경로로 옮긴다. `share.html?id=c6xxh9`는 그대로 유지하면서 공개 문서는 판매용 필드만 남기고, 제안가용 문서는 별도의 만료·폐기 가능한 capability 경로로 분리한다. 정적 `coupons1.json`~`coupons3.json`은 private 데이터 전건 READBACK 뒤에만 빈 배열로 전환한다.
+- 백업 결정: Drive에는 사업·계좌 자료를 새로 전송하지 않는다. 운영 Firebase 안에서 기존 소유자만 읽고 쓸 수 있는 백업 경로를 먼저 확보하고, 원본/백업/목적지의 건수·스키마·민감값 비출력 해시를 대조한다. 이 경로가 현재 Rules와 인증으로 안전하게 성립하지 않으면 운영 쓰기를 시작하지 않고 필요한 승인 한 가지를 정확히 보고한다.
+- 대상 파일/기능: `START_HERE.md`, `WORKLOG.md`, `firebase-admin-auth.js`, `index.html`, `coupon1.html`~`coupon3.html`, `prompt.html`, `quote.html`, `catalog-editor.html`, `catalog-sync.js`, `share.html`, `partner.html`, Firebase 설정·Rules·마이그레이션/검수 스크립트, 공개 쿠폰 JSON 3개와 공개/내부 Firestore 문서다.
+- 유지: 기존 고객 URL·share ID, 상품 286건과 판매가·이미지·카테고리·정렬, 고객 주문 형식, 쿠폰 값·순서·완료/메모, TODO·프롬프트·견적·템플릿, PC/모바일 기능, 다른 작업자의 오리가미 작업 파일을 보존한다. 오리가미 작업과 겹치는 파일을 발견하면 덮어쓰지 않고 중단한다.
+- 금지/제외: 과거 Git 이력 제거, 기존 원본 삭제, 쿠폰 사용·등록, 새 비밀번호·토큰·Auth 계정 발급, Drive 신규 전송, 저장소 공개범위 변경, 승인되지 않은 요금·호스트 변경은 하지 않는다. 거래처 capability는 새 토큰 발급이 필요한 단계이므로 기존 승인 범위만으로 임의 생성하지 않고, host/전달 정책이 확정되기 전에는 배포하지 않는다.
+- 실행 원칙: Firebase 내부 owner-only 백업 → 백업 READBACK → private 목적지 복사 → 목적지 READBACK → 관리자 로그인 UI → 판매용 공개 projection → 최종 Rules/default deny → 정적 쿠폰 JSON 비움 순으로 진행한다. 공개 쿠폰/제안가가 다시 나타나는 롤백은 금지하고, 문제가 생기면 private 백업과 긴급 owner-only Rules로 복구한다.
+- 검수 계획: Emulator 테스트, 익명·비관리자·소유자 권한 행렬, 서버1/2/3 건수·해시, 공개 `c6xxh9` 상품 286건·`offer` 0건, 고객 주문 생성/비공개, 로그인·로그아웃·세션 만료·다중 탭, PC와 390px 모바일, Pages/Firebase 배포 성공과 라이브 파일 일치를 확인한다. 민감 원문·비밀번호·토큰은 본 일지와 보고서에 기록하지 않는다.
+
+## 2026-10-14 — Codex Work (이슈 #2 공개·관리자 데이터 분리 읽기 전용 조사·설계)
+
+### 추가 확인 전 기록 — CSV 선행 0과 쿠폰 서버 등록 경로
+- 사용자 질문: 원본 CSV의 `registration_code` 선행 0은 정상인데 Excel 셀에서는 사라져 보일 때 서버 등록을 어떻게 해야 하는지 확인한다. 아직 대상 서버와 이어붙이기/전체교체가 정해지지 않아 실제 등록은 하지 않는다.
+- 조사 범위: 현재 운영 main의 `image-extractor.html`, `coupon1.html`~`coupon3.html`, `coupons1.json`~`coupons3.json`, 쿠폰 작업지시서에서 CSV 입력·문자열 보존·BOM·필드 인식·하이픈 제거·미리보기·서버 선택·추가/교체 동작을 읽기 전용으로 확인한다. 작업 중인 보안 이관 후보 코드는 판단 근거에서 제외한다.
+- 형식 기준: MMS 4-5-4형은 하이픈 제거 13자리 `coupon_number`와 선행 0을 포함한 11자리 `registration_code`, 영수증/일반형은 17자리 `coupon_number`와 선행 0을 포함할 수 있는 8자리 `registration_code`를 문자열 식별자로 취급한다.
+- 금지/보존: 운영 쿠폰 재고·Firestore·JSON·배포·Drive 파일을 변경하지 않는다. 쿠폰값 원문은 WORKLOG에 적지 않으며, 사용자가 서버와 반영 방식을 확정하기 전 등록하지 않는다.
+
+### 추가 확인 후 기록 — CSV는 원문 문자열로 등록
+- 결론: Excel에서 선행 0이 사라져 보이는 것은 셀 자동 숫자형 표시 문제이며, raw CSV가 정상이라면 Excel에서 다시 저장한 파일을 사용하지 않고 원본 CSV를 그대로 사용한다. 서버 JSON에는 `coupon_number`와 `registration_code`를 따옴표가 있는 문자열로 저장해야 한다.
+- 운영 UI 경로: `HELPER 홈 → 이미지 추출기 → 2·작업 → 쿠폰 데이터 추출 → 쿠폰 유형 → 서버 반영 1/2 → 기존 뒤에 이어붙이기 또는 전체 통으로 교체 → 작업지시서 만들기 → 3·보내기`다. 이 화면은 Drive 원본과 실행 지시서를 만드는 도구이며 CSV 파일을 직접 업로드·파싱·미리보기·저장하지 않는다. 현재 서버 선택은 1/2만 있고 3서버 CSV 등록 경로는 없다. 쿠폰 페이지의 `작업 불러오기`는 완료/메모 작업상태 JSON용이지 쿠폰 CSV용이 아니다.
+- 파서 확인: 현재 운영 코드에는 CSV `FileReader`/`TextDecoder`/Papa Parse, UTF-8 BOM 제거, 헤더 자동 인식, CSV 미리보기, CSV 값의 `Number`/`parseInt` 변환이 없다. 따라서 UI가 선행 0을 훼손하는 경로도 없지만, raw CSV를 서버 JSON으로 바꾸는 self-service 경로도 없다. MMS 하이픈 제거는 생성된 작업지시서 규칙으로만 강제된다.
+- 문자열 보존: 현재 1/2/3 서버 JSON의 `coupon_number`와 `registration_code`는 전건 문자열이며, 실제 선행 0 등록코드도 문자열 상태로 보존된 사례가 확인됐다. 쿠폰 페이지는 `no`만 `Number`로 바꾸고 두 식별자는 `String`으로 읽는다. 단, JSON 생성 전에 숫자로 변환되어 0이 사라지면 이후 `String`은 이를 복구하지 못한다.
+- 등록 전 규격: MMS는 `coupon_number`의 하이픈만 제거해 `^\d{13}$`, 등록코드는 `^0\d{10}$`; 영수증/일반형은 `^\d{17}$`와 `^\d{8}$`로 검사하고 원본 CSV와 Pair 단위 exact equality를 확인한다. CSV 변환 작업에서는 첫 헤더의 UTF-8 BOM만 제거하고 값 필드는 trim 외 숫자 변환하지 않는 방식이 필요하다.
+- READBACK 기준: 대상 서버와 방식 확정 후 현재 JSON 선조회 → 문자열 변환/규격·중복·건수·no 검증 → 저장 직후 JSON 재조회로 원본 CSV Pair 전건 exact equality와 선행 0·MMS 하이픈 제거를 검증한다. 이어붙이기는 기존 prefix 불변과 신규 no 연속, 전체교체는 총건수와 no 1부터 연속을 추가 확인한다. 배포 시에는 raw 운영 JSON과 HELPER 화면 표시까지 재확인해야 완료다.
+- 코드/데이터 영향: 현재 raw CSV가 정상인 건은 별도 코드 수정 없이 원본 파일로 등록 준비가 가능하다. self-service CSV 업로드가 필요하면 BOM 제거, exact header, 문자열-only, 유형별 길이/하이픈, preview와 최종 확인을 갖춘 로컬 preflight를 별도 승인으로 추가해야 한다. 이번에는 운영/로컬 쿠폰 코드·JSON·재고·배포를 변경하지 않았다. 기준 commit `d9389f1`.
+
+### 추가 확인 전 기록 — 1단계 제안가 보안 경계
+- 요청: catalog-only 1단계 Rules가 기존 내부 workspace의 익명 읽기를 실제로 차단하는지, 공개 정적 파일·legacy 문서 중 제안가가 남는 경로가 있는지 값 없이 재확인한다. 쿠폰 서버와 Git history 대응을 후속으로 분리하더라도 일반/거래처 제안가 분리 경계는 이번 단계에서 성립해야 한다.
+- 확인 범위: `firestore.catalog-phase1.rules`, 해당 Emulator 검수, 알려진 `catalogShares` workspace/공개 문서 경로, 현재 트리와 전체 Git 이력의 카탈로그 관련 정적 파일명·데이터 패턴, 브라우저 localStorage/PWA cache 경로만 읽는다.
+- 보존/금지: 운영 Rules·Firestore·Auth·호스팅·저장소 공개범위에 쓰지 않고, 실제 제안가·쿠폰·자격증명 값을 기록하지 않는다. 비공개 백업은 승인된 로컬 범위만 후보로 삼고 새 암호·키는 생성하지 않으며 필요 시 실행 승인 항목으로 분리한다.
+
+### 추가 확인 후 기록 — legacy workspace 차단과 잔여 경로
+- Rules 결론: `firestore.catalog-phase1.rules`의 호환 match는 top-level과 nested 모두 `catalogShares` 전체를 제외하고, 별도 공개 match는 `catalogShares/c6xxh9`만 허용한다. 따라서 알려진 legacy workspace와 다른/미상 `catalogShares` 문서는 익명·일반·owner 모두 읽을 수 없다. owner도 legacy 원본에 접근하지 못하므로 백업과 `adminCatalogs` 복사는 Rules 배포 전에 완료해야 한다.
+- 실행 검증: phase-1 Emulator fixture에 알려진 legacy workspace 정확 ID와 합성 제안가 필드를 추가하고 익명·일반·owner read 거부 assertion을 넣었다. demo 프로젝트의 6/6 전체가 다시 통과했으며 거부 로그는 기대한 결과다. 최초 직접 node 실행은 Emulator host 부재, 다음 sandbox 실행은 로컬 포트 권한으로 시작하지 못했으며, 승인된 `firebase emulators:exec --only firestore` 실행에서 최종 통과했다.
+- 공개 문서 주의: Rules는 기존 문서의 중첩 값을 제거하거나 마스킹하지 않는다. 현재 운영 `c6xxh9`에는 286상품 모두 `offer`가 남아 있으므로 Rules 배포만으로 분리가 완료되지 않는다. 정적 수신 mapper의 제거는 임시 완화이며, owner sale-only 재게시 후 익명 raw read에서 `offer` 0건을 확인해야 보안 경계 완료로 판정한다.
+- 정적/legacy 경로: 현재 트리와 전체 Git 이력의 tracked JSON/CSV/HTML/JS 파일명·숫자형 패턴에서 실제 제안가 데이터셋의 정적 직렬화는 찾지 못했다. `catalog-editor.html`·`catalog-preview.html`에는 제안가 UI/계산 코드와 빈/기본값이 있고, 관리자 브라우저의 동일 origin `localStorage`에는 제안가 포함 카탈로그가 남을 수 있다. 이는 외부 방문자에게 서버가 보내는 공개 데이터 경로는 아니지만 같은 OS/브라우저 프로필·DevTools에는 client-side PIN이 at-rest 보호가 되지 않는 잔여 위험이다. service worker는 데이터 응답을 저장하지 않고 GET을 `no-store`로 처리한다.
+- 백업 승인 경계: 승인된 로컬 범위라도 비공개 암호화 백업에는 사용자 관리 기존 암호화 위치/키가 필요하다. 이를 재사용할 수 있으면 새 자격증명은 불필요하다. 적합한 기존 키가 없으면 새 암호/키 생성·보관·복구 책임을 별도 실행 승인으로 올리며 이번 작업에서는 만들지 않았다.
+- 실제 변경/배포: `tests/firestore.catalog-phase1.rules.test.mjs`, `PARTNER_LINK_DESIGN.md`, 본 WORKLOG만 보강했다. 운영 Auth/Rules/문서·실 제안가·호스팅·배포·push/PR/이슈 댓글 변경은 없다. 기준 commit `d9389f1`, 로컬 후보 미커밋이다.
+
+### 작업 전 기록
+- 사용자 요청: GitHub 이슈 #2를 dot이 총괄하고, 본 Work 작업에서 현재 공개 경로·Git 이력·Firebase 권한·공유 문서 정책을 읽기 전용으로 조사하고, 익명/일반 사용자/관리자 권한 표와 최소 수정·백업·롤백·회귀 테스트 계획을 준비한다.
+- 배경/문제: 고정 고객 URL `share.html?id=c6xxh9`는 유지하되, 공개 가능한 상품 정보와 쿠폰·관리자 데이터는 서버 측 권한 검사로 분리되어야 한다. 현재 저장소는 public이며 정적 PIN은 데이터 권한 통제로 간주하지 않는다.
+- 목표/결과물: 현재 위험도, 확인된 사실과 미확인 사항, 업무 분장, 목표 권한 표, 최소 수정 설계, 백업·롤백·서버1/2/3·모바일/PC 회귀 테스트, 사용자 승인 항목을 `SECURITY_REVIEW_ISSUE_2.md`에 민감값 없이 정리한다.
+- 보존: 고정 공유 URL·`shareId`·상품/가격/이미지/카테고리·서버1/2/3·PC/모바일 기능·기존 사용자 변경을 유지한다.
+- 금지/제한: 운영 인증, Firestore rules, 저장소 공개 범위, 운영 데이터, 배포를 변경하지 않는다. 쿠폰 사용/등록, push, PR, 이슈 댓글, 데이터 삭제/이관을 하지 않는다. 운영 쓰기 요청으로 취약점을 시험하지 않는다.
+- 보안: 쿠폰번호·등록코드·비밀번호·API 비밀값을 보고서와 일지에 기록하지 않고, 노출 증거는 응답 상태·필드명·건수로만 남긴다.
+- 현재 상태: 기준 `origin/main`/`d9389f1`; 복제 직후 워킹트리는 clean. 조사 보고서 외 코드·데이터 변경은 준비하지 않는다.
+
+### 추가 작업 전 기록 — 로컬 테스트 도구 승인 후
+- 사용자 승인: 2026-10-14 사용자가 Mac에 공식 Node.js 24 LTS, Temurin 21 LTS와 프로젝트 로컬 Firebase 테스트 의존성을 최소 범위로 설치해도 된다고 승인했다. 설치 후 운영과 분리된 demo 프로젝트·합성 데이터로 Emulator 검증을 이어간다.
+- 목표: 목표 Rules를 실제 컴파일하고 무인증·익명·일반 로그인·관리자·만료/폐기 상태의 권한 행렬을 자동화한다. 이어서 인증/캐시 생명주기, 고정 공유 ID와 새 ID 생성 불일치, 기존 주문 스키마·고용량 회귀 차단 항목을 해결·검증한다.
+- 대상: 사용자 범위 Node/Java 도구, 프로젝트 로컬 개발 의존성 및 Emulator 설정/테스트 파일, `firebase-admin-auth.js`, `catalog-editor.html`, `catalog-sync.js`, 목표 Rules·테스트/검토 문서와 본 WORKLOG. 기존 사용자 미완료 변경은 보존한다.
+- 유지: 고정 고객 URL과 `c6xxh9`, 기존 공개 상품 필드, 판매 중지/가격/이미지/검색·견적·주문 스키마, 서버1/2/3 데이터와 PC/모바일 기능을 유지한다. 운영 `share.html`, 운영 `firestore.rules`, 쿠폰 JSON 및 Auth provider/account는 변경하지 않는다.
+- 금지: 새 클라우드 자격증명·운영 프로젝트 연결, 운영 쓰기·Rules 배포·호스팅 배포, 쿠폰 사용/등록, push·PR·이슈 댓글을 하지 않는다. 관리자 비밀번호나 새 권한 입력이 필요하면 즉시 중단하고 사용자 직접 입력을 요청한다.
+- 방식/주의: 기존 설치를 먼저 확인하고 중복 설치를 피한다. 테스트는 `demo-` 프로젝트 ID와 합성값만 사용하며 `.firebaserc` 또는 운영 project alias를 만들지 않는다. 도구 설치가 관리자 암호나 추가 보안 승인을 요구하면 우회하지 않는다.
+
+### 추가 작업 전 기록 — 비밀번호 없는 승인 회원 설계 후보
+- 사용자 요구: 고객은 이메일 회원가입/본인확인 뒤 사용자가 승인한 회원만 제안가를 보게 하되, 고객 비밀번호 입력·수집을 없애고 로그인 상태가 유지되는 동안 재입력 없이 접근하게 한다. 단순 이메일 문자열 입력만으로 권한을 부여하지 않는다.
+- 설계 목표: Firebase Email Link(passwordless) 인증과 `pending → approved → revoked` 회원 상태, HELPER의 승인대기/승인/회수 메뉴, 기존 관리자 Email/Password owner 로그인과 고객 인증 경계를 분리한다. 공개 projection의 `offer`는 비회원 응답에서 제거하고, 승인 회원에게만 서버가 검증한 별도 응답/문서로 제공하는 전환안을 작성한다.
+- 조사/주의: Firebase 공식 문서에서 Email Link 활성화 조건, authorized domain/HTTPS, 같은·다른 기기 완료 흐름, 세션 유지, Spark/Blaze 발송 한도·요금, 모바일 앱/웹과 Dynamic Links 종료 영향을 확인한다. 이메일을 URL 파라미터로 전달하지 않고, Auth 본인확인과 관리자 승인을 둘 다 요구한다.
+- 금지/보존: 이번 단계는 문서 설계만 수행한다. 운영 Email Link provider, authorized domain, 템플릿, 요금제, Auth 사용자/claim, Firestore data/rules, 공개 `offer`, 메일 발송, 코드/배포를 변경하지 않는다. 기존 `c6xxh9`, 관리자 후보, 공개 상품/이미지와 승인된 로컬 보안 검증 결과를 유지한다.
+
+### 추가 작업 전 기록 — 설치 증거·개발 의존성 감사·공유 ID 최소 인벤토리
+- 요청: 실제 설치된 Node/Java/Firebase CLI 버전·위치, Rules 13개 시험 이름과 기대/실제 결과, 캐시 수정/잔여 공백을 독립 검토 가능한 형태로 정리한다. npm audit의 high 12/moderate 4가 어떤 dev dependency·실행경로인지 분석하고 지원되는 비파괴적 업데이트 또는 제한 실행으로 줄일 수 있는지 확인한다.
+- 운영 읽기 범위: 기존 사용자 Mac의 승인된 Firebase Console 세션이 여전히 접근 가능하면 현재 요금제를 읽기만 재확인하고, Firestore 공유 문서의 ID와 공개용 여부만 최소 조회한다. 문서 내용·개인정보·주문·쿠폰 원문은 열람/기록하지 않는다.
+- 보존/금지: 기존 핵심 권한 검증을 우선 마무리하고 Passwordless 회원 기능은 설계 후보로만 유지한다. 유료 전환, 메일 발송, Auth/provider/Rules/data 변경, 새 credential/권한, 운영 쓰기, 배포, push/PR/이슈 댓글을 하지 않는다. audit 강제 fix·지원 버전 downgrade·install script 추가 허용도 자동 실행하지 않는다.
+- 결과물: sanitized 테스트 코드·캐시 수정 diff 위치, 취약 dependency 경로/도달 가능성, 안전한 업데이트 가능 여부, 공유 ID 인벤토리의 확인/차단 사유, 승인 대기 항목을 WORKLOG와 검토 문서에 반영한다.
+
+### 추가 작업 전 기록 — 공개 카탈로그 이미지 fallback·상품 상세 로컬 후보
+- 사용자 승인 범위: 보안·카탈로그 업무를 마무리하기 위해 로컬 구현 범위를 대표사진 실패 fallback과 기존 자료 기반 상품 상세보기까지 확대한다. 실제 공개 이미지 교체·배포, Auth/provider/rules/접근권한 설정은 적용 내용을 제시하고 별도 승인받기 전 실행하지 않는다.
+- 배경: 운영 공개페이지 286상품 중 최초 대표사진 실패 13건이 동일 외부 이미지 호스트에서 보고됐고, 일부 다중 이미지 상품은 두 번째·세 번째 이미지가 정상이다. 현재 상품명/사진 클릭 상세창이 없어 고객이 추가 이미지를 보기 어렵다. 실패 원본의 404/403/삭제 여부는 조사 환경 차단으로 미확정이다.
+- 목표/방식: `share.html`이 이미 받은 각 상품의 `images` 배열만 사용해 이미지 load error 때 다음 URL로 순차 전환하고 전부 실패하면 안전한 placeholder를 보인다. 상품명·사진을 클릭하면 기존 공개 필드와 기존 INFO/원본에서 실제 확인 가능한 정보만 상세창에 표시하며 원본 정보가 없으면 추측해 채우지 않는다. 키보드·ESC·focus 복귀·모바일 스크롤을 포함한다.
+- 유지: 고정 `share.html?id=c6xxh9`, 286상품·10분류, 검색/카테고리/선택/수량/판매가·제안가/합계/JPG/주문, 기존 이미지 URL·순서·최대 5개, PC 5열·모바일 2열을 유지한다. 공개 `offer`를 보존한 현재 호환 후보와 향후 회원 전용 목표는 구분한다.
+- Email Link 보류: 사용자가 다른 로그인 방법도 검토하도록 요청했으므로 Email Link는 확정하지 않고 `PASSWORDLESS_MEMBER_DESIGN.md`의 비교 후보로만 남긴다. Google/Naver/Kakao/email OTP 비교 결과 전에는 provider·도메인·메일·요금제·회원 코드를 추가하지 않는다.
+- 검수: 기존 공개 데이터 fixture와 합성 다중 이미지/전부 실패 fixture로 URL 미변경, fallback 순서, 상세창 공개 allowlist, HTML 문자열 비실행, 선택 버튼 이벤트 분리, PC/모바일 접근성·가로 넘침을 로컬에서 확인한다. 운영 Firestore·이미지 호스트·데이터에는 쓰지 않는다.
+
+### 추가 작업 전 기록 — 일반/거래처 전용 링크 분리 확정
+- 사용자 확정: 이메일 회원/소셜 로그인 구현은 진행하지 않고 링크를 두 개로 나눈다. 기존 일반 링크 `share.html?id=c6xxh9`의 URL은 바꾸지 않으며 상품 상세와 공개 판매가만 제공하고 제안가 데이터 자체를 받지 않는다. 거래처 전용 링크는 제안가와 제안가 기준 견적을 제공한다.
+- 보안 경계: 전용 링크는 단순 query 표시 토글이 아니라 별도 Firestore 문서의 예측 불가능한 capability를 URL fragment로 전달한다. Rules에서 정확한 문서 `get`만 허용하고 collection `list`는 차단하며, 문서의 활성/만료 상태를 서버 측에서 검사해 폐기·교체할 수 있게 한다. 링크를 전달받은 사람도 열 수 있는 베어러 링크라는 사용자가 수용한 한계는 문서화한다.
+- 노출 방지: capability는 HTML/JS/WORKLOG/테스트 fixture에 실값을 넣지 않는다. 전용 페이지에는 `noindex,nofollow,noarchive`와 `no-referrer`를 적용하고, fragment가 정적 호스트 요청·Referer·분석 URL에 실리지 않게 한다. 향후 분석 스크립트 도입 시 fragment 수집 금지를 배포 체크리스트에 둔다.
+- 짧은 주소 요구: 사용자는 전용 링크에서 GitHub가 드러나지 않는 짧은 주소를 원한다. 기존 사용 가능한 비-GitHub 호스트·브랜드 도메인과 실제 상업 운영 플랜을 읽기 전용으로 확인하고 적용안을 제시한다. 단축 리다이렉트만으로 최종 호스트가 숨겨지지 않으며, 새 도메인 구매·새 서비스 가입·토큰 발급·공개 단축 서비스에 비밀 링크 제출은 하지 않는다.
+- 대상/방식: `share.html`의 일반/전용 렌더 모드를 안전하게 분리하고 `partner.html` 진입점을 준비한다. `catalog-editor.html`의 일반 projection에서 `offer`를 제거하고 별도 거래처 projection 후보를 만든다. `firestore.target.rules`와 Emulator 테스트에 전용 문서 활성/만료/목록차단/주문 권한을 추가하고 관련 설계·검토 문서를 갱신한다.
+- 유지/금지: 이미지 fallback·상세보기 작업과 고정 일반 URL, 286상품·10분류, 판매중지·선택·수량·JPG/주문 흐름을 유지한다. 실제 capability 생성, 운영 문서 생성/복사/이관, Rules/Auth/provider/요금제/저장소 공개범위 변경, 배포·push·PR·이슈 댓글은 하지 않는다. 이메일 링크 설계는 보류 후보로 명확히 표시한다.
+- 적용 전 승인: capability 생성 방식·만료일·폐기 절차, 운영 문서 경로/주문 경로, 공개본 재게시 순서, Rules와 정적 페이지 동시 배포·롤백 순서를 dot에 보고하고 사용자 최종 승인을 받은 뒤에만 운영 반영한다.
+
+### 추가 작업 전 기록 — 전용 링크 만료·폐기 즉시 제거와 원자적 폐기·회전
+- 추가 검토 요청: 일반/거래처 projection과 전체 Rules 검증식을 민감값 없이 제시하고, 전용 링크가 만료되거나 폐기된 뒤 이미 열린 화면의 제안가·견적·메모리 캐시가 즉시 제거되는지와 일반 공개 문서에 `offer`가 실제로 없는지를 합성 테스트로 증명한다.
+- 확인된 공백: 현재 후보는 Firestore Rules가 거래처 문서의 `active`/`expiresAt`을 검사하지만, 이미 렌더된 화면에 만료 타이머가 없고 snapshot 오류·문서 삭제 시 기존 `shareData`, 상품·견적 UI, 상세창을 지우지 않는다. 또한 거래처 설정 문서와 거래처 공개 문서를 따로 갱신하면 폐기 상태가 불일치하거나 이전 클라이언트의 재게시로 폐기 문서가 다시 활성화될 수 있다. CSS/시각적 숨김만으로는 평문 메모리 제거 또는 인증 전 코드 실행 방지가 되지 않는다.
+- 목표/방식: 수신 상품을 명시적 allowlist로 재구성해 일반 모드 객체에는 `offer` 키 자체가 없게 한다. 거래처 `expiresAt` 기반 타이머와 공통 fail-closed 정리 함수를 추가하여 만료·폐기·권한 오류·문서 없음에서 snapshot 구독, 타이머, 상품/제안가/선택/수량/견적/고객 입력/상세창 DOM과 메모리 상태를 함께 제거한다. 게시·폐기·회전은 owner-only 설정과 거래처 문서를 하나의 Firestore transaction에서 확인·갱신하고, Rules는 한 번 `active=false`가 된 문서의 재활성화와 삭제·만료 연장을 거부해 오래된 클라이언트의 부활을 차단한다.
+- 대상: 로컬 후보 `share.html`, `catalog-editor.html`, `firestore.target.rules`, 합성 Emulator/정적 테스트와 관련 설계·검토 문서 및 본 WORKLOG. 실제 capability 값은 생성·조회·기록하지 않고 합성 값만 사용한다.
+- 보존/금지: 기존 일반 URL `share.html?id=c6xxh9`, 판매가·이미지·검색·선택·수량·JPG·주문, 서버1/2/3 및 PC/모바일 기능과 다른 작업자의 변경을 유지한다. 운영 Auth/Rules/Firestore 문서/저장소 공개범위/배포·push·PR·이슈 댓글·쿠폰·토큰 생성/폐기/회전은 실행하지 않는다. 호스팅 조사는 완료된 별도 항목으로 보고 더 진행하지 않는다.
+- 검수/승인: demo 프로젝트·합성 capability에서 일반 상품의 `offer` 부재, 만료/폐기 정리, 원자 transaction 사용, 동시 게시 충돌 시 최신 설정 재검증, 폐기 문서 재활성화·삭제 거부를 자동 검증한다. 운영 백업·실제 폐기/회전·Rules와 문서 배포 순서는 dot 보고 후 사용자 최종 승인이 필요하다.
+
+### 추가 작업 후 기록 — 전용 링크 만료·폐기·회전 보강 완료
+- 실제 수정: `share.html`은 일반/거래처 수신 상품을 명시적 allowlist로 다시 만들고 일반 객체에는 `offer` 키를 생성하지 않는다. 거래처 snapshot 성공 때 서버 `expiresAt` 기준 타이머를 설정하고, 만료·`active=false`·문서 없음·권한 오류에서 공통 정리 함수를 실행해 listener/타이머/Firestore 클라이언트 참조·capability/현재 fragment·상품/제안가/선택/수량/견적·고객입력·상세창 DOM과 메모리를 비운다. 구독 해제·Firestore 종료·history 정리 중 하나가 오류를 내도 나머지 purge가 중단되지 않게 예외를 격리했다. 상세창 close 재렌더와 basket 재노출도 접근 종료 상태에서 차단한다.
+- 게시·폐기·회전: `catalog-editor.html`의 거래처 게시를 설정/대상 문서 재조회 transaction으로 바꾸고, 동일 transaction으로 설정과 공개 문서를 비활성화하는 폐기 및 미리 준비된 `nextCapability`/`nextExpiresAt`을 소비하는 교체 기능을 추가했다. 이 코드는 capability를 생성하지 않는다. `firestore.target.rules`는 폐기 문서를 tombstone으로 유지해 `false→true` 재활성화, 문서 삭제, 기존 만료일 변경을 거부한다.
+- 운영 일반 문서 확인: 값은 출력·기록하지 않는 read-only REST 확인에서 HTTP 200, 286상품, `offer` 포함 286건이었다. 즉 일반 문서가 실제로 `offer` 없는 상태라는 검수는 운영에서는 실패했고, 로컬 `buildPublicProjection()`과 수신 mapper에서만 `offer` 부재가 증명됐다. 이번 작업은 운영 문서를 재게시하지 않았다.
+- 합성 검수: 정적/함수 시험 13/13 통과. 일반 게시 및 수신 메모리의 `offer` 부재, extra 필드 제거, 거래처 `offer` 유지, 만료 계산, 실제 정리 helper의 구독 해제·Firestore terminate/dereference·capability/shareId/fragment·상품/견적/DOM/입력 제거, 게시/폐기/회전 transaction/tombstone 표식을 확인했다. demo Firestore Emulator 19/19 통과. 원자 회전, 폐기 후 재활성화·삭제·만료연장 거부, 폐기와 동시에 진행된 오래된 게시 transaction의 서버 거부와 비활성 상태 유지를 포함한다. 거부 로그의 `PERMISSION_DENIED`는 기대 결과다.
+- 추가 검수: 변경 JavaScript/HTML inline script 13개 구문 파싱, 독립 JS `node --check`, `git diff --check`, 검토 문서의 API key·정확 owner UID·쿠폰/등록코드 필드명 패턴 스캔이 통과했다. 최초 동시성 시험은 앱 재시도 오류를 예상했지만 실제 Emulator가 tombstone Rules에서 즉시 거부했으므로 테스트·문서를 실제 증거에 맞게 고쳤고 이후 19/19를 재확인했다.
+- 문서: `START_HERE.md`, `PARTNER_LINK_DESIGN.md`, `SECURITY_REVIEW_CODE_EXCERPTS.md`, `SECURITY_CHANGE_REVIEW_PACKET.md`, `SECURITY_REVIEW_ISSUE_2.md`, `FIRESTORE_TARGET_TEST_PLAN.md`, `TEST_TOOLCHAIN_AUDIT.md`에 운영 미전환 상태, 전체 sanitized 검증식/projection, 만료·폐기 정리, 원자 폐기·회전, 실제 시험 결과와 베어러 링크 한계를 반영했다.
+- PC/모바일 영향: 접근이 유효할 때 기존 일반 URL, 판매가·검색·선택·수량·JPG·주문·이미지 fallback·상세 UI는 유지한다. 거래처 접근이 끝나면 PC/모바일 공통으로 화면과 현재 앱 메모리를 닫는다. 이미 저장한 JPG·스크린샷·클립보드·다른 기기 사본·현재 항목보다 이전인 브라우저 방문기록은 원격 회수할 수 없다. 실제 live capability 만료/폐기 브라우저와 실모바일 Safari/카카오 인앱 검수는 미수행이다.
+- 인증 UI 한계: 관리자 페이지의 초기 CSS lock은 보통 화면 노출을 막는 시각적 guard일 뿐, 평문 localStorage/cache를 삭제·암호화하거나 인증 promise보다 앞선 JavaScript 실행을 막지 않는다. 실제 원격 권한 경계는 목표 Firestore Rules의 exact owner 검사이며, 운영 적용 전 별도 승인과 브라우저 정책 결정이 필요하다.
+- 데이터/배포/커밋: 운영 Auth/Rules/Firestore 데이터·capability·저장소 공개범위·쿠폰·호스팅·배포를 변경하지 않았다. 실제 capability 생성/폐기/회전, push·PR·이슈 댓글 없음. 새 commit 없음(기준 `d9389f1`, 전체 로컬 후보 미커밋).
+- 남은 승인: 비공개 백업·복구 리허설, 레거시 이관, 상업 호스트/도메인 확정은 별도 결과를 따른다. 목표 Rules와 정적 클라이언트 배포, 최초 capability/만료와 owner-only 설정/거래처 문서 생성, 일반 `c6xxh9` 판매가-only 재게시, live PC/실모바일 만료·폐기·offline/multi-session 회귀, 공개 Git 이력·캐시 대응은 dot 보고 후 사용자 최종 승인이 필요하다.
+
+### 추가 작업 전 기록 — Library 검토 첨부·합성 브라우저·최소 1단계 승인안
+- 추가 요청: 전체 sanitized Rules와 실제 projection/게시/폐기/회전/만료/캐시 처리 함수·assertion을 포함한 `SECURITY_REVIEW_CODE_EXCERPTS.md`를 native ChatGPT Library에 첨부하고 ID를 회신한다. 운영과 분리된 합성 데이터로 열린 거래처 페이지의 만료·폐기 UI를 가능하면 실제 브라우저에서 검증하며, 보고서를 추가 생성하지 않고 기존 설계 문서에 가장 작은 실행 가능한 1단계 승인 범위를 확정한다.
+- Library 방식: 로컬 파일을 새 `report` Library 항목으로 저장하고 반환된 식별자를 원본 파일 xattr에 보존한다. 기존 Library 파일을 덮어쓰거나 공유 권한을 바꾸지 않는다. 공개 보고서에는 쿠폰·등록코드·비밀번호·API 비밀·실 capability를 넣지 않는다.
+- 브라우저 방식: 사용자의 Mac Chrome 바이너리를 별도 임시 사용자 프로필·headless 모드로 사용하되, 실제 Firebase import를 합성 adapter로 교체한 임시 `partner.html`만 연다. 43자 합성 capability, 합성 상품/가격, 짧은 합성 만료시각과 합성 snapshot 권한 오류만 사용한다. 운영 URL·문서·토큰·계정에는 접속하거나 쓰지 않는다.
+- 최소 1단계 목표: 기존 `share.html?id=c6xxh9`를 유지하면서 일반 문서/수신 메모리에서 `offer`를 제거하고, 별도 거래처 문서·fragment 링크에만 `offer`를 허용하는 카탈로그 범위 전환이다. 배포 대상, 원자 데이터 전환, 비공개 백업·demo 복구, 만료·폐기 정책과 go/no-go를 `PARTNER_LINK_DESIGN.md`에 구체화한다. 쿠폰 서버1/2/3 이관·정적 쿠폰/Git history 정리는 후속 단계로 명확히 분리한다.
+- 보존/금지: 운영 Auth/Rules/Firestore 데이터, 실제 capability, 저장소 공개범위, 호스팅, 배포·push·PR·이슈 댓글, 쿠폰 사용/등록은 변경하지 않는다. 새 자격증명을 생성하지 않는다. 다른 작업자의 미완료 변경을 덮어쓰지 않는다.
+
+### 추가 작업 후 기록 — Library 첨부·열린 페이지 검증·1단계 승인안 완료
+- Library 첨부: `SECURITY_REVIEW_CODE_EXCERPTS.md`를 native Library `report`로 생성하고, 실제 Chrome/phase-1 결과를 추가한 뒤 동일 항목을 교체 갱신했다. Library ID는 `libfile_0b3e635e83948191be10f119d9350ca6`, 최신 반환 file ID는 `file_00000000973881f797a8bffebdf5d401`이다. 로컬 원본에는 Library xattr 1개가 적용됐다. 공유 권한은 변경하지 않았다.
+- Library 내용: 기존 전체 sanitized 목표 Rules, 실제 public/partner projection, 게시·폐기·회전 transaction, 만료·snapshot 오류 정리, visual-lock 한계와 assertion에 더해 catalog-only phase-1 compatibility 경계와 실제 브라우저 assertion을 반영했다. 재스캔에서 Firebase API key, 정확 owner UID, 쿠폰번호/등록코드 필드·값 패턴은 0건이었다.
+- 실제 열린 페이지 검수: `tests/share.partner-lifecycle.browser.test.mjs`와 npm script를 추가했다. 사용자의 Mac Chrome headless 바이너리를 별도 임시 프로필로 실행하고 `share.html`의 Firebase import만 합성 adapter로 교체한 임시 `partner.html`을 열었다. 43자 합성 capability·합성 상품·제안가 900원·고정 합성 만료 timestamp/권한 오류만 사용했다. 만료/폐기 2/2 모두 상품·제안가 합계·고객입력·offer 토글 제거, basket 숨김, 상세 닫힘, snapshot 해제, Firestore 종료, 현재 fragment 제거를 확인했다. 최초 fixture가 매 호출마다 만료시각을 연장해 1건 실패했으나 timestamp를 고정해 시험 오류를 수정한 뒤 2/2를 두 차례 재확인했다.
+- 최소 Rules 후보: `firestore.catalog-phase1.rules`, `firebase.catalog-phase1.json`, `tests/firestore.catalog-phase1.rules.test.mjs`와 npm script를 추가했다. 전면 `firestore.target.rules`와 달리 `catalogShares`, `partnerCatalogShares`, `adminCatalogs`, 정확한 `privateAdminData/partnerCatalogLink`만 새 권한 경계로 전환한다. 다른 live 경로와 기존 서버3 보호는 현재 동작을 유지해 쿠폰/프롬프트/견적/TO DO 이관을 이번 단계에서 분리한다.
+- phase-1 검수: demo Firestore Emulator 6/6 통과. 일반 `c6xxh9` sale-only exact get/list 차단, live/revoked partner, owner-only workspace/config, 일반·거래처 주문, tombstone 재활성화·삭제·만료연장 거부, unrelated live 호환과 서버3 보호를 검증했다. 정적 보안 13/13, 열린 Chrome 2/2, 구문검사, `git diff --check`도 최종 통과했다. 전면 목표 Rules 19/19 결과는 그대로 유지된다.
+- 실행 승인안: `PARTNER_LINK_DESIGN.md`에 **카탈로그 공개/거래처 분리 1단계**를 추가했다. 정적 배포 파일, catalog-only Rules, 기존 workspace 원본보존 복사, `c6xxh9` sale-only 재게시, owner-only partner config/document, 비공개 암호화 백업과 demo 복구, fail-closed 순서, rollback, raw `offer` 0건 go/no-go를 명시했다. 공개 `offer` 포함 과거본은 rollback하지 않고 검증된 sale-only 백업만 복구한다.
+- 만료 정책: 최초 전용 링크는 활성화 후 30일, 만료 7일 전 재확인, 연장 시 새 capability 회전, 폐기 문서는 영구 tombstone, 분실·오전달·담당자 변경은 즉시 폐기, 1:1 승인 채널 전달을 기본 승인안으로 확정했다. 90일 이상 고정 링크와 공개 단축 URL은 제외한다.
+- 별도 후속: 쿠폰 서버1/2/3 데이터 이관·정적 쿠폰 제거, 다른 내부 도구 전면 잠금, Git history rewrite/캐시 대응은 이번 1단계에 포함하지 않는다. 상업 이용 가능한 host/plan·도메인 확정은 여전히 실행 전 차단조건이다.
+- 데이터/배포/커밋: 운영 Firebase/Auth/Rules/문서/실 capability, 호스팅, 저장소 공개범위, 쿠폰에 쓰지 않았다. push·PR·이슈 댓글·배포 없음. 새 commit 없음(기준 `d9389f1`, 전체 로컬 후보 미커밋). 실제 1단계 실행은 dot 보고와 사용자 최종 승인 대기다.
+
+### 작업 후 추가 기록 — 일반/거래처 링크 로컬 후보 완료
+- 실제 수정/추가: `share.html`에 일반 판매가-only 모드, 거래처 capability 모드, 이미지 실패 시 다음 기존 URL fallback, 상품 상세 dialog와 focus 복귀를 추가했다. `partner.html`을 추가하고 `vercel.json`에 후보 `/p → /partner.html` rewrite와 `noindex,nofollow,noarchive`·`no-referrer`·`no-store` 헤더를 준비했다. `catalog-editor.html`의 일반 projection에서 `offer`를 제거하고 별도 거래처 projection/게시/복사 후보를 추가했다. capability/활성/만료/base URL은 owner-only `privateAdminData/partnerCatalogLink` 설정이 없으면 fail-closed한다.
+- 서버 권한 후보: 미배포 `firestore.target.rules`는 일반 `c6xxh9`와 거래처 문서 모두 exact get만 허용하고 list/query는 admin까지 모두 거부한다. 거래처 get/order create는 43자 capability 형식과 `active`, `expiresAt`, `request.time`을 검사한다. 일반 주문은 `includeOffer=false`, 거래처 주문은 live capability 아래에서만 생성 가능하고 주문 read/update/delete와 모든 내부 컬렉션은 기존 owner만 허용한다. Firestore Rules가 임의 `products` 배열의 모든 중첩 키를 순회하지 못하는 제한은 유지·문서화했고 손상된 admin client까지 막으려면 서버 publisher가 필요하다.
+- 문서/운영 기준: `PARTNER_LINK_DESIGN.md`에 bearer-link 한계, 익명/일반/capability/admin 권한표, 백업·이관·전환·안전한 rollback, 서버1/2/3 및 PC/모바일 계획, 승인 항목을 정리했다. `START_HERE.md`에는 일반 링크 판매가-only/거래처 링크 분리 확정 정책과 미배포 상태를 추가했다. `PASSWORDLESS_MEMBER_DESIGN.md`는 현재 선택하지 않은 보류안으로 표시하고, 보안/이관/테스트/검토 문서의 공개 `offer`·검수 건수를 최신화했다.
+- 호스팅 읽기 확인: 2026-10-14 사용자의 Mac Chrome으로 Vercel 대시보드를 읽기만 확인했다. 계정은 Hobby이고 `starbucks-helper` 연결 도메인은 `starbucks-helper.vercel.app` 하나뿐이며 커스텀 도메인은 없었다. 공식 Vercel 정책상 Hobby는 비상업 개인용, GitHub Pages 정책상 상거래 촉진용 무료 호스팅은 허용되지 않으므로 둘 다 거래처 상업 주소로 확정하지 않았다. 업그레이드·도메인 추가·설정 변경은 하지 않았다.
+- 자동 검수: demo Firestore Emulator/합성 데이터 17/17 통과, 정적 보안 테스트 10/10 통과. 일반/거래처 projection 분리, unknown ID, live/expired/revoked capability, list 차단, owner 게시, 일반/거래처 주문, private/default deny, 286상품·수량 999999, 문서 크기, batch/transaction과 이미지 fallback/detail/fragment/noindex/no-referrer를 포함한다. 거부 케이스의 `PERMISSION_DENIED`와 존재하지 않거나 폐기된 부모 문서 평가 경고는 기대한 fail-closed 결과다.
+- PC/모바일 로컬 검수: 사용자의 Mac Chrome에서 로컬 일반 링크가 286상품을 표시하고 제안가 가격·토글은 표시하지 않으며, 상품 상세 닫기 뒤 원래 사진 버튼으로 focus가 복귀함을 확인했다. 390×844에서는 2열, 가로 overflow 없음, 상세창 337×625로 viewport 내부였다. 잘못된 거래처 fragment는 상품 0건/찾을 수 없음으로 닫히고 `noindex`·`no-referrer`를 유지했다. 실제 live capability는 만들지 않아 테스트하지 않았다.
+- 보존/데이터 영향: 기존 URL `share.html?id=c6xxh9`, 286상품·10분류, 검색/선택/수량/판매중지/합계/JPG/주문, 기존 이미지 URL·순서와 다른 작업자의 변경을 유지했다. 운영 Firebase/Auth/provider/Rules/문서/쿠폰/저장소 공개범위/Vercel 설정에 쓰지 않았고 capability·자격증명·쿠폰값을 생성·기록·사용하지 않았다. 실제 모바일 Safari/카카오 브라우저, 운영 백업·이관·캐시·이전 배포 검수는 미수행이다.
+- 남은 차단/승인: 공개 정적 쿠폰 246건 및 과거 Git 이력, 익명 내부 workspace/주문 읽기 위험은 운영 미변경으로 계속 Critical이다. 상업 이용 가능한 host/plan·도메인·비용, capability 유효기간/전달/폐기 책임, 비공개 백업/레거시 이관, 목표 Rules, 일반 문서 재게시, capability/운영 문서 생성, 배포, Git history/캐시 대응, PC/실모바일 sign-off는 dot 보고 후 사용자 최종 승인이 필요하다.
+- commit SHA/배포: 새 commit 없음(기준 `d9389f1`, 로컬 미커밋 후보). push·PR·이슈 댓글·운영 배포·데이터 이관/삭제 없음.
+
+### 작업 후 기록
+- 작성: `SECURITY_REVIEW_ISSUE_2.md` 1개를 생성했다. 현재 위험도, 확인·미확인, 경로별 노출, 익명/일반/admin 목표 권한, 최소 수정 설계, 백업/롤백, 서버1/2/3·PC/모바일 회귀 테스트, 업무 분장, 사용자 승인 항목을 민감값 없이 정리했다.
+- 중대 확인: public 저장소·GitHub Pages·Vercel에서 쿠폰 정적 JSON 3개가 인증 없이 제공되며 현재 66/128/52건, 총 246건이다. 값은 보고서에 기록하지 않았다. 과거 서버3 일부 커밋에는 287건이 남아 있어 현재 파일만 비우는 조치는 불충분하다.
+- 사용자 최신 결정: 2026-10-14 15:03 KST 긴급 차단을 하지 말고 순서대로 진행하도록 확정. 임시 차단·점검 모드·운영 rules 변경을 실행하지 않고, 현재 서비스를 유지한 채 비공개 백업 → 기존 Firebase Auth 확인·재사용 → 분리 구현 → 격리 검수 → 최종 승인 → 전환 순서를 따른다. 준비 기간에 현재 노출 위험이 남는다.
+- 배포 재확인: 2026-10-14T06:03:44Z에 본문을 보존하지 않는 `curl` GET으로 GitHub Pages 호스트와 `starbucks-helper.vercel.app`의 `share.html?id=c6xxh9`·쿠폰 JSON 3개가 모두 HTTP 200임을 확인했다. Firestore도 공개 share 200, 내부 workspace 200, share 하위 주문 목록 200, 서버3 비공개 문서 403을 본문 미보존 상태 코드로 재확인했다.
+- Firestore 읽기 검증: 익명 공개 share는 200, 내부 workspace는 200, share 하위 주문 1건 목록은 200이었고 연락처 필드가 존재했다. 값은 열람·기록하지 않았다. 서버3 비공개 문서는 403이었다. 운영 쓰기 요청은 시험하지 않았다.
+- 공개 share 회귀 기준: `c6xxh9`는 현재 286상품·10분류로 읽혔으며, 공개 상품 필드만 유지하고 내부 workspace·주문·쿠폰·견적/자산을 분리하는 설계를 제안했다.
+- 불일치: `START_HERE.md`의 서버3 비공개/공개 JSON 빈 배열 설명과 현재 `coupon3.html`·`coupons3.json`이 다르다. 현재 작업 문서 ID도 rules의 서버3 보호 패턴과 일치하지 않는다.
+- 기존 Auth 가능성: 과거 커밋·WORKLOG에서 같은 Firebase 프로젝트의 Email/Password 소유자 계정, UID 기반 rules, `privateCouponData/server3`, 로그인/로그아웃/세션 유지가 실제 운영됐음을 확인했다. 계정은 당시 삭제하지 않았지만 현재 활성/provider/예상치 않은 사용자/claim은 권한 있는 Firebase Console READBACK 전에 확정하지 않는다.
+- Firebase Console READBACK: 2026-10-14 사용자 Mac Chrome의 기존 로그인 세션에서 읽기 전용으로 확인했다. Email/Password 관리자 계정 1개와 provider 활성, 익명 계정 2개와 Anonymous provider 활성, Spark 요금제를 확인했다. 이메일·UID는 본 일지에 적지 않았다. custom claims·계정 상세 disable flag·MFA·감사 로그·서비스 계정 권한은 미확인이다.
+- 배포 rules READBACK: Console의 현재 규칙은 저장소 `firestore.rules`와 핵심 구조가 동일했고 최신 배포 이력은 2026-09-28 16:56 KST로 표시됐다. 규칙 편집·게시·플레이그라운드 실행은 하지 않았다.
+- 공유 ID 조사: 현재 트리·WORKLOG·전체 Git 이력의 `share.html?id=` 검색은 `c6xxh9` 1개만 확인. Firestore의 다른 실문서는 인증된 관리 조회로 별도 확정해야 한다.
+- 로컬 준비: `AUTH_AND_MIGRATION_PLAN.md`, `firestore.target.rules`, `FIRESTORE_TARGET_TEST_PLAN.md`를 추가했다. 기존 소유자 UID/custom claim/admin allowlist 선택지, 세션 정책, 백업→Auth→분리→검수→승인→전환 순서, 목표 default-deny rules와 에뮬레이터 매트릭스를 민감값 없이 정리했다. 최소안은 새 claim 없이 기존 소유자 UID를 재사용한다. 초기 긴급 차단 초안 2개는 사용자 결정에 맞춰 삭제하고 순차 이관안으로 교체했다. 삭제한 파일은 이번 작업에서 생성한 미커밋 초안이며 운영/사용자 데이터가 아니다.
+- 격리 구현: `firebase-admin-auth.js`를 추가해 Email/Password 로그인, 브라우저 세션 범위 유지, 로그아웃을 공통화했다. 쿠폰 1/2/3과 대시보드는 정적 JSON 대신 `privateCouponData`/`privateCouponWork`, 카탈로그는 `adminCatalogs`, 프롬프트·TO DO·견적/자산은 `privateAdminData`를 인증 후 사용하도록 로컬 코드만 변경했다. 쿠폰과 프롬프트·TO DO의 로드시 초기 `setDoc`도 제거했다. 운영 데이터 이관 전에는 이 격리본이 대상 문서를 찾지 못하는 것이 정상이며 배포하면 안 된다.
+- 로컬 캐시 인증 보강: `catalog-editor.html`의 legacy localStorage 읽기보다 먼저 visual lock을 설치하고, 기존 PIN 세션이 유효할 때만 공통 Firebase Auth를 시작하며, 정확한 기존 owner UID와 강제 ID-token refresh가 확인된 뒤 화면을 공개한다. `firebase-admin-auth.js`는 non-owner를 즉시 sign-out하고 초기/포커스/visibility token 재검사, Auth 종료 시 화면 잠금, 탭 간 로그아웃 전파를 수행한다. sign-out 실패 때도 잠금을 해제하지 않고 reload하는 fail-closed 동작을 사용한다. `catalog-sync.js`는 세션 종료 시 snapshot 해제·pending timer 취소·후속 write 차단을 수행한다. 합법적인 오프라인 작업 삭제는 승인되지 않아 캐시는 보존했다. 따라서 일반 UI 노출은 막았지만 OS/브라우저 프로필과 DevTools 접근자에게 localStorage at-rest 기밀성을 제공하지는 않으며, 보존/명시적 삭제/owner-bound 암호화 중 정책 확정과 PC·모바일 회귀가 남는다.
+- 공개 경로 구현: `share.html?id=c6xxh9` 읽기·URL·기존 주문 payload는 변경하지 않았다. 주문의 `contact`는 고객 개인정보가 아니라 화면/JPG의 발행자·판매자 프로필이며, 별도 고객 입력은 기존 Firestore 주문 payload에 포함되지 않는 것을 재확인했다. 독립 검토에서 UI는 현재 286상품 전체 선택이 가능하고 품목별 수량을 999999까지 허용하는데 초기 후보의 100품목·고정 총액 상한이 회귀를 만들 수 있음을 확인해 해당 상한과 UI에 없는 연락처 길이 상한을 철회했다. 목표 rules는 정확한 상위 키/타입, 비어 있지 않은 품목, 음수 방지, 합계식, 연락처 map만 검사하고 비관리자의 read/list/update/delete를 거부한다. 실제 업무 최대 주문은 미확정이며 Firestore 문서 크기가 저장 경계다.
+- 공개 투영 로컬 보강: 독립 검토에서 `categories`와 `tags`가 직접 복사되어 객체 원소가 공개 문서로 섞일 수 있음을 확인했다. `catalog-editor.html`의 게시 직전에 새 allowlist 객체를 만들고 공개 문자열 타입/길이, 카테고리·태그·이미지 배열 원소, 숫자 유한성·음수, ID/수정시각, 이미지 URL 형식·scheme·credential·로컬/사설 host를 검증하도록 보강했다. 이상값은 Auth/네트워크/쓰기 전에 중단한다. `offer: 0`과 유한 소수 가격은 유지하고, 이미지는 중복 제거 후 최대 5개만 게시하며, 내부 전용 필드는 순환 참조가 있어도 순회·복사하지 않는다. HTML 유사 문자열은 데이터로 유지하되 `share.html`의 기존 `textContent`/`esc()` 렌더가 실행하지 않는지 회귀 항목에 넣었다. 운영 게시·데이터·rules는 변경하지 않았다.
+- 고정 공유 ID 보강: 편집기의 임의 새 ID 생성 코드를 제거하고 `data.shareId`가 없거나 `c6xxh9`와 다르면 공개 투영 구성 뒤, Auth/네트워크 전에 게시·링크복사를 중단하도록 했다. 목표 rules도 동일 ID만 허용한다. 저장소/이력에서 다른 ID가 나오지 않았어도 운영 Firestore 전체를 증명하지 못하므로 권한 있는 목록 인벤토리 전에는 배포하지 않는다.
+- 독립 검토 자료: `SECURITY_CHANGE_REVIEW_PACKET.md`를 추가했다. 쿠폰/등록코드/비밀번호/API 비밀값/계정 이메일/관리자 UID를 제외한 권한 경계, 파일별 sanitized diff, 주문 기능 영향, 익명 provider 평가, 완료·미완료 검증을 담았다.
+- 코드 검토 자료: `SECURITY_REVIEW_CODE_EXCERPTS.md`를 추가했다. 공통 인증 실패/로그아웃, 쿠폰 비공개 읽기, 관리자 카탈로그/공개 투영 필드 mapping, local cache visual-lock 경계와 at-rest 정책 공백, 기존 주문 payload·경로 일치, 관리자 UID를 자리표시자로 바꾼 목표 Rules 전체를 포함한다.
+- 로컬 도구 설치: 사용자 승인 후 Homebrew `node@24` 24.21.0/npm 11.19.0을 설치했다. Temurin 21 cask는 macOS installer가 관리자 암호를 요구해 우회하지 않고 중단했으며, 공식 Adoptium API의 Temurin 21.0.12.1 archive를 `/tmp`에 내려받아 게시 checksum 일치를 확인한 뒤 Emulator에만 사용했다. 프로젝트 dev dependency로 Firebase CLI 15.33.0, `@firebase/rules-unit-testing` 6.0.0, Firebase JS SDK 13.0.0을 lock하고 `.gitignore`, `package.json`, `package-lock.json`, `firebase.json`, `tests/`를 추가했다. `.firebaserc`와 운영 project alias/로그인/자격증명은 만들지 않았다.
+- 격리 Rules 검증: `demo-starbucks-helper-security`와 합성 데이터만 사용한 Firestore Emulator에서 13/13 통과했다. 정확한 `c6xxh9` get과 list 거부, owner/non-owner 게시, malformed envelope, 내부 컬렉션 owner-only, legacy/default-deny, 공개 주문 create-only/read-update-delete 거부, 286품목·수량 999999, 900KB 성공·1.1MB Firestore 플랫폼 거부, denied batch 원자성, transaction 거부를 포함한다. Firestore Rules가 임의 list 내부 모든 상품/주문 원소를 순회 검증하지 못하는 한계도 테스트로 명시했다.
+- 최종 로컬 검증: 실제 공개 투영 함수를 추출한 `tests/security.client-static.test.mjs` 8/8 통과. 정상 allowlist, `offer: 0`, 소수, 이미지 중복 제거/최대 5개, 내부 순환값 무시, 공개 위치 중첩/길이/숫자/시각 오류, 위험 scheme·credential·localhost·private/link-local IPv4/IPv6 거부와 잘못된 6번째 이미지까지 확인했다. 고정 share ID가 Auth/네트워크 전 검증되는지, localStorage 전 visual lock, Auth lifecycle 표식, `.firebaserc` 부재, 운영 기준 파일 바이트 동일도 확인했다. JavaScriptCore 변경 스크립트 13/13, `node --check`, `git diff --check` 통과. `npm audit --omit=dev`는 운영 dependency 취약점 0건이며, 로컬 테스트 도구 dev tree는 4 moderate/12 high를 보고했다. 강제 fix나 런타임 downgrade는 하지 않았다.
+- 주문 소비자 추적: 저장소에서 `catalogShares/{shareId}/orders`를 생성하는 코드는 `share.html`만 확인했고, 해당 주문을 결제·배송·출고·회계에 사용하는 소비자는 찾지 못했다. 별도 외부 소비자는 미확인으로 남기고 생성 주문은 계속 untrusted로 취급한다.
+- 승인 회원 제안가 후보: 고객 피드백의 일반 방문자=상품 상세/공개 판매가, 승인 회원=제안가/견적, 관리자=원가·쿠폰·내부자료 3단계안과 HELPER 관리자 승인대기→승인/권한해제 메뉴는 별도 설계 후보로만 기록했다. 현재 호환 후보 공개 projection에는 기존 동작 유지를 위해 `offer`가 있어 회원 전용 제안가를 구현한 상태가 아니다. 서버 강제 membership, 자기승격 방지, 가입자 식별·승인 근거·만료/회수·token refresh·감사·개인정보/복구 정책과 별도 사용자 승인이 필요하며 이번 코드/rules에는 추가하지 않았다.
+- Passwordless 회원 구체안: `PASSWORDLESS_MEMBER_DESIGN.md`에 Firebase Email Link로 이메일 소유를 확인한 뒤 exact UID의 `pending → approved/rejected/revoked`를 서버가 집행하고, 관리자 기존 owner 로그인과 고객 세션을 분리하는 흐름을 정리했다. 공개 문서에서는 `offer`를 제거하고 승인 회원에게만 비영속 overlay로 제공한다. 안내 후보는 `제안가는 이메일 인증 및 거래처 승인 후 확인하실 수 있습니다. 비밀번호 없이 이메일로 받은 로그인 링크를 이용해 주세요.`, 최초 버튼은 `이메일로 제안가 열람 신청`, 미승인 인증 완료 상태는 `승인 대기 중`이다. 이미 승인된 회원은 링크 로그인 완료 뒤 즉시 제안가를 표시하며 미승인/거절/회수와 구분한다. 운영 provider/domain/template/메일/요금제/권한/배포는 변경하지 않았다.
+- Email Link 공식문서 확인: Email/Password와 Email Link를 함께 활성화해야 하고, `handleCodeInApp: true`, HTTPS와 authorized domain이 필요하며 `dynamicLinkDomain`은 deprecated다. 같은 기기는 이메일을 임시 로컬 저장 후 제거할 수 있고 다른 기기는 동일 이메일을 다시 확인해야 하며 URL 파라미터에 이메일을 실어 재사용하면 안 된다. 현재 Spark 발송 한도는 email-link 5통/일, Blaze는 25,000통/일로 문서화되어 있어 5통 초과 운영은 결제수단/예산 승인이 필요하다. Dynamic Links는 2025-08-25 종료됐지만 웹 email action은 영향이 없고, native 앱은 최신 SDK와 Firebase Hosting 기반 App/Universal Link 구성이 필요하다. 본 HELPER 후보는 browser-first 웹 완료로 한정했다.
+- 별도 고객 이미지 피드백: 운영 카탈로그에서 일부 상품 사진 누락/불편 제보가 별도 조사 중임을 전달받았다. 본 보안 후보는 미배포이고 `share.html`·공개 데이터·이미지 URL·캐시를 변경하지 않았으므로 이 제보를 본 후보 원인으로 귀속하지 않는다. 2026-09 기록상 `c6xxh9` 공식 머그 이미지 통합에서 12상품 갱신, 전체 공식 이미지 93개(매칭 19·무변경 7)와 다중 이미지 정규화/최대 5개 작업 이력이 있어 별도 조사자가 이 기준을 교차 확인한다. 본 작업에서는 이미지 URL, 공개 데이터, 로컬 캐시를 삭제·변환하지 않았다.
+- 별도 공개페이지 조사 결과: 286상품 중 최초 대표사진 렌더 실패가 13개 보고됐고 모두 동일 외부 이미지 호스트를 사용한다. 조사 환경의 직접 URL 접근은 `ERR_BLOCKED_BY_CLIENT`여서 원본 삭제·HTTP 404/403·호스트 정책 중 원인을 확정하지 않았고 우회하지 않았다. 다중 사진이 있는 단테 710ml 계열은 두 번째·세 번째 사진이 정상인 사례가 확인됐다. 현재 상품명/사진 클릭 상세창도 없다. 별도 카탈로그 개선 후보는 대표사진 실패 시 다음 유효 이미지 fallback, 상품 클릭 상세정보, 비회원 공개 판매가/승인 회원 제안가 분리지만 운영 이미지·공개 데이터·회원 권한·배포 변경 승인은 아직 없다.
+- 변경/영향: 위 실행 코드와 목표 rules는 모두 운영과 분리된 로컬 미커밋 후보일 뿐이다. 운영 `firestore.rules`, Firebase Auth, Firestore 데이터, 쿠폰 JSON, 저장소 공개 범위, 배포는 변경하지 않았다. 사용자 Mac에서 Firebase Console의 Auth 사용자/provider 및 rules 화면만 읽기 전용으로 열었고, 자동 쓰기가 있는 운영 HELPER 관리 화면은 열지 않았다. 쿠폰 사용/등록·push/PR/이슈 댓글을 하지 않았다.
+- 커밋/배포: 로컬 미커밋, push/배포 미실행. 워킹트리에는 보고서·계획·목표 rules와 인증/클라이언트 후보 변경이 있다. 운영 반영 승인 전에는 정적 쿠폰 파일 삭제·Git 이력 정리도 하지 않는다.
+- 남은 문제/다음 작업: 기존 소유자 계정의 상세 disable flag·custom claims·MFA/폐기·감사 상태를 확인하고, 승인된 비공개 백업 위치를 지정한 뒤 원본을 삭제하지 않는 합성 이관·복구 훈련과 실제 브라우저 Auth/PC·모바일 회귀를 수행해야 한다. localStorage logout 보존 정책, 운영 share ID 전체 인벤토리, 저장소 밖 주문 소비자, 서버3 공개 52건과 비공개 현행/previous 관계가 미확정이다. Passwordless 회원안은 same-project 논리 분리와 별도 tenant/project 중 선택, Email Link provider·authorized/Hosting domain·메일 템플릿, Spark 5통/일 또는 Blaze 예산, 승인 backend/감사·보존, 공개 `offer` 제거 전환창 승인이 추가로 필요하다. 실제 account/provider/claim/rules/data/repository visibility/deployment/cost 변경, 메일 발송, 정적 파일 삭제·Git 이력 정리, push/PR/이슈 댓글은 최종 승인 전 실행하지 않는다.
+
 ## 2026-10-13 — dot (서버2 에코 텀블러 쿠폰 2건 이어붙이기)
 
 ### 작업 전 기록

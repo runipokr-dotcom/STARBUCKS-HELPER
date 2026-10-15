@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>HELPER 보안 전환</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172019;background:#eef3ef}body{margin:0;padding:24px}.card{max-width:720px;margin:auto;padding:22px;border:1px solid #cad4cd;border-radius:14px;background:#fff;box-shadow:0 12px 34px #0001}h1{margin:0 0 8px;font-size:22px}p{line-height:1.55;color:#536159}button{width:100%;min-height:46px;margin:7px 0;border:0;border-radius:9px;background:#006241;color:#fff;font:800 15px inherit;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.danger{background:#7c231d}.status{margin-top:14px;padding:13px;border-radius:9px;background:#f2f6f3;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.ok{color:#006241}.err{color:#9b1c1c}</style>
+</head>
+<body>
+  <main class="card">
+    <h1>이슈 #2 보안 전환</h1>
+    <p>기존 소유자 로그인 세션만 사용합니다. 원본 문서는 삭제하지 않으며 화면에는 값 대신 건수와 해시만 표시합니다.</p>
+    <button id="backup" disabled>1. 소유자 전용 백업 + 읽기 대조</button>
+    <button id="migrate" disabled>2. private 경로 이관 + 읽기 대조</button>
+    <button id="publish" disabled>3. 고객 공개본에서 제안가 제거</button>
+    <button id="verify" disabled>4. 최종 건수 검증</button>
+    <div id="status" class="status">기존 소유자 로그인 확인 중…</div>
+  </main>
+<script type="module">
+import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {browserLocalPersistence,getAuth,onAuthStateChanged,setPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {collection,doc,getDoc,getDocs,getFirestore,query,setDoc,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const CONFIG={apiKey:"AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",authDomain:"starbucks-helper-f578e.firebaseapp.com",projectId:"starbucks-helper-f578e",storageBucket:"starbucks-helper-f578e.firebasestorage.app",messagingSenderId:"1015231512258",appId:"1:1015231512258:web:25bb0229b5bc90b56a455b"};
+const OWNER_UID="DFtc3qItyZQYmE9m4q2JgXJyqrW2";
+const PUBLIC_ID="c6xxh9",WORKSPACE_ID="work-k4m8q2x7n9v3c6p5r8t1";
+const ROOTS=["couponWork","catalogShares","privateAdminData","adminCatalogs","privateOrders"];
+const QUOTE_IDS=["quote-current-v1","quote-template-v1","quote-business-registration-v1","quote-bankbook-v1"];
+const app=getApps()[0]||initializeApp(CONFIG),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id),buttons=["backup","migrate","publish","verify"].map($);
+let backupId=sessionStorage.getItem("issue2-backup-id")||"";
+const backupRoot=id=>`couponWork/coupon-server-3/issue2MigrationBackups/${id}`;
+const backupDoc=(id,path)=>doc(db,`${backupRoot(id)}/documents/${encode(path)}`);
+const entryDoc=(id,path)=>doc(db,`${backupRoot(id)}/entries/${encode(path)}`);
+const staticDoc=(id,name)=>doc(db,`${backupRoot(id)}/staticCoupons/${name}`);
+function encode(value){return btoa(unescape(encodeURIComponent(value))).replaceAll("+","-").replaceAll("/","_").replaceAll("=","")}
+function normalize(value){
+  if(value==null||typeof value==="string"||typeof value==="number"||typeof value==="boolean")return value;
+  if(Array.isArray(value))return value.map(normalize);
+  if(typeof value.toMillis==="function")return{__timestamp__:value.toMillis()};
+  if(value.path&&typeof value.path==="string")return{__reference__:value.path};
+  if(typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,normalize(value[key])]));
+  return String(value);
+}
+async function hash(value){const bytes=new TextEncoder().encode(JSON.stringify(normalize(value))),result=await crypto.subtle.digest("SHA-256",bytes);return[...new Uint8Array(result)].map(v=>v.toString(16).padStart(2,"0")).join("")}
+function show(message,error=false){$("status").textContent=message;$("status").className=`status ${error?"err":"ok"}`}
+async function commitSets(writes){for(let i=0;i<writes.length;i+=180){const batch=writeBatch(db);for(const [ref,data] of writes.slice(i,i+180))batch.set(ref,data);await batch.commit()}}
+async function listSources(){
+  const rows=[];
+  for(const root of ROOTS){
+    const snapshots=await getDocs(query(collection(db,root)));
+    for(const snap of snapshots.docs){
+      rows.push({path:snap.ref.path,data:snap.data()});
+      if(root==="catalogShares"){
+        const orders=await getDocs(query(collection(snap.ref,"orders")));
+        for(const order of orders.docs)rows.push({path:order.ref.path,data:order.data()});
+      }
+    }
+  }
+  const server3=await getDoc(doc(db,"privateCouponData","server3"));
+  if(!server3.exists())throw new Error("privateCouponData/server3 누락");
+  rows.push({path:server3.ref.path,data:server3.data()});
+  return rows;
+}
+async function fetchCoupons(name){const response=await fetch(`${name}.json?backup=${Date.now()}`,{cache:"no-store"});if(!response.ok)throw new Error(`${name}.json HTTP ${response.status}`);const value=await response.json();if(!Array.isArray(value))throw new Error(`${name}.json 형식 오류`);return value}
+async function createBackup(){
+  backupId=`issue2-${new Date().toISOString().replace(/[-:.]/g,"").replace("Z","Z")}`;
+  const rows=await listSources(),statics={server1:await fetchCoupons("coupons1"),server2:await fetchCoupons("coupons2"),"server3-public-legacy":await fetchCoupons("coupons3")};
+  const root=doc(db,backupRoot(backupId));
+  if((await getDoc(root)).exists())throw new Error("같은 백업 ID가 이미 존재합니다.");
+  await setDoc(root,{version:1,status:"writing",createdAt:Date.now(),sourceCollections:ROOTS});
+  const writes=[];
+  for(const row of rows){writes.push([backupDoc(backupId,row.path),row.data],[entryDoc(backupId,row.path),{sourcePath:row.path,hash:await hash(row.data)}])}
+  for(const [name,coupons] of Object.entries(statics))writes.push([staticDoc(backupId,name),{coupons,source:`${name}.json`,fetchedAt:Date.now()}]);
+  await commitSets(writes);
+  for(const row of rows){const copy=await getDoc(backupDoc(backupId,row.path));if(!copy.exists()||await hash(copy.data())!==await hash(row.data))throw new Error(`백업 대조 실패: ${row.path}`)}
+  for(const [name,coupons] of Object.entries(statics)){const copy=await getDoc(staticDoc(backupId,name));if(!copy.exists()||await hash(copy.data().coupons)!==await hash(coupons))throw new Error(`정적 백업 대조 실패: ${name}`)}
+  const aggregate=await hash({documents:await Promise.all(rows.map(async row=>[row.path,await hash(row.data)])),static:await Promise.all(Object.entries(statics).map(async([name,value])=>[name,await hash(value)]))});
+  await setDoc(root,{status:"verified",verifiedAt:Date.now(),documentCount:rows.length,staticCounts:Object.fromEntries(Object.entries(statics).map(([name,value])=>[name,value.length])),aggregateHash:aggregate},{merge:true});
+  sessionStorage.setItem("issue2-backup-id",backupId);$("migrate").disabled=false;show(JSON.stringify({backupId,status:"verified",documentCount:rows.length,staticCounts:Object.fromEntries(Object.entries(statics).map(([name,value])=>[name,value.length])),aggregateHash:aggregate},null,2));
+}
+async function requireBackup(){if(!backupId)throw new Error("검증된 백업 ID가 없습니다.");const root=await getDoc(doc(db,backupRoot(backupId)));if(!root.exists()||!["verified","migrated","published"].includes(root.data().status))throw new Error("검증된 백업이 없습니다.");return root}
+async function value(path,required=true){const snap=await getDoc(backupDoc(backupId,path));if(snap.exists())return snap.data();if(required)throw new Error(`백업 원본 누락: ${path}`);return null}
+async function migrate(){
+  await requireBackup();const writes=[],expected=new Map();
+  for(const server of["server1","server2"]){const snap=await getDoc(staticDoc(backupId,server));if(!snap.exists())throw new Error(`${server} 정적 백업 누락`);const data={coupons:snap.data().coupons},path=`privateCouponData/${server}`;writes.push([doc(db,path),data]);expected.set(path,await hash(data))}
+  const server3=await value("privateCouponData/server3");expected.set("privateCouponData/server3",await hash(server3));
+  for(const [server,source] of Object.entries({server1:"couponWork/coupon-server-1",server2:"couponWork/coupon-server-2",server3:"couponWork/coupon-server-3"})){let data=await value(source,false);if(!data&&server==="server3")data=await value("couponWork/coupon-server-3-open",false);if(data){const path=`privateCouponWork/${server}`;writes.push([doc(db,path),data]);expected.set(path,await hash(data))}}
+  const mappings={"couponWork/helper-hero-todos-v1":"privateAdminData/helper-hero-todos-v1","couponWork/helper-prompt-library-v1":"privateAdminData/helper-prompt-library-v1",[`catalogShares/${WORKSPACE_ID}`]:`adminCatalogs/${WORKSPACE_ID}`};
+  for(const id of QUOTE_IDS)mappings[`catalogShares/${id}`]=`privateAdminData/${id}`;
+  for(const [source,destination] of Object.entries(mappings)){const data=await value(source,false);if(data){writes.push([doc(db,destination),data]);expected.set(destination,await hash(data))}}
+  const entries=await getDocs(query(collection(db,`${backupRoot(backupId)}/entries`)));let mirrored=0;
+  for(const entry of entries.docs){const source=entry.data().sourcePath,parts=source.split("/");let destination="";if(parts.length===2&&parts[0]==="couponWork")destination=`privateAdminData/legacy-couponWork-${encode(source)}`;else if(parts.length===2&&parts[0]==="catalogShares"&&![PUBLIC_ID,WORKSPACE_ID,...QUOTE_IDS].includes(parts[1]))destination=`adminCatalogs/legacy-share-${encode(source)}`;else if(parts.length>2&&parts[0]==="catalogShares"&&parts[1]!==PUBLIC_ID)destination=`privateOrders/legacy-${encode(source)}`;if(destination){const data=await value(source);writes.push([doc(db,destination),data]);expected.set(destination,await hash(data));mirrored++}}
+  await commitSets(writes);
+  for(const [path,expectedHash] of expected){const snap=await getDoc(doc(db,path));if(!snap.exists()||await hash(snap.data())!==expectedHash)throw new Error(`이관 대조 실패: ${path}`)}
+  await setDoc(doc(db,backupRoot(backupId)),{status:"migrated",migratedAt:Date.now(),destinationCount:expected.size,mirroredLegacyCount:mirrored,destinationAggregateHash:await hash(Object.fromEntries(expected))},{merge:true});
+  $("publish").disabled=false;$("verify").disabled=false;show(JSON.stringify({backupId,status:"migrated",destinationCount:expected.size,mirroredLegacyCount:mirrored,couponCounts:Object.fromEntries(await Promise.all(["server1","server2","server3"].map(async server=>[server,(await getDoc(doc(db,"privateCouponData",server))).data().coupons.length])))},null,2));
+}
+function publicProduct(product){const out={};for(const key of["id","name","sale","category","tags","images","updatedAt"])if(Object.hasOwn(product,key))out[key]=product[key];return out}
+async function publish(){
+  const root=await requireBackup();if(!["migrated","published"].includes(root.data().status))throw new Error("private 이관을 먼저 완료해야 합니다.");const source=await value(`catalogShares/${PUBLIC_ID}`),products=source.products;if(!Array.isArray(products)||!Array.isArray(source.categories))throw new Error("공개 원본 형식 오류");const output={categories:source.categories,products:products.map(publicProduct),updatedAt:Date.now()};if(typeof source.notice==="string")output.notice=source.notice;if(output.products.some(item=>Object.hasOwn(item,"offer")))throw new Error("제안가 제거 실패");await setDoc(doc(db,"catalogShares",PUBLIC_ID),output);const restored=(await getDoc(doc(db,"catalogShares",PUBLIC_ID))).data();if(await hash(restored)!==await hash(output))throw new Error("공개본 대조 실패");await setDoc(doc(db,backupRoot(backupId)),{status:"published",publishedAt:Date.now(),publicProductCount:output.products.length,publicOfferCount:0,publicHash:await hash(output)},{merge:true});show(JSON.stringify({backupId,status:"published",publicProductCount:output.products.length,publicOfferCount:0,publicHash:await hash(output)},null,2));
+}
+async function verify(){await requireBackup();const couponCounts={};for(const server of["server1","server2","server3"]){const snap=await getDoc(doc(db,"privateCouponData",server));couponCounts[server]=snap.exists()?snap.data().coupons.length:null}const publicData=(await getDoc(doc(db,"catalogShares",PUBLIC_ID))).data()||{},products=publicData.products||[];show(JSON.stringify({backupId,couponCounts,publicProductCount:products.length,publicOfferCount:products.filter(item=>Object.hasOwn(item,"offer")).length},null,2))}
+async function run(fn){buttons.forEach(button=>button.disabled=true);try{await fn()}catch(error){console.error(error);show(error.message||String(error),true)}finally{$("backup").disabled=false;if(backupId){$("migrate").disabled=false;$("publish").disabled=false;$("verify").disabled=false}}}
+$("backup").onclick=()=>run(createBackup);$("migrate").onclick=()=>run(migrate);$("publish").onclick=()=>run(publish);$("verify").onclick=()=>run(verify);
+await setPersistence(auth,browserLocalPersistence);onAuthStateChanged(auth,user=>{if(user?.uid===OWNER_UID){$("backup").disabled=false;if(backupId){$("migrate").disabled=false;$("publish").disabled=false;$("verify").disabled=false}show(`소유자 세션 확인됨${backupId?`\n백업 ID: ${backupId}`:""}`)}else show("기존 소유자 세션이 없습니다. 쿠폰 3서버에서 직접 로그인한 뒤 이 페이지를 다시 여세요.",true)});
+</script>
+</body>
+</html>
