@@ -74,6 +74,20 @@
 - 검수: `bash -n scripts/deploy_issue2_catalog_cutover.sh`와 `git diff --check`가 통과했다. clean branch에서 실제 script prompt에 `NO`를 입력했을 때 원격 조회·push 전에 종료코드 1과 “GitHub push를 시작하지 않았다”가 확인됐다. script에는 Firebase CLI login/deploy나 Firestore write가 없고, 운영 전환 순서·중간 영향·hash/allowlist/원격 기준 게이트는 유지됐다. PC/모바일·운영 데이터 영향은 없으며 이번 조정으로 실제 push·Rules/Auth/Firestore/Pages 변경을 하지 않았다.
 - 남은 차단: 사용자의 최종 적용 승인과 정확한 실행 시점 승인이 필요하다. 승인 후에도 user-direct push·Pages 대조가 먼저이며, Work의 Console 게시·1차 READBACK과 script 2차 READBACK이 모두 통과하기 전에는 helper 1·2단계나 운영 데이터 쓰기를 시작하지 않는다.
 
+### 범위 정정 전 기록 — 최종 승인·서버3 완전 제외
+- 사용자 확정: 사용자가 고객 링크 유지·제안가 제거·관리자 자료 잠금의 연속 최종 적용에 승인했다. 동시에 서버3은 이번 카탈로그 작업과 무관하므로 데이터 조회·검증·복구·변경에서 전부 제외하고 다시 불러오지 말라고 명확히 정정했다.
+- 적용 범위: `c6xxh9` 판매가-only 공개본, legacy workspace의 owner-only 읽기, `adminCatalogs` 복사, 기존 견적 4문서 owner-only, 공개 주문 호환만 검증한다. 서버3 live 경로를 REST·브라우저·helper·script로 읽거나 상태코드 차단조건으로 사용하지 않는다.
+- 권한 보존: catalog-only Rules 전체 게시 과정에서 기존 서버3 match와 allow 조건은 현재 규칙과 동일하게 보존해야 하며 수정하지 않는다. 로컬 규칙 파일의 해당 부분은 값이나 live 데이터 접근 없이 소스 diff로만 확인한다.
+- 실행 경계: GitHub push는 이전 도구 실행이 거절된 작업이므로 Work가 재시도하거나 다른 경로로 대신하지 않는다. 사용자 직접 실행 스크립트의 branch/base/hash/allowlist 사전조건이 아직 유효한지만 읽기 전용으로 확인해 즉시 보고한다.
+- 승인 이후 순서: 사용자 직접 push와 Pages hash 대조가 성공한 뒤에만, 현재 승인 범위와 기존 owner Chrome 세션을 사용해 Work가 Firebase Console Rules를 적용할 수 있다. 새 로그인·새 권한·Cloud Shell/API 승인이 필요하면 수락하지 않고 별도 보고한다.
+
+### 범위 정정 후 기록 — catalog-only 검증으로 축소
+- 실제 수정: `scripts/deploy_issue2_catalog_cutover.sh`에서 서버3 live 문서 REST 조회, 403 성공 조건, 실패 메시지 상태값을 모두 제거했다. Rules 게시 후 script는 공개 `c6xxh9` 200, legacy workspace 403, 견적 문서 403만 확인한다.
+- 기존 권한 보존 확인: `firestore.catalog-phase1.rules`는 이번 조정에서 수정하지 않았다. 현재 `firestore.rules`와 target source의 owner 식별자 및 서버3 작업 문서 판별식을 값 출력 없이 로컬 비교해 동일함을 확인했다. 서버3 live 데이터·브라우저·REST에는 접근하지 않았고 기존 권한을 변경하지 않았다.
+- 사용자 직접 명령 유효성: 읽기 전용 `git ls-remote`에서 원격 `main`은 script 고정 기준 `f982ee84ea2fbc8b0dab75c690d45abcab7fc8d0`과 일치했다. 현재 branch, target Rules SHA-256, 12개 변경 allowlist도 script 기대값과 일치하므로 로컬 commit 후 clean 상태에서 기존 사용자 직접 명령을 그대로 사용할 수 있다.
+- 검수: script 내 `server3`, `privateCouponData`, `privateCouponWork` 참조 0건, `bash -n`, `git diff --check`, 기존 owner/작업 판별 source 동등성 검사가 모두 통과했다. 새 로그인·새 권한·push·Rules/Auth/Firestore/Pages 변경이나 운영 데이터 쓰기는 없었다.
+- 승인/다음 단계: 최종 적용 승인은 확인됐지만 GitHub push는 Work가 실행하지 않는다. 사용자가 직접 script를 시작해 중간 영향에 `YES`를 입력하고 Pages hash 대조가 완료됐다고 알린 뒤에만 Work가 기존 owner Console 세션으로 catalog-only Rules 게시와 catalog-only READBACK을 이어간다.
+
 ## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
 
 ### 작업 전 기록

@@ -139,15 +139,14 @@ for _ in {1..24}; do
   public_status="$(status_of 'catalogShares/c6xxh9')"
   legacy_status="$(status_of 'catalogShares/work-k4m8q2x7n9v3c6p5r8t1')"
   quote_status="$(status_of 'catalogShares/quote-current-v1')"
-  server3_status="$(status_of 'privateCouponData/server3')"
-  if [[ "$public_status" == "200" && "$legacy_status" == "403" && "$quote_status" == "403" && "$server3_status" == "403" ]]; then
+  if [[ "$public_status" == "200" && "$legacy_status" == "403" && "$quote_status" == "403" ]]; then
     rules_ready=true
     break
   fi
   sleep 5
 done
 if [[ "$rules_ready" != true ]]; then
-  echo "중단: Console 게시 후 Rules 익명 상태코드 대조 실패 (public=$public_status legacy=$legacy_status quote=$quote_status server3=$server3_status). 데이터를 쓰지 마세요." >&2
+  echo "중단: Console 게시 후 catalog-only Rules 익명 상태코드 대조 실패 (public=$public_status legacy=$legacy_status quote=$quote_status). 데이터를 쓰지 마세요." >&2
   exit 1
 fi
 
