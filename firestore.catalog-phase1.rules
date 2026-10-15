@@ -1,0 +1,206 @@
+// CATALOG-ONLY TRANSITION RULESET — NOT DEPLOYED
+//
+// This is the smallest staged cutover for the existing c6xxh9 URL and the
+// separate partner capability. It protects catalog publication, partner
+// access, orders, the internal catalog workspace, and only the partner-link
+// config document. It does not migrate, normalize, or rewrite any server-3
+// data. Every unrelated live path intentionally retains the current
+// firestore.rules behavior and must be hardened in later approvals.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid == 'DFtc3qItyZQYmE9m4q2JgXJyqrW2';
+    }
+
+    function isServer3Work(id) {
+      return id == 'coupon-server-3' || id.matches('coupons3_json.*');
+    }
+
+    function isQuoteDocument(id) {
+      return id == 'quote-current-v1'
+        || id == 'quote-template-v1'
+        || id == 'quote-business-registration-v1'
+        || id == 'quote-bankbook-v1';
+    }
+
+    function isValidPublicCatalog() {
+      return request.resource.data.keys().hasAll([
+          'categories', 'products', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'categories', 'notice', 'products', 'updatedAt'
+        ])
+        && request.resource.data.categories is list
+        && request.resource.data.products is list
+        && request.resource.data.updatedAt is int
+        && (!request.resource.data.keys().hasAny(['notice'])
+          || (request.resource.data.notice is string
+            && request.resource.data.notice.size() <= 500));
+    }
+
+    function isValidPartnerCatalog() {
+      return request.resource.data.keys().hasAll([
+          'active', 'categories', 'expiresAt', 'products', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'active', 'categories', 'expiresAt', 'notice', 'products', 'updatedAt'
+        ])
+        && request.resource.data.active is bool
+        && request.resource.data.categories is list
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.products is list
+        && request.resource.data.updatedAt is int
+        && (!request.resource.data.keys().hasAny(['notice'])
+          || (request.resource.data.notice is string
+            && request.resource.data.notice.size() <= 500));
+    }
+
+    function isValidPartnerCapability(capability) {
+      return capability.matches('^[A-Za-z0-9_-]{43}$');
+    }
+
+    function isLivePartnerCatalog(capability) {
+      let catalogPath =
+        /databases/$(database)/documents/partnerCatalogShares/$(capability);
+      return isValidPartnerCapability(capability)
+        && exists(catalogPath)
+        && get(catalogPath).data.active == true
+        && get(catalogPath).data.expiresAt is timestamp
+        && request.time < get(catalogPath).data.expiresAt;
+    }
+
+    function isValidPublicOrderCreate() {
+      return request.resource.data.keys().hasAll([
+          'items', 'includeOffer', 'supply', 'vat', 'total', 'contact',
+          'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'items', 'includeOffer', 'supply', 'vat', 'total', 'contact',
+          'createdAt'
+        ])
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.includeOffer is bool
+        && request.resource.data.supply is number
+        && request.resource.data.vat is number
+        && request.resource.data.total is number
+        && request.resource.data.supply >= 0
+        && request.resource.data.vat >= 0
+        && request.resource.data.total > 0
+        && request.resource.data.supply + request.resource.data.vat
+          == request.resource.data.total
+        && request.resource.data.contact is map
+        && request.resource.data.contact.keys().hasAll([
+          'company', 'email', 'phone'
+        ])
+        && request.resource.data.contact.keys().hasOnly([
+          'company', 'email', 'phone'
+        ])
+        && request.resource.data.contact.company is string
+        && request.resource.data.contact.email is string
+        && request.resource.data.contact.phone is string
+        && request.resource.data.createdAt is int
+        && request.resource.data.createdAt > 0;
+    }
+
+    match /catalogShares/c6xxh9 {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isAdmin() && isValidPublicCatalog();
+      allow delete: if isAdmin();
+
+      match /orders/{orderId} {
+        allow create: if isValidPublicOrderCreate()
+          && request.resource.data.includeOffer == false;
+        allow read, update, delete: if isAdmin();
+      }
+    }
+
+    // Keep the verified legacy workspace immutable and owner-readable so the
+    // catalog-only cutover page can copy and hash-check it after this Rules
+    // boundary is deployed. All future editor writes go to adminCatalogs.
+    match /catalogShares/work-k4m8q2x7n9v3c6p5r8t1 {
+      allow get: if isAdmin();
+      allow list, create, update, delete: if false;
+    }
+
+    // Keep the existing quote workflow functional for the exact owner while
+    // removing its legacy public access. No quote document is moved here.
+    match /catalogShares/{documentId} {
+      allow get, create, update, delete: if isQuoteDocument(documentId)
+        && isAdmin();
+      allow list: if false;
+
+      match /{nested=**} {
+        allow get, create, update, delete: if isQuoteDocument(documentId)
+          && isAdmin();
+        allow list: if false;
+      }
+    }
+
+    match /partnerCatalogShares/{capability} {
+      allow get: if isAdmin() || isLivePartnerCatalog(capability);
+      allow list: if false;
+      allow create: if isAdmin()
+        && isValidPartnerCapability(capability)
+        && isValidPartnerCatalog();
+      allow update: if isAdmin()
+        && isValidPartnerCapability(capability)
+        && isValidPartnerCatalog()
+        && (resource.data.active == true
+          || request.resource.data.active == false)
+        && request.resource.data.expiresAt == resource.data.expiresAt;
+      allow delete: if false;
+
+      match /orders/{orderId} {
+        allow create: if isLivePartnerCatalog(capability)
+          && isValidPublicOrderCreate();
+        allow read, update, delete: if isAdmin();
+      }
+    }
+
+    match /adminCatalogs/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    match /privateAdminData/partnerCatalogLink {
+      allow read, write: if isAdmin();
+    }
+
+    // Preserve the already-deployed server-3 boundary exactly; this is an
+    // authorization compatibility rule, not a server-3 data migration.
+    match /privateCouponData/server3 {
+      allow read, write: if isAdmin();
+    }
+
+    // Preserve unrelated live behavior during this catalog-only phase.
+    // Catalog collections, the new workspace, and the partner config are
+    // excluded so this compatibility match cannot override their denials.
+    match /{collection}/{documentId} {
+      allow read, write: if collection != 'privateCouponData'
+        && collection != 'catalogShares'
+        && collection != 'partnerCatalogShares'
+        && collection != 'adminCatalogs'
+        && (collection != 'privateAdminData'
+          || documentId != 'partnerCatalogLink')
+        && (collection != 'couponWork'
+          || !isServer3Work(documentId)
+          || isAdmin());
+
+      match /{nested=**} {
+        allow read, write: if collection != 'privateCouponData'
+          && collection != 'catalogShares'
+          && collection != 'partnerCatalogShares'
+          && collection != 'adminCatalogs'
+          && (collection != 'privateAdminData'
+            || documentId != 'partnerCatalogLink')
+          && (collection != 'couponWork'
+            || !isServer3Work(documentId)
+            || isAdmin());
+      }
+    }
+  }
+}

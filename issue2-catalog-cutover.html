@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>HELPER 카탈로그 최소 전환</title>
+  <script src="auth-gate.js"></script>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172019;background:#eef3ef}
+    body{margin:0;padding:24px}.card{max-width:760px;margin:auto;padding:22px;border:1px solid #cad4cd;border-radius:14px;background:#fff;box-shadow:0 12px 34px #0001}
+    h1{margin:0 0 8px;font-size:22px}p,li{line-height:1.55;color:#536159}button{width:100%;min-height:46px;margin:7px 0;border:0;border-radius:9px;background:#006241;color:#fff;font:800 15px inherit;cursor:pointer}
+    button.secondary{background:#31594a}button:disabled{opacity:.45;cursor:not-allowed}.status{margin-top:14px;padding:13px;border-radius:9px;background:#f2f6f3;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.ok{color:#006241}.err{color:#9b1c1c}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>카탈로그 최소 전환</h1>
+    <p>검증된 workspace만 owner 전용 위치에 원본 보존 복사한 뒤, 고정 고객 링크를 판매가-only 문서로 교체합니다. 쿠폰·서버3·다른 관리자 문서와 capability에는 접근하지 않습니다.</p>
+    <ol>
+      <li>먼저 catalog-only Rules와 sale-only 클라이언트가 배포돼 있어야 합니다.</li>
+      <li>workspace 복사·READBACK이 성공한 뒤에만 공개 문서를 게시합니다.</li>
+      <li>두 단계 모두 값은 표시하지 않고 건수와 hash만 확인합니다.</li>
+    </ol>
+    <button id="copy" type="button" disabled>1. workspace 원본 보존 복사·대조</button>
+    <button id="publish" class="secondary" type="button" disabled>2. 고정 고객 링크 sale-only 게시·대조</button>
+    <div id="status" class="status" role="status">기존 owner 세션 확인 중…</div>
+  </main>
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  browserLocalPersistence,
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { sha256Hex } from "./catalog-backup-core.js";
+import {
+  EXPECTED_CATEGORY_COUNT,
+  EXPECTED_PRODUCT_COUNT,
+  LEGACY_WORKSPACE_ID,
+  PUBLIC_SHARE_ID,
+  buildSaleOnlyProjection,
+  projectionSummary,
+  verifyWorkspace,
+} from "./catalog-cutover-core.js";
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
+  authDomain: "starbucks-helper-f578e.firebaseapp.com",
+  projectId: "starbucks-helper-f578e",
+  storageBucket: "starbucks-helper-f578e.firebasestorage.app",
+  messagingSenderId: "1015231512258",
+  appId: "1:1015231512258:web:25bb0229b5bc90b56a455b",
+};
+const OWNER_UID = "DFtc3qItyZQYmE9m4q2JgXJyqrW2";
+const SOURCE_PATH = `catalogShares/${LEGACY_WORKSPACE_ID}`;
+const DESTINATION_PATH = `adminCatalogs/${LEGACY_WORKSPACE_ID}`;
+const PUBLIC_PATH = `catalogShares/${PUBLIC_SHARE_ID}`;
+const app = getApps()[0] || initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const copyButton = document.getElementById("copy");
+const publishButton = document.getElementById("publish");
+const status = document.getElementById("status");
+
+function show(value, error = false) {
+  status.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  status.className = `status ${error ? "err" : "ok"}`;
+}
+
+function restDocumentUrl(path) {
+  return `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/${path}?key=${FIREBASE_CONFIG.apiKey}`;
+}
+
+async function anonymousGet(path) {
+  return fetch(restDocumentUrl(path), { cache: "no-store", credentials: "omit" });
+}
+
+async function assertCatalogRulesBoundary() {
+  const [legacy, publicCatalog] = await Promise.all([
+    anonymousGet(SOURCE_PATH),
+    anonymousGet(PUBLIC_PATH),
+  ]);
+  if (legacy.status !== 403) {
+    throw new Error("catalog-only Rules가 확인되지 않았습니다. legacy workspace 익명 차단 후 다시 실행하세요.");
+  }
+  if (!publicCatalog.ok) throw new Error("고정 고객 문서의 익명 exact get을 확인할 수 없습니다.");
+}
+
+async function loadWorkspace(path) {
+  const snapshot = await getDoc(doc(db, path));
+  if (!snapshot.exists()) throw new Error(`필수 workspace 누락: ${path}`);
+  return snapshot.data();
+}
+
+async function verifiedWorkspacePair({ requireDestination = true } = {}) {
+  const source = await loadWorkspace(SOURCE_PATH);
+  const sourceCheck = await verifyWorkspace(source);
+  const destinationSnapshot = await getDoc(doc(db, DESTINATION_PATH));
+  if (!destinationSnapshot.exists()) {
+    if (requireDestination) throw new Error("owner-only workspace 복사를 먼저 완료하세요.");
+    return { source, sourceCheck, destination: null, destinationCheck: null };
+  }
+  const destination = destinationSnapshot.data();
+  const destinationCheck = await verifyWorkspace(destination);
+  if (sourceCheck.hash !== destinationCheck.hash) throw new Error("workspace 원본/복사본 hash 불일치");
+  return { source, sourceCheck, destination, destinationCheck };
+}
+
+async function copyWorkspace() {
+  copyButton.disabled = true;
+  publishButton.disabled = true;
+  show("catalog-only Rules와 verified workspace를 확인 중…");
+  try {
+    await assertCatalogRulesBoundary();
+    const pair = await verifiedWorkspacePair({ requireDestination: false });
+    if (pair.destination) {
+      if (pair.sourceCheck.hash !== pair.destinationCheck.hash) throw new Error("기존 owner-only workspace가 원본과 다릅니다.");
+    } else {
+      await setDoc(doc(db, DESTINATION_PATH), pair.source);
+    }
+    const verified = await verifiedWorkspacePair();
+    const anonymousDestination = await anonymousGet(DESTINATION_PATH);
+    if (anonymousDestination.status !== 403) throw new Error("owner-only workspace 익명 차단 검증 실패");
+    show({
+      status: "workspace-copied-and-verified",
+      sourcePath: SOURCE_PATH,
+      destinationPath: DESTINATION_PATH,
+      sourceHash: verified.sourceCheck.hash,
+      destinationHash: verified.destinationCheck.hash,
+      exact: verified.sourceCheck.hash === verified.destinationCheck.hash,
+      productCount: verified.sourceCheck.productCount,
+      categoryCount: verified.sourceCheck.categoryCount,
+      anonymousDestinationDenied: true,
+    });
+    publishButton.disabled = false;
+  } catch (error) {
+    console.error("[catalog-cutover] workspace copy failed", error?.message || error);
+    show(error?.message || String(error), true);
+  } finally {
+    copyButton.disabled = false;
+  }
+}
+
+function restArray(json, field) {
+  return json?.fields?.[field]?.arrayValue?.values || [];
+}
+
+async function anonymousPublicSummary() {
+  const response = await anonymousGet(PUBLIC_PATH);
+  if (!response.ok) throw new Error("게시 후 익명 raw read 실패");
+  const json = await response.json();
+  const products = restArray(json, "products");
+  const categories = restArray(json, "categories");
+  return {
+    productCount: products.length,
+    categoryCount: categories.length,
+    offerCount: products.filter((item) => Object.hasOwn(item?.mapValue?.fields || {}, "offer")).length,
+  };
+}
+
+async function publishSaleOnly() {
+  copyButton.disabled = true;
+  publishButton.disabled = true;
+  show("workspace 원본/복사본을 재대조하고 sale-only 문서를 만드는 중…");
+  try {
+    await assertCatalogRulesBoundary();
+    const pair = await verifiedWorkspacePair();
+    const projection = buildSaleOnlyProjection(pair.destination, Date.now());
+    const summary = projectionSummary(projection);
+    if (
+      summary.productCount !== EXPECTED_PRODUCT_COUNT
+      || summary.categoryCount !== EXPECTED_CATEGORY_COUNT
+      || summary.offerCount !== 0
+    ) throw new Error("sale-only projection 건수 검증 실패");
+    const expectedHash = await sha256Hex(projection);
+    await setDoc(doc(db, PUBLIC_PATH), projection);
+    const readback = await getDoc(doc(db, PUBLIC_PATH));
+    if (!readback.exists()) throw new Error("공개 문서 READBACK 실패");
+    const readbackHash = await sha256Hex(readback.data());
+    if (readbackHash !== expectedHash) throw new Error("공개 문서 READBACK hash 불일치");
+    const anonymous = await anonymousPublicSummary();
+    if (
+      anonymous.productCount !== EXPECTED_PRODUCT_COUNT
+      || anonymous.categoryCount !== EXPECTED_CATEGORY_COUNT
+      || anonymous.offerCount !== 0
+    ) throw new Error("익명 raw 문서 sale-only 검증 실패");
+    show({
+      status: "sale-only-published-and-verified",
+      publicPath: PUBLIC_PATH,
+      publicHash: readbackHash,
+      productCount: anonymous.productCount,
+      categoryCount: anonymous.categoryCount,
+      offerCount: anonymous.offerCount,
+      anonymousExactGet: true,
+      workspaceExact: pair.sourceCheck.hash === pair.destinationCheck.hash,
+    });
+  } catch (error) {
+    console.error("[catalog-cutover] sale-only publish failed", error?.message || error);
+    show(error?.message || String(error), true);
+  } finally {
+    copyButton.disabled = false;
+    publishButton.disabled = false;
+  }
+}
+
+copyButton.addEventListener("click", copyWorkspace);
+publishButton.addEventListener("click", publishSaleOnly);
+await setPersistence(auth, browserLocalPersistence);
+onAuthStateChanged(auth, async (user) => {
+  if (!user || user.uid !== OWNER_UID) {
+    copyButton.disabled = true;
+    publishButton.disabled = true;
+    show("기존 owner 로그인 세션이 없습니다. 새 계정을 만들지 말고 기존 owner 세션을 확인한 뒤 다시 여세요.", true);
+    return;
+  }
+  try {
+    await user.getIdToken(true);
+    copyButton.disabled = false;
+    publishButton.disabled = false;
+    show("owner 세션 확인됨. 먼저 workspace 원본 보존 복사를 실행하세요.");
+  } catch {
+    copyButton.disabled = true;
+    publishButton.disabled = true;
+    show("owner 세션을 재검증할 수 없습니다.", true);
+  }
+});
+</script>
+</body>
+</html>

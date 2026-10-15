@@ -27,7 +27,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
     measurementId: "G-8H2H0NCJDF",
   };
 
-  const COLLECTION = "catalogShares";
+  const COLLECTION = "adminCatalogs";
   const WORKSPACE_ID = "work-k4m8q2x7n9v3c6p5r8t1";
   const SYNC_STAMP_KEY = "starbucks-helper-catalog-cloud-stamp-v1";
   const DEVICE_ID_KEY = "starbucks-helper-catalog-device-v1";
@@ -62,6 +62,8 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   let latestQueue = [];
   let lastCloudSignature = "";
   let deferredRemote = null;
+  let unsubscribeSnapshot = null;
+  let sessionEnded = false;
   // 기기별 화면 상태: 클라우드에 올리지 않고 원격 반영 시 로컬 값을 유지한다.
   const DEVICE_VIEW_FIELDS = ["current", "selected"];
 
@@ -309,7 +311,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
 
   async function pushCatalog() {
     writeTimer = null;
-    if (!initialized || applyingRemote || !ref) return;
+    if (sessionEnded || !initialized || applyingRemote || !ref) return;
     const catalogData = cloudSafeData();
     if (!catalogData) return;
     const signature = catalogSignature(catalogData);
@@ -342,7 +344,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   }
 
   function scheduleCatalogPush() {
-    if (!initialized || applyingRemote) return;
+    if (sessionEnded || !initialized || applyingRemote) return;
     clearTimeout(writeTimer);
     updateSyncBadge("동기화 중", "busy");
     writeTimer = setTimeout(pushCatalog, 900);
@@ -623,7 +625,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   }
 
   async function processPendingQueue(queue) {
-    if (isMobile || queueBusy || !initialized) return;
+    if (sessionEnded || isMobile || queueBusy || !initialized) return;
     const pending = safeArray(queue).find((item) =>
       item && (item.status === "pending" || item.status === "waiting"),
     );
@@ -647,22 +649,22 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
   }
 
   async function init() {
-    normalizeCatalogCategories(data);
-    applyCategoryPriorityOrder();
-    localStorage.setItem(KEY, JSON.stringify(data));
-    if (typeof render === "function") render();
-    installPrioritySortHook();
-    ensureSyncUi();
-    installAutosaveHook();
-    installMobileImportHook();
-
     try {
-      const [{ initializeApp }, firestore] = await Promise.all([
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+      const [{ app }, firestore] = await Promise.all([
+        window.__starbucksAdminReady
+          || import("./firebase-admin-auth.js").then((module) => module.requireAdminSession()),
         import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"),
       ]);
+      sessionEnded = false;
+      normalizeCatalogCategories(data);
+      applyCategoryPriorityOrder();
+      localStorage.setItem(KEY, JSON.stringify(data));
+      if (typeof render === "function") render();
+      installPrioritySortHook();
+      ensureSyncUi();
+      installAutosaveHook();
+      installMobileImportHook();
       f = firestore;
-      const app = initializeApp(FIREBASE_CONFIG, "catalog-workspace-sync");
       db = f.getFirestore(app);
       ref = f.doc(db, COLLECTION, WORKSPACE_ID);
 
@@ -694,7 +696,7 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
 
       renderQueue(cloud?.pendingLinks || []);
 
-      f.onSnapshot(ref, (snap) => {
+      unsubscribeSnapshot = f.onSnapshot(ref, (snap) => {
         if (!snap.exists()) return;
         const remote = snap.data();
         const remoteStamp = Number(remote.catalogUpdatedAt || 0);
@@ -725,6 +727,18 @@ Purpose : Cross-device catalog sync + mobile link queue + category-priority sort
       toastSafe("기기 동기화 연결에 실패했습니다");
     }
   }
+
+  window.addEventListener("firebase-admin-session-ended", () => {
+    sessionEnded = true;
+    initialized = false;
+    clearTimeout(writeTimer);
+    writeTimer = null;
+    deferredRemote = null;
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+    ref = null;
+    updateSyncBadge("인증 종료", "error");
+  });
 
   init();
 })();

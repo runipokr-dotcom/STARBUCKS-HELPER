@@ -1,8 +1,8 @@
 <!--
 STARBUCKS HELPER
 File : share.html
-Version : 1.3
-Updated : 2026-10-02
+Version : 1.4
+Updated : 2026-10-14
 Purpose : Read-only customer-facing catalog page, backed by Firestore.
           Published from catalog-editor.html's "저장·게시" action.
 -->
@@ -11,6 +11,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" id="robotsPolicy" content="index,follow" />
     <title>상품 안내 | 디스이스마인</title>
     <meta name="description" content="디스이스마인 제공" />
     <meta property="og:title" content="상품 안내 | 디스이스마인" />
@@ -93,6 +95,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         white-space: nowrap;
         cursor: pointer;
       }
+      .offer-toggle-top[hidden] { display: none !important; }
       .filter-buttons {
         display: flex;
         flex-wrap: wrap;
@@ -163,6 +166,12 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         overflow: hidden;
         background: #f7f7f5;
         border-radius: 10px;
+        cursor: pointer;
+      }
+      .photo:focus-visible,
+      .p-name:focus-visible {
+        outline: 3px solid #8bc7aa;
+        outline-offset: 2px;
       }
       .photo img {
         width: 100%;
@@ -172,6 +181,12 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       .photo.empty {
         color: var(--mut);
         font-size: 11px;
+      }
+      .photo-placeholder {
+        padding: 12px;
+        color: var(--mut);
+        text-align: center;
+        line-height: 1.45;
       }
       .photo-arrow {
         position: absolute;
@@ -198,9 +213,17 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         font-size: 10px;
       }
       .p-name {
+        display: block;
+        width: 100%;
         margin-top: 7px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
         font-size: 15px;
         font-weight: 750;
+        text-align: left;
+        cursor: pointer;
       }
       .p-sale {
         font-size: 12px;
@@ -648,10 +671,72 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       #stampPreview { max-width:100px; max-height:80px; object-fit:contain; }
       .issuer-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:16px; }
       #issuerStatus { font-size:12px; color:var(--mut); }
+      #productDetailDialog {
+        width: min(760px, calc(100% - 24px));
+        max-height: 90vh;
+        overflow: auto;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        color: var(--ink);
+      }
+      #productDetailDialog::backdrop { background: #0008; }
+      .detail-close {
+        position: sticky;
+        z-index: 2;
+        top: 10px;
+        float: right;
+        width: 38px;
+        height: 38px;
+        margin: 10px 10px -48px 0;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: #fff;
+        font-size: 22px;
+        cursor: pointer;
+      }
+      .detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(240px, 0.92fr);
+        gap: 22px;
+        padding: 24px;
+      }
+      .detail-media {
+        position: relative;
+        display: grid;
+        place-items: center;
+        aspect-ratio: 5/6;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #f7f7f5;
+      }
+      .detail-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .detail-copy { min-width: 0; padding-top: 30px; }
+      .detail-copy h2 { margin: 0 0 12px; font-size: 23px; line-height: 1.35; }
+      .detail-category { margin: 0 0 12px; color: var(--mut); font-size: 13px; }
+      .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+      .detail-tag { padding: 4px 8px; border-radius: 999px; background: #edf4f0; color: var(--d); font-size: 11px; }
+      .detail-prices { display: grid; gap: 5px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .detail-sale { color: var(--mut); font-size: 13px; }
+      .detail-offer { font-size: 18px; font-weight: 800; }
+      .detail-unit { margin: 12px 0 0; color: var(--mut); font-size: 12px; }
+      .detail-source-note { margin: 18px 0 0; color: var(--mut); font-size: 11px; line-height: 1.55; }
+      @media (max-width: 620px) {
+        #productDetailDialog { max-height: 92vh; }
+        .detail-layout { grid-template-columns: 1fr; gap: 12px; padding: 14px; }
+        .detail-media { max-height: 52vh; }
+        .detail-copy { padding-top: 0; }
+        .detail-copy h2 { padding-right: 42px; font-size: 19px; }
+      }
     </style>
   </head>
   <body>
-    <header>STARBUCKS MD 안내</header>
+    <header id="pageHeader">STARBUCKS MD 안내</header>
     <main class="wrap">
       <div class="state" id="loading">불러오는 중…</div>
       <div class="state" id="notFound" hidden>
@@ -661,8 +746,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="filter-line">
           <b>대분류</b>
           <div class="filter-buttons" id="categoryFilters"></div>
-          <label class="offer-toggle-top"
-            ><input type="checkbox" id="includeOffer" checked /> 제안가
+          <label class="offer-toggle-top" id="offerToggleWrap" hidden
+            ><input type="checkbox" id="includeOffer" /> 제안가
             표기</label
           >
         </div>
@@ -694,8 +779,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           <input class="search-field" id="productSearch" type="search" aria-label="상품 검색" placeholder="상품 검색 (1글자부터)" />
           <span class="selection-count" id="filterCount"></span>
         </div>
-        <div class="catalog-guidance">
-          선택한 가격 표시(제안가 또는 판매가)가 견적서의 실제 적용 단가입니다.
+        <div class="catalog-guidance" id="catalogGuidance">
+          표시된 판매가가 견적서의 실제 적용 단가입니다.
           상품명에 2P·세트 표기가 있으면 1세트 기준, 그 외는 1개 기준이며
           표시 단가는 부가세 포함입니다. 견적서에서는 공급가액과 부가세를 나누어 표시합니다.
         </div>
@@ -764,6 +849,20 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         <div class="issuer-actions"><button class="btn mini" type="button" id="issuerCancel">취소</button><button class="btn mini" type="button" id="issuerApply">이번 견적에 적용</button><button class="btn primary mini" type="submit" id="issuerSave">프로필 저장·적용</button></div>
       </form>
     </dialog>
+    <dialog id="productDetailDialog" aria-labelledby="productDetailTitle">
+      <button class="detail-close" id="productDetailClose" type="button" aria-label="상품 상세 닫기">×</button>
+      <div class="detail-layout">
+        <div class="detail-media" id="productDetailMedia"></div>
+        <div class="detail-copy">
+          <h2 id="productDetailTitle"></h2>
+          <p class="detail-category" id="productDetailCategory"></p>
+          <div class="detail-tags" id="productDetailTags"></div>
+          <div class="detail-prices" id="productDetailPrices"></div>
+          <p class="detail-unit" id="productDetailUnit"></p>
+          <p class="detail-source-note">현재 공개된 상품명·분류·가격·이미지 정보만 표시합니다.</p>
+        </div>
+      </div>
+    </dialog>
     <div class="notice" id="notice"></div>
     <script>
       const FIREBASE_CONFIG = {
@@ -775,7 +874,9 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           appId: "1:1015231512258:web:25bb0229b5bc90b56a455b",
           measurementId: "G-8H2H0NCJDF",
         },
-        SHARE_COLLECTION = "catalogShares",
+        PUBLIC_SHARE_COLLECTION = "catalogShares",
+        PARTNER_SHARE_COLLECTION = "partnerCatalogShares",
+        PUBLIC_SHARE_ID = "c6xxh9",
         DEFAULT_CONTACT = {
           company: "디스이스마인",
           email: "runipo.kr@gmail.com",
@@ -807,12 +908,126 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         );
       }
       const params = new URLSearchParams(location.search);
-      const shareId = params.get("id");
+      const isPartnerView = /(?:^\/p\/?$|(?:^|\/)partner\.html$)/i.test(location.pathname);
+      let capability = isPartnerView ? location.hash.slice(1) : "";
+      let shareId = isPartnerView ? capability : params.get("id");
+      const shareCollection = isPartnerView
+        ? PARTNER_SHARE_COLLECTION
+        : PUBLIC_SHARE_COLLECTION;
       let shareData = { categories: [], products: [], notice: "" };
       let activeCategory = "전체";
       let activeTag = "전체";
       let customOrder = null; // ids, once the viewer drags/sorts locally
       let saved = false, saving = false;
+      const failedProductImages = new Map();
+      let detailProduct = null;
+      let detailOpener = null;
+      let unsubscribeShare = null;
+      let partnerExpiryTimer = null;
+      let accessClosed = true;
+
+      function validPartnerCapability(value) {
+        return typeof value === "string" && /^[A-Za-z0-9_-]{43}$/.test(value);
+      }
+
+      function partnerExpiryMillis(expiresAt) {
+        const value = expiresAt && typeof expiresAt.toMillis === "function"
+          ? expiresAt.toMillis()
+          : Number.NaN;
+        return Number.isFinite(value) ? value : Number.NaN;
+      }
+
+      function partnerExpiryDelay(expiresAt, now = Date.now()) {
+        const expiresAtMillis = partnerExpiryMillis(expiresAt);
+        return Number.isFinite(expiresAtMillis) ? expiresAtMillis - now : Number.NaN;
+      }
+
+      function stopShareSubscription() {
+        clearTimeout(partnerExpiryTimer);
+        partnerExpiryTimer = null;
+        const stop = unsubscribeShare;
+        unsubscribeShare = null;
+        if (typeof stop === "function") {
+          try { stop(); }
+          catch (error) { console.error(error); }
+        }
+      }
+
+      function releaseShareClient() {
+        const { db, firestore: f } = shareState;
+        shareState = { db: null, firestore: null, ready: false };
+        if (db && typeof f?.terminate === "function") {
+          try {
+            const termination = f.terminate(db);
+            if (termination && typeof termination.catch === "function")
+              void termination.catch((error) => console.error(error));
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+
+      function clearCatalogAccess(message = "링크를 찾을 수 없습니다. 링크를 다시 확인해주세요.") {
+        accessClosed = true;
+        stopShareSubscription();
+        releaseShareClient();
+        if (isPartnerView) {
+          capability = "";
+          shareId = "";
+          try { history.replaceState(null, "", location.pathname); }
+          catch (error) { console.error(error); }
+        }
+        shareData = { categories: [], products: [], notice: "" };
+        activeCategory = "전체";
+        activeTag = "전체";
+        customOrder = null;
+        saved = false;
+        saving = false;
+        failedProductImages.clear();
+        detailProduct = null;
+        detailOpener = null;
+        $("#includeOffer").checked = false;
+        $("#offerToggleWrap").hidden = true;
+        $("#productSearch").value = "";
+        ["ctCompany", "ctEmail", "ctPhone", "customerName", "customerEmail", "customerPhone"]
+          .forEach((id) => { $("#" + id).value = ""; });
+        ["categoryFilters", "tagFilters", "grid", "basketRows", "productDetailMedia", "productDetailTags", "productDetailPrices"]
+          .forEach((id) => $("#" + id).replaceChildren());
+        ["filterCount", "shareNotice", "summary", "supply", "vat", "grand", "productDetailTitle", "productDetailCategory", "productDetailUnit"]
+          .forEach((id) => { $("#" + id).textContent = ""; });
+        $("#shareNotice").hidden = true;
+        $("#saveHelp").hidden = true;
+        $("#saveHelp").replaceChildren();
+        $("#saveBtn").disabled = true;
+        $("#filtersSection").hidden = true;
+        $("#gridSection").hidden = true;
+        $("#basket").hidden = true;
+        if ($("#productDetailDialog").open) $("#productDetailDialog").close();
+        if ($("#issuerDialog").open) $("#issuerDialog").close();
+        $("#loading").hidden = true;
+        $("#notFound").textContent = message;
+        $("#notFound").hidden = false;
+      }
+
+      function schedulePartnerExpiry(expiresAt) {
+        if (!isPartnerView) return true;
+        clearTimeout(partnerExpiryTimer);
+        partnerExpiryTimer = null;
+        const expire = () => {
+          const remaining = partnerExpiryDelay(expiresAt);
+          if (!Number.isFinite(remaining) || remaining <= 0) {
+            clearCatalogAccess("거래처 전용 링크가 만료되었습니다.");
+            return;
+          }
+          partnerExpiryTimer = setTimeout(expire, Math.min(remaining, 2_147_483_647));
+        };
+        if (!(partnerExpiryDelay(expiresAt) > 0)) {
+          clearCatalogAccess("거래처 전용 링크가 만료되었습니다.");
+          return false;
+        }
+        expire();
+        return true;
+      }
 
       function tagOptions() {
         return [...new Set(shareData.products.flatMap((p) => p.tags || []))];
@@ -826,13 +1041,120 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       function unitPrice(product, includeOffer = $("#includeOffer").checked) {
         if (isUnavailable(product)) return 0;
-        return Math.max(0, numericPrice(includeOffer ? product.offer : product.sale));
+        return Math.max(0, numericPrice(isPartnerView && includeOffer ? product.offer : product.sale));
       }
       function unitBasis(product) {
         const name = String(product?.name || "");
         return /\d+\s*P(?:\b|$)/i.test(name) || name.replace(/카세트/g, "").includes("세트")
           ? "1세트 기준"
           : "1개 기준";
+      }
+      function normalizeIncomingProduct(product, previous, partnerMode = isPartnerView) {
+        const images = uniqueProductImages(product?.images);
+        const unavailable = isUnavailable(product);
+        const normalized = {
+          id: product?.id,
+          name: typeof product?.name === "string" ? product.name : "",
+          sale: Math.max(0, numericPrice(product?.sale)),
+          category: typeof product?.category === "string" ? product.category : "",
+          tags: Array.isArray(product?.tags)
+            ? product.tags.filter((tag) => typeof tag === "string")
+            : [],
+          images,
+          updatedAt: Number.isSafeInteger(product?.updatedAt) ? product.updatedAt : product?.id,
+          selected: unavailable ? false : previous?.selected || false,
+          qty: Number.isSafeInteger(previous?.qty) && previous.qty > 0 ? previous.qty : 1,
+          current: Math.min(previous?.current || 0, Math.max(0, images.length - 1)),
+        };
+        if (partnerMode && !unavailable)
+          normalized.offer = Math.max(0, numericPrice(product?.offer));
+        return normalized;
+      }
+      function productImageFailures(product) {
+        const key = String(product?.id ?? "");
+        if (!failedProductImages.has(key)) failedProductImages.set(key, new Set());
+        return failedProductImages.get(key);
+      }
+      function nextProductImageIndex(images, start, failedUrls, direction = 1) {
+        if (!Array.isArray(images) || !images.length) return -1;
+        const step = direction < 0 ? -1 : 1;
+        const normalized = ((Number(start) || 0) % images.length + images.length) % images.length;
+        for (let offset = 0; offset < images.length; offset += 1) {
+          const index = (normalized + step * offset + images.length) % images.length;
+          if (!failedUrls?.has(images[index])) return index;
+        }
+        return -1;
+      }
+      function usableProductImageIndex(product, start = product?.current || 0, direction = 1) {
+        return nextProductImageIndex(product?.images, start, productImageFailures(product), direction);
+      }
+      function stepProductImage(product, direction) {
+        if (!product?.images?.length) return -1;
+        const current = usableProductImageIndex(product);
+        const start = (current < 0 ? 0 : current) + (direction < 0 ? -1 : 1);
+        const next = usableProductImageIndex(product, start, direction);
+        if (next >= 0) product.current = next;
+        return next;
+      }
+      function productPhotoHtml(product, { detail = false } = {}) {
+        const index = usableProductImageIndex(product);
+        if (index < 0) return '<span class="photo-placeholder">이미지를 불러올 수 없습니다.</span>';
+        product.current = index;
+        const arrows = product.images.length > 1
+          ? `<button type="button" class="photo-arrow prev" aria-label="이전 이미지">‹</button><button type="button" class="photo-arrow next" aria-label="다음 이미지">›</button><span class="photo-count">${index + 1}/${product.images.length}</span>`
+          : "";
+        return `<img src="${esc(product.images[index])}" data-image-index="${index}" alt="${esc(product.name)}${detail ? " 상세" : ""}">${arrows}`;
+      }
+      function bindProductImage(container, product, onExhausted) {
+        const img = container?.querySelector("img[data-image-index]");
+        if (!img) return;
+        img.onerror = () => {
+          const failedIndex = Number(img.dataset.imageIndex);
+          productImageFailures(product).add(product.images[failedIndex]);
+          const next = usableProductImageIndex(product, failedIndex + 1);
+          if (next >= 0) {
+            product.current = next;
+            img.dataset.imageIndex = String(next);
+            img.src = product.images[next];
+            const count = container.querySelector(".photo-count");
+            if (count) count.textContent = `${next + 1}/${product.images.length}`;
+            return;
+          }
+          container.classList.add("empty");
+          container.querySelectorAll("img, .photo-arrow, .photo-count").forEach((node) => node.remove());
+          const placeholder = document.createElement("span");
+          placeholder.className = "photo-placeholder";
+          placeholder.textContent = "이미지를 불러올 수 없습니다.";
+          container.append(placeholder);
+          if (onExhausted) onExhausted();
+        };
+      }
+      function renderProductDetail() {
+        if (!detailProduct) return;
+        const product = detailProduct;
+        const media = $("#productDetailMedia");
+        media.classList.toggle("empty", usableProductImageIndex(product) < 0);
+        media.innerHTML = productPhotoHtml(product, { detail: true });
+        bindProductImage(media, product);
+        const prev = media.querySelector(".photo-arrow.prev");
+        const next = media.querySelector(".photo-arrow.next");
+        if (prev) prev.onclick = () => { stepProductImage(product, -1); renderProductDetail(); };
+        if (next) next.onclick = () => { stepProductImage(product, 1); renderProductDetail(); };
+        $("#productDetailTitle").textContent = product.name || "상품";
+        $("#productDetailCategory").textContent = product.category || "미분류";
+        $("#productDetailTags").innerHTML = (product.tags || [])
+          .map((tag) => `<span class="detail-tag">${esc(tag)}</span>`)
+          .join("");
+        $("#productDetailPrices").innerHTML = isUnavailable(product)
+          ? '<div class="p-unavailable">판매 중지</div>'
+          : `<div class="detail-sale">판매가 ${money(product.sale)}</div>${isPartnerView && $("#includeOffer").checked ? `<div class="detail-offer">제안가 ${money(unitPrice(product, true))}</div>` : ""}`;
+        $("#productDetailUnit").textContent = unitBasis(product);
+      }
+      function openProductDetail(product, opener) {
+        detailProduct = product;
+        detailOpener = opener;
+        renderProductDetail();
+        $("#productDetailDialog").showModal();
       }
       function searchTokens(value) {
         return String(value || "")
@@ -901,7 +1223,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           `표시 ${visible().length}개 · 선택 ${shareData.products.filter((p) => p.selected).length}개`;
       }
       function sortProducts(mode) {
-        let includeOffer = $("#includeOffer").checked,
+        let includeOffer = isPartnerView && $("#includeOffer").checked,
           items = visible();
         if (items.length < 2) return;
         let keyFn =
@@ -920,7 +1242,8 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         toast("정렬했습니다");
       }
       function render() {
-        let includeOffer = $("#includeOffer").checked,
+        if (accessClosed) return;
+        let includeOffer = isPartnerView && $("#includeOffer").checked,
           items = visible();
         $("#shareNotice").hidden = !shareData.notice;
         $("#shareNotice").textContent = shareData.notice
@@ -930,7 +1253,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           items
             .map(
               ({ p, i }) =>
-                `<article class="product ${isUnavailable(p) ? "unavailable" : ""}" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} ${isUnavailable(p) ? "disabled" : ""} aria-label="${i + 1}번 ${isUnavailable(p) ? "판매 중지" : "선택"}"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${p.images?.length ? "" : "empty"}">${p.images?.length ? `<img src="${esc(p.images[p.current || 0] || p.images[0])}" alt="${esc(p.name)}">${p.images.length > 1 ? `<button type="button" class="photo-arrow prev" aria-label="이전 이미지">‹</button><button type="button" class="photo-arrow next" aria-label="다음 이미지">›</button><span class="photo-count">${(p.current || 0) + 1}/${p.images.length}</span>` : ""}` : "이미지 없음"}</div><div class="p-name">${esc(p.name)}</div>${isUnavailable(p) ? '<div class="p-unavailable">판매 중지</div>' : `<div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(unitPrice(p, true))}</div>` : ""}<div class="p-unit">${unitBasis(p)}</div>`}</article>`,
+                `<article class="product ${isUnavailable(p) ? "unavailable" : ""}" draggable="true" data-i="${i}"><div class="meta"><span class="drag">☷</span><input type="checkbox" class="pick" ${p.selected ? "checked" : ""} ${isUnavailable(p) ? "disabled" : ""} aria-label="${i + 1}번 ${isUnavailable(p) ? "판매 중지" : "선택"}"><span>${String(i + 1).padStart(2, "0")}</span></div><div class="photo ${usableProductImageIndex(p) >= 0 ? "" : "empty"}" role="button" tabindex="0" aria-label="${esc(p.name)} 상세보기">${productPhotoHtml(p)}</div><button type="button" class="p-name">${esc(p.name)}</button>${isUnavailable(p) ? '<div class="p-unavailable">판매 중지</div>' : `<div class="p-sale">판매가 ${money(p.sale)}</div>${includeOffer ? `<div class="p-offer">제안가 ${money(unitPrice(p, true))}</div>` : ""}<div class="p-unit">${unitBasis(p)}</div>`}</article>`,
             )
             .join("") +
           (items.length
@@ -952,12 +1275,26 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
           };
           const prev = card.querySelector(".photo-arrow.prev");
           const next = card.querySelector(".photo-arrow.next");
-          if (prev) prev.onclick = () => {
-            p.current = ((p.current || 0) - 1 + p.images.length) % p.images.length;
+          const photo = card.querySelector(".photo");
+          bindProductImage(photo, p);
+          photo.onclick = (event) => {
+            if (event.target.closest(".photo-arrow")) return;
+            openProductDetail(p, photo);
+          };
+          photo.onkeydown = (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            openProductDetail(p, photo);
+          };
+          card.querySelector(".p-name").onclick = (event) => openProductDetail(p, event.currentTarget);
+          if (prev) prev.onclick = (event) => {
+            event.stopPropagation();
+            stepProductImage(p, -1);
             render();
           };
-          if (next) next.onclick = () => {
-            p.current = ((p.current || 0) + 1) % p.images.length;
+          if (next) next.onclick = (event) => {
+            event.stopPropagation();
+            stepProductImage(p, 1);
             render();
           };
           card.ondragstart = (e) => e.dataTransfer.setData("text/plain", i);
@@ -989,7 +1326,11 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         });
       }
       function renderBasket() {
-        let includeOffer = $("#includeOffer").checked,
+        if (accessClosed) {
+          $("#basket").hidden = true;
+          return;
+        }
+        let includeOffer = isPartnerView && $("#includeOffer").checked,
           selected = shareData.products.filter((p) => p.selected && !isUnavailable(p)),
           unit = (p) => unitPrice(p, includeOffer),
           total = selected.reduce((s, p) => s + unit(p) * (p.qty || 1), 0),
@@ -1069,7 +1410,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       }
       let issuer = normalizeIssuer(), issuerStore = { profiles: [], last: "" }, issuerDraft, stampJob = 0;
       function currentIssuer() {
-        return normalizeIssuer({ ...issuer, company: $("#ctCompany").value.trim(), email: $("#ctEmail").value.trim(), phone: $("#ctPhone").value.trim(), includeOffer: $("#includeOffer").checked });
+        return normalizeIssuer({ ...issuer, company: $("#ctCompany").value.trim(), email: $("#ctEmail").value.trim(), phone: $("#ctPhone").value.trim(), includeOffer: isPartnerView && $("#includeOffer").checked });
       }
       function renderIssuerProfiles() {
         const select = $("#issuerProfiles");
@@ -1080,7 +1421,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       function applyIssuer(profile) {
         issuer = normalizeIssuer(profile);
         ["company", "email", "phone"].forEach((key, i) => { $("#" + ["ctCompany", "ctEmail", "ctPhone"][i]).value = issuer[key]; });
-        $("#includeOffer").checked = issuer.includeOffer;
+        $("#includeOffer").checked = isPartnerView && issuer.includeOffer;
       }
       try {
         const stored = JSON.parse(localStorage.getItem(ISSUER_KEY) || "null");
@@ -1255,7 +1596,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         return lines;
       }
       async function buildBasketImageDataUrl() {
-        let includeOffer = $("#includeOffer").checked,
+        let includeOffer = isPartnerView && $("#includeOffer").checked,
           selected = shareData.products.filter((p) => p.selected && !isUnavailable(p)),
           unit = (p) => unitPrice(p, includeOffer),
           rows = selected.map((p) => ({
@@ -1412,7 +1753,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
       $("#saveBtn").onclick = async () => {
         let selected = shareData.products.filter((p) => p.selected && !isUnavailable(p));
         if (!selected.length || saved || saving) return;
-        let includeOffer = $("#includeOffer").checked,
+        let includeOffer = isPartnerView && $("#includeOffer").checked,
           unit = (p) => unitPrice(p, includeOffer),
           items = selected.map((p) => ({
             name: p.name,
@@ -1443,7 +1784,7 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         try {
           const { db, firestore: f } = await initShareSync();
           await f.setDoc(
-            f.doc(db, SHARE_COLLECTION, shareId, "orders", shortId()),
+            f.doc(db, shareCollection, shareId, "orders", shortId()),
             {
               items,
               includeOffer,
@@ -1483,28 +1824,36 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
         }
       };
       async function boot() {
-        if (!shareId) {
-          $("#loading").hidden = true;
-          $("#notFound").hidden = false;
+        const validShare = isPartnerView
+          ? validPartnerCapability(shareId)
+          : shareId === PUBLIC_SHARE_ID;
+        if (!validShare) {
+          clearCatalogAccess();
           return;
         }
         try {
           const { db, firestore: f } = await initShareSync();
-          f.onSnapshot(
-            f.doc(db, SHARE_COLLECTION, shareId),
+          unsubscribeShare = f.onSnapshot(
+            f.doc(db, shareCollection, shareId),
             (snap) => {
-              $("#loading").hidden = true;
               if (!snap.exists()) {
-                $("#notFound").hidden = false;
-                $("#filtersSection").hidden = true;
-                $("#gridSection").hidden = true;
+                clearCatalogAccess();
                 return;
               }
+              const incoming = snap.data();
+              if (isPartnerView && (incoming.active !== true || !schedulePartnerExpiry(incoming.expiresAt))) {
+                clearCatalogAccess("거래처 전용 링크가 만료되었거나 폐기되었습니다.");
+                return;
+              }
+              accessClosed = false;
+              $("#loading").hidden = true;
               $("#notFound").hidden = true;
               $("#filtersSection").hidden = false;
               $("#gridSection").hidden = false;
-              let incoming = snap.data();
-              shareData.categories = incoming.categories || [];
+              if (isPartnerView) $("#offerToggleWrap").hidden = false;
+              shareData.categories = Array.isArray(incoming.categories)
+                ? incoming.categories.filter((category) => typeof category === "string")
+                : [];
               shareData.notice =
                 typeof incoming.notice === "string"
                   ? incoming.notice.trim().slice(0, 500)
@@ -1513,34 +1862,52 @@ Purpose : Read-only customer-facing catalog page, backed by Firestore.
                 shareData.products.map((p) => [p.id, { selected: p.selected, qty: p.qty, current: p.current }]),
               );
               shareData.products = applyCustomOrder(
-                (incoming.products || []).map((p) => {
-                  const unavailable = isUnavailable(p);
-                  return {
-                    ...p,
-                    offer: unavailable ? 0 : Math.max(0, numericPrice(p.offer)),
-                    images: uniqueProductImages(p.images),
-                    selected: unavailable ? false : prevSelections.get(p.id)?.selected || false,
-                    qty: prevSelections.get(p.id)?.qty || 1,
-                    current: Math.min(prevSelections.get(p.id)?.current || 0, Math.max(0, uniqueProductImages(p.images).length - 1)),
-                  };
-                }),
+                (Array.isArray(incoming.products) ? incoming.products : [])
+                  .map((product) => normalizeIncomingProduct(
+                    product,
+                    prevSelections.get(product?.id),
+                  )),
               );
               render();
             },
             (error) => {
               console.error(error);
-              $("#loading").hidden = true;
-              $("#notFound").hidden = false;
+              clearCatalogAccess(isPartnerView
+                ? "거래처 전용 링크가 만료되었거나 접근 권한이 회수되었습니다."
+                : "링크를 불러올 수 없습니다. 잠시 후 다시 확인해주세요.");
             },
           );
         } catch (error) {
           console.error(error);
-          $("#loading").hidden = true;
-          $("#notFound").hidden = false;
+          clearCatalogAccess();
         }
       }
       const scrollTopButton = $("#scrollTop");
+      if (isPartnerView) {
+        document.title = "거래처 전용 상품 안내 | 디스이스마인";
+        $("#pageHeader").textContent = "STARBUCKS MD 거래처 전용";
+        $("#robotsPolicy").content = "noindex,nofollow,noarchive";
+        $("#includeOffer").checked = true;
+        $("#catalogGuidance").firstChild.textContent =
+          "선택한 가격 표시(제안가 또는 판매가)가 견적서의 실제 적용 단가입니다. ";
+      } else {
+        $("#includeOffer").checked = false;
+      }
       scrollTopButton.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+      $("#productDetailClose").onclick = () => $("#productDetailDialog").close();
+      $("#productDetailDialog").addEventListener("close", () => {
+        const productId = detailProduct?.id;
+        const openerClass = detailOpener?.classList.contains("p-name") ? ".p-name" : ".photo";
+        detailProduct = null;
+        detailOpener = null;
+        if (accessClosed) return;
+        render();
+        const productIndex = shareData.products.findIndex((product) => product.id === productId);
+        document.querySelector(`.product[data-i="${productIndex}"] ${openerClass}`)?.focus();
+      });
+      window.addEventListener("pagehide", (event) => {
+        if (!event.persisted) stopShareSubscription();
+      }, { once: true });
       boot();
     </script>
   </body>
