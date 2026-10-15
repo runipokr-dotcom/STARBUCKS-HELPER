@@ -54,11 +54,25 @@
 
 ### 추가 확인 후 기록 — 기존 Console Rules UI 경로 확인
 - Mac 브라우저 실확인: 사용자의 기존 Chrome 프로필에서 새 로그인 없이 `starbucks-helper-f578e` Firebase Console과 Firestore 데이터 탭, `(default)` Rules 탭이 열렸다. Google 계정 세션과 프로젝트·Spark 요금제·현재 규칙 버전 이력이 표시됐고, 데이터 탭에는 추가/수정 제어가 표시됐다. 문서 값은 기록하지 않았다.
-- Rules editor 권한 표시: 현재 규칙 전문이 보이는 editor는 accessibility/DOM에서 `settable`, `contenteditable=true`, `readOnly=false`로 확인됐다. 로그인·권한 요청·Cloud Shell/API 승인은 나오지 않았다. 현재 규칙을 변경하지 않아 게시 버튼은 표시되지 않았으며, 실제 게시 성공은 운영 쓰기 없이 증명할 수 없으므로 사용자 직접 게시와 즉시 readback을 최종 권한 확인으로 남긴다.
+- Rules editor 권한 표시: 현재 규칙 전문이 보이는 editor는 accessibility/DOM에서 `settable`, `contenteditable=true`, `readOnly=false`로 확인됐다. 로그인·권한 요청·Cloud Shell/API 승인은 나오지 않았다. 현재 규칙을 변경하지 않아 게시 버튼은 표시되지 않았으며, 실제 게시 성공은 운영 쓰기 없이 증명할 수 없으므로 명시적 적용 시점 승인 뒤 Work가 기존 owner 세션으로 게시하고 즉시 readback하는 것을 최종 권한 확인으로 남긴다.
 - 읽기 전용 준수: Rules editor를 수정하거나 게시하지 않았고, 데이터 추가/수정 제어를 누르지 않았다. `개발 및 테스트`는 게시가 아닌 Emulator 안내 dialog임을 확인한 뒤 닫았고, 임시 확인 탭도 닫았다. 운영 Rules·Firestore·Auth·Pages에 쓰기는 없다.
-- 실행 스크립트 변경: 새 CLI OAuth·Firebase CLI를 전혀 사용하지 않는 경로로 바꾼다. Rules 파일 hash와 중간 영향을 push 전에 확인하고, 사용자 직접 push·Pages 8파일 hash 대조 후 정지해 Console URL, Rules 전체 206줄, 파일 SHA-256를 제시한다. 사용자가 직접 Console 게시 후 `RULES_PUBLISHED`를 입력해야 익명 public 200·legacy/quote/server3 403을 폴링 대조하고 helper URL을 출력한다. script는 Rules·Firestore 데이터를 직접 쓰지 않는다.
+- 실행 스크립트 변경: 새 CLI OAuth·Firebase CLI를 전혀 사용하지 않는 경로로 바꾼다. Rules 파일 hash와 중간 영향을 push 전에 확인하고, 사용자 직접 push·Pages 8파일 hash 대조 후 정지해 Console URL, Rules 전체 206줄, 파일 SHA-256를 제시한다. 명시적 적용 시점 승인 뒤 Work가 기존 owner 세션에서 Console Rules 게시와 1차 readback을 완료했다고 보고한 다음 `RULES_PUBLISHED`를 입력해야 script의 별도 익명 public 200·legacy/quote/server3 403 폴링 대조와 helper URL 출력이 진행된다. script는 Rules·Firestore 데이터를 직접 쓰지 않는다.
 - 중간 영향 정정: 관리자 editor/quote의 catalog 불러오기 일시 불가는 Rules 게시 후가 아니라, `adminCatalogs`를 참조하는 새 정적 파일이 Pages에 반영된 즉시부터 helper 1단계 완료 전까지다. 고객 링크는 기존 공개 문서로 286상품을 계속 표시하지만 raw `offer` 286건은 helper 2단계 전까지 공개된다. 따라서 push부터 Rules·helper 1·2단계를 지연 없이 연속해야 한다.
-- 운영 상태: 스크립트와 WORKLOG만 로컬에서 수정했다. 새 CLI credential·login·API 승인·Cloud Shell, push·Rules 게시·데이터 쓰기는 없다. 최종 실행은 사용자 직접 push와 Console 게시 승인을 기다린다.
+- 운영 상태: 스크립트와 WORKLOG만 로컬에서 수정했다. 새 CLI credential·login·API 승인·Cloud Shell, push·Rules 게시·데이터 쓰기는 없다. 최종 실행은 사용자 직접 push와 Work의 Console Rules 게시에 대한 명시적 적용 시점 승인을 기다린다.
+
+### 추가 조정 전 기록 — Rules 게시 주체와 실행 시점 승인
+- 추가 요청: 최종 적용 승인 전에는 운영 변경을 하지 않는다. 승인 후 GitHub push는 계속 사용자 직접 수행하되, 206줄 Rules 전문 붙여넣기·게시를 사용자에게 전가하지 않고 Work가 기존 owner Chrome 세션으로 수행할 수 있게 실행 절차를 준비한다.
+- 구분할 사실: 지금까지 Rules 게시 버튼을 실제로 누르거나 도구/UI에서 Rules 게시 권한 거절을 받은 적은 없다. 이전에 거절된 것은 GitHub push 승인이고, Cloud Shell API 승인은 새 권한 경로라 수락하지 않고 중단한 것이며 Rules 게시 거절 증거가 아니다.
+- 결정된 방식: 사용자 직접 push와 Pages hash readback이 끝나고 사용자가 정확한 적용 시점을 명시적으로 승인하면, Work가 기존 Console 세션에서 검증된 `firestore.catalog-phase1.rules` 전문과 SHA-256을 다시 대조해 editor 전체를 교체하고 게시한다. 로그인·권한·Cloud Shell/API 승인 prompt가 나오면 수락하지 않고 즉시 중단한다.
+- 이중 readback: Work는 게시 직후 Console 상태와 익명 경계(public 200, legacy/quote/server3 403)를 먼저 확인해 보고한다. 그 보고 뒤 사용자 실행 terminal에 `RULES_PUBLISHED`를 입력하면 script가 같은 익명 상태코드를 독립적으로 다시 폴링한다. 둘 중 하나라도 실패하면 helper 1·2단계와 운영 데이터 쓰기를 시작하지 않는다.
+- 유지/금지: admin editor·quote의 짧은 일시 불가와 raw offer 공개 잔존 구간은 push부터 helper 1·2단계까지 지연 없이 연속 수행해야 한다. 새 토큰·credential·계정·권한 요청, 운영 Rules/데이터의 사전 변경, push·배포는 하지 않는다.
+
+### 추가 조정 후 기록 — Work Console 게시·이중 READBACK 대기
+- 실제 수정: `scripts/deploy_issue2_catalog_cutover.sh`의 Pages hash 확인 뒤 안내를 사용자 수동 206줄 붙여넣기에서 Work 수행 절차로 바꿨다. 사용자 직접 push는 유지하고, 명시적 적용 시점 승인과 기존 owner Console 세션을 전제로 하며 새 로그인·권한·Cloud Shell/API 승인이 나타나면 중단한다.
+- 조정된 handoff: Work가 검증 Rules 전체 교체·게시와 Console/익명 경계 1차 READBACK 성공을 보고해야만 terminal에서 `RULES_PUBLISHED`를 입력하도록 했다. 이후 script가 public 200, legacy/quote/server3 403을 다시 폴링하므로 2차 독립 readback은 유지된다.
+- 거절 이력 판정: Rules 게시를 실제 시도하거나 도구에서 거절된 이력은 없다. GitHub push 승인 거절과 수락하지 않은 Cloud Shell API 승인은 Rules 게시 권한 거절로 간주하지 않는다.
+- 검수: `bash -n scripts/deploy_issue2_catalog_cutover.sh`와 `git diff --check`가 통과했다. clean branch에서 실제 script prompt에 `NO`를 입력했을 때 원격 조회·push 전에 종료코드 1과 “GitHub push를 시작하지 않았다”가 확인됐다. script에는 Firebase CLI login/deploy나 Firestore write가 없고, 운영 전환 순서·중간 영향·hash/allowlist/원격 기준 게이트는 유지됐다. PC/모바일·운영 데이터 영향은 없으며 이번 조정으로 실제 push·Rules/Auth/Firestore/Pages 변경을 하지 않았다.
+- 남은 차단: 사용자의 최종 적용 승인과 정확한 실행 시점 승인이 필요하다. 승인 후에도 user-direct push·Pages 대조가 먼저이며, Work의 Console 게시·1차 READBACK과 script 2차 READBACK이 모두 통과하기 전에는 helper 1·2단계나 운영 데이터 쓰기를 시작하지 않는다.
 
 ## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
 

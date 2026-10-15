@@ -113,15 +113,16 @@ fi
 cat <<EOF
 정적 파일 push·Pages hash readback 완료
 
-이제 사용자가 기존 Firebase Console 세션에서 아래 작업을 직접 수행하세요.
+이 terminal을 그대로 열어 두고 Work에 Pages hash readback 완료를 알리세요.
+사용자가 정확한 적용 시점을 명시적으로 승인한 뒤 Work가 기존 owner Firebase Console 세션에서 아래 작업을 수행합니다.
 1. $CONSOLE_RULES_URL
 2. $REPO_ROOT/firestore.catalog-phase1.rules 전체 206줄로 현재 Rules 전체 교체
-3. 파일 SHA-256: $EXPECTED_RULES_SHA256
-4. Firebase Console의 게시 버튼을 사용자가 직접 누름
+3. 파일 SHA-256 $EXPECTED_RULES_SHA256 재대조
+4. Firebase Console 게시 후 Console 상태와 익명 권한 경계 1차 READBACK
 
-Cloud Shell·새 로그인·API 승인·새 권한 요청은 사용하지 마세요.
+Cloud Shell·새 로그인·API 승인·새 권한 요청이 나타나면 수락하지 않고 중단합니다.
 EOF
-read -r -p "Console에서 전체 Rules를 정상 게시한 뒤 RULES_PUBLISHED를 입력: " rules_ack
+read -r -p "Work가 Console 게시와 1차 READBACK 성공을 보고한 뒤 RULES_PUBLISHED를 입력: " rules_ack
 if [[ "$rules_ack" != "RULES_PUBLISHED" ]]; then
   echo "중단: Rules 게시 확인이 없습니다. owner helper를 실행하지 마세요." >&2
   exit 1
