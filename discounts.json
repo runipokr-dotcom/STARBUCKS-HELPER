@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-14T23:03:28+09:00",
+ "updatedAt": "2026-10-15T10:51:44+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-14T23:03:28+09:00",
-   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
+   "checkedAt": "2026-10-15T10:51:44+09:00",
+   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
    "scanned": 248,
    "discounted": 0,
    "error": ""
@@ -14,28 +14,28 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-14T23:03:28+09:00",
-   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
-   "scanned": 285,
-   "discounted": 0,
+   "checkedAt": "2026-10-15T10:51:44+09:00",
+   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
+   "scanned": 298,
+   "discounted": 2,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-14T23:03:28+09:00",
-   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
+   "checkedAt": "2026-10-15T10:51:44+09:00",
+   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
    "scanned": 268,
-   "discounted": 252,
+   "discounted": 242,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-14T23:03:28+09:00",
-   "lastSuccessAt": "2026-10-14T23:03:28+09:00",
-   "scanned": 158,
-   "discounted": 26,
+   "checkedAt": "2026-10-15T10:51:44+09:00",
+   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
+   "scanned": 148,
+   "discounted": 23,
    "error": ""
   }
  },
@@ -99,150 +99,6 @@
    "rate": 30,
    "soldOut": false,
    "firstSeen": "2026-10-12T11:39:22+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "11563881",
-   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 2P (블랙/그린/민트)",
-   "url": "https://gift.kakao.com/product/11563881",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 37800,
-   "originalPrice": 0,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-12T11:39:22+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "11563941",
-   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 2종 세트 (민트+그린) (집들이/결혼/자취선물)",
-   "url": "https://gift.kakao.com/product/11563941",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 37800,
-   "originalPrice": 0,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-12T11:39:22+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "11563866",
-   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 4P (민트/그린/블랙2P)",
-   "url": "https://gift.kakao.com/product/11563866",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 75600,
-   "originalPrice": 0,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-12T11:39:22+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631107",
-   "name": "SS 워시드 블루 버블 텀블러 355ml",
-   "url": "https://www.wconcept.co.kr/Product/308631107",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/07/308631107_QO44934.jpg",
-   "price": 28700,
-   "originalPrice": 41000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631110",
-   "name": "SS 워시드 블루 오페라 콜드컵 473ml",
-   "url": "https://www.wconcept.co.kr/Product/308631110",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/10/308631110_AS97826.jpg",
-   "price": 32200,
-   "originalPrice": 46000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631111",
-   "name": "SS 워시드 블루 워커 텀블러 680ml",
-   "url": "https://www.wconcept.co.kr/Product/308631111",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/11/308631111_RN92816.jpg",
-   "price": 34300,
-   "originalPrice": 49000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631112",
-   "name": "워시드 블루 댄싱 베어리스타 인형 (딥)",
-   "url": "https://www.wconcept.co.kr/Product/308631112",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/12/308631112_QX63201.jpg",
-   "price": 41300,
-   "originalPrice": 59000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308630014",
-   "name": "워시드 블루 머그 앤 코스터 세트",
-   "url": "https://www.wconcept.co.kr/Product/308630014",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/14/308630014_UA30929.jpg",
-   "price": 21700,
-   "originalPrice": 31000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631114",
-   "name": "워시드 블루 베어리스타 키체인",
-   "url": "https://www.wconcept.co.kr/Product/308631114",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/14/308631114_RE96822.jpg",
-   "price": 19600,
-   "originalPrice": 28000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631113",
-   "name": "워시드 블루 베어리스타 키체인 (딥)",
-   "url": "https://www.wconcept.co.kr/Product/308631113",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/13/308631113_YW14243.jpg",
-   "price": 19600,
-   "originalPrice": 28000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308630012",
-   "name": "워시드 블루 사이렌 글라스 500ml",
-   "url": "https://www.wconcept.co.kr/Product/308630012",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/12/308630012_TQ55403.jpg",
-   "price": 12600,
-   "originalPrice": 18000,
-   "rate": 30,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308631115",
-   "name": "워시드 블루 파우치",
-   "url": "https://www.wconcept.co.kr/Product/308631115",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/15/308631115_US25366.jpg",
-   "price": 20300,
-   "originalPrice": 29000,
-   "rate": 30,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
    "store": "kakao",
@@ -365,18 +221,6 @@
    "firstSeen": "2026-10-12T00:05:27+09:00"
   },
   {
-   "store": "wconcept",
-   "id": "308629876",
-   "name": "워시드 블루 미니 콜드컵 300ml",
-   "url": "https://www.wconcept.co.kr/Product/308629876",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/76/308629876_YW83422.jpg",
-   "price": 12750,
-   "originalPrice": 15000,
-   "rate": 15,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
    "store": "kakao",
    "id": "12051198",
    "name": "\"대용량 텀블러\" SS 하트풀 오왈라 트래블 콜드컵 1185ml +에코텀블러음료쿠폰(카톡발송)",
@@ -495,6 +339,32 @@
    "rate": 10,
    "soldOut": false,
    "firstSeen": "2026-10-01T11:26:53+09:00"
+  },
+  {
+   "store": "29cm",
+   "id": "4293904",
+   "name": "베스트오브럭 도시락+텀블러 세트(그린)",
+   "url": "https://www.29cm.co.kr/products/4293904",
+   "image": "https://img.29cm.co.kr/item/202610/11f1c610439b8d578aaedfeb4c4caaf2.png",
+   "price": 90250,
+   "originalPrice": 95000,
+   "rate": 5,
+   "soldOut": false,
+   "coupon": false,
+   "firstSeen": "2026-10-15T10:51:44+09:00"
+  },
+  {
+   "store": "29cm",
+   "id": "4293903",
+   "name": "베스트오브럭 도시락+텀블러 세트(핑크)",
+   "url": "https://www.29cm.co.kr/products/4293903",
+   "image": "https://img.29cm.co.kr/item/202610/11f1c6102ac75a3c90ede5ec30167d7d.png",
+   "price": 90250,
+   "originalPrice": 95000,
+   "rate": 5,
+   "soldOut": false,
+   "coupon": false,
+   "firstSeen": "2026-10-15T10:51:44+09:00"
   },
   {
    "store": "wconcept",
