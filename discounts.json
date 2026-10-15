@@ -1,39 +1,39 @@
 {
  "version": 1,
- "updatedAt": "2026-10-15T10:51:44+09:00",
+ "updatedAt": "2026-10-15T22:42:29+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-15T10:51:44+09:00",
-   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
-   "scanned": 248,
+   "checkedAt": "2026-10-15T22:42:29+09:00",
+   "lastSuccessAt": "2026-10-15T22:42:29+09:00",
+   "scanned": 257,
    "discounted": 0,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-15T10:51:44+09:00",
-   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
-   "scanned": 298,
+   "checkedAt": "2026-10-15T22:42:29+09:00",
+   "lastSuccessAt": "2026-10-15T22:42:29+09:00",
+   "scanned": 295,
    "discounted": 2,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-15T10:51:44+09:00",
-   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
-   "scanned": 268,
-   "discounted": 242,
+   "checkedAt": "2026-10-15T22:42:29+09:00",
+   "lastSuccessAt": "2026-10-15T22:42:29+09:00",
+   "scanned": 271,
+   "discounted": 239,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-15T10:51:44+09:00",
-   "lastSuccessAt": "2026-10-15T10:51:44+09:00",
+   "checkedAt": "2026-10-15T22:42:29+09:00",
+   "lastSuccessAt": "2026-10-15T22:42:29+09:00",
    "scanned": 148,
    "discounted": 23,
    "error": ""
@@ -470,18 +470,6 @@
    "image": "https://product-image.wconcept.co.kr/productimg/image/img9/57/308437857_AU64070.jpg",
    "price": 56050,
    "originalPrice": 59000,
-   "rate": 5,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "307999495",
-   "name": "SS 모니카 하우스 투고 텀블러 473ml",
-   "url": "https://www.wconcept.co.kr/Product/307999495",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/95/307999495_YD17612.jpg",
-   "price": 38000,
-   "originalPrice": 40000,
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
@@ -1628,18 +1616,6 @@
   },
   {
    "store": "wconcept",
-   "id": "307999491",
-   "name": "레이첼과 로스의 커플 머그 세트",
-   "url": "https://www.wconcept.co.kr/Product/307999491",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/91/307999491_BK28446.jpg",
-   "price": 43700,
-   "originalPrice": 46000,
-   "rate": 5,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
    "id": "308296239",
    "name": "무자기 라운드 디저트 플레이트",
    "url": "https://www.wconcept.co.kr/Product/308296239",
@@ -2019,7 +1995,7 @@
    "price": 28500,
    "originalPrice": 30000,
    "rate": 5,
-   "soldOut": true,
+   "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
@@ -2702,18 +2678,6 @@
    "image": "https://product-image.wconcept.co.kr/productimg/image/img9/18/308348518_UP97605.jpg",
    "price": 51300,
    "originalPrice": 54000,
-   "rate": 5,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "307999489",
-   "name": "챈들러의 고백을 부르는 터키 베어리스타 키체인",
-   "url": "https://www.wconcept.co.kr/Product/307999489",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/89/307999489_WD75171.jpg",
-   "price": 23750,
-   "originalPrice": 25000,
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
