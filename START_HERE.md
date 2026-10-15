@@ -47,6 +47,7 @@ STARBUCKS HELPER는 단순 쿠폰 페이지가 아니라 디스이스마인 운�
 - **QR 고정 공개 카탈로그 URL:** `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/share.html?id=c6xxh9`
 - 위 URL은 이미 QR로 사용 중인 운영 주소다. 사용자가 명시적으로 변경을 지시하지 않는 한 `shareId=c6xxh9`, `share.html` 경로, GitHub Pages 프로젝트 경로를 변경하거나 새 주소로 교체하지 않는다.
 - **확정 전환 정책(카탈로그 범위, 미배포):** 일반 `c6xxh9`는 상품 상세·판매가만 공개하고 제안가는 별도 승인 경계로 분리한다. 카탈로그 전용 백업·내부 workspace 대조는 기존 verified backup과 현재 카탈로그만 사용하며 서버3 live 데이터 조사·복원·이관을 포함하지 않는다. 기존 서버3 owner 계정은 exact 관리자 인증 수단으로만 재사용하며 서버3 데이터 재구성과 무관하다. `issue2-catalog-export.html`은 동일 origin의 기존 owner 세션으로 읽기만 수행하고 운영 Firestore에는 쓰지 않는다.
+- **카탈로그 백업 게이트 완료·최소 전환 미적용:** 실제 catalog-only 16문서 export와 demo 복원·전건 hash READBACK은 완료됐다. 다음 전환은 정적 sale-only/owner 클라이언트와 catalog-only Rules를 먼저 함께 배포한 뒤에만 owner UI로 legacy workspace를 `adminCatalogs`에 원본 보존 복사·대조하고 `c6xxh9`를 286상품·10분류·`offer` 0건으로 재게시한다. Rules는 legacy workspace를 exact owner에게 읽기만 허용하고 쓰기를 막으며, 기존 견적 문서 4개는 현재 위치에서 owner-only로 유지한다. 이 순서 전에는 운영 데이터 쓰기를 하지 않는다.
 - 카탈로그 코드 최적화/리팩터링/게시 기능 수정 후에도 기존 QR 주소가 그대로 열리는지 확인한다.
 - 판매가 0원은 현재 판매하지 않는 상품이다. 가격 정책 계산을 건너뛰고 매입가/제안가도 0원으로 유지하며, 고객 공유 화면에서는 `판매 중지`로 표시하고 선택·견적 합산을 차단한다.
 - 배송비·케이스·쇼핑백 조건은 공유 목록별 확인된 안내만 게시한다. 특정 거래 1건의 조건을 전체 카탈로그 기본 정책으로 일반화하지 않는다.

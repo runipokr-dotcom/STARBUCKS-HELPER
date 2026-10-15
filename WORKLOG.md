@@ -15,6 +15,25 @@
 
 # WORKLOG
 
+## 2026-10-15 — Codex Work (카탈로그 최소 보안 전환 stage)
+
+### 작업 전 기록
+- 사용자 요청: 실제 catalog-only 16문서 백업·demo 복원 게이트를 재사용해, 서버3 데이터·권한과 쿠폰·다른 관리자 기능을 변경하지 않는 최소 카탈로그 전환 묶음을 최신 운영 main 위에 준비한다. 내부 workspace를 owner-only `adminCatalogs`에 원본 보존 복사·전건 hash 대조한 뒤 기존 `share.html?id=c6xxh9`에는 sale-only 데이터만 남긴다.
+- 선행 판단: 현재 broad Rules 아래에서 `adminCatalogs`에 먼저 복사하면 새 복사본도 익명 접근될 수 있으므로 운영 데이터 쓰기를 먼저 하지 않는다. 정적 sale-only/owner 클라이언트와 catalog-only Rules를 배포·readback한 뒤, Rules가 legacy workspace 익명/일반 접근과 모든 쓰기를 막고 exact owner read만 허용하는 상태에서 복사·게시한다.
+- 최소 대상: `share.html`, `catalog-editor.html`, `catalog-sync.js`, 의존하는 기존 owner Auth 모듈, legacy workspace 의존성을 유지해야 하는 `quote.html`, catalog-only Rules/config, exact 두 경로만 쓰는 cutover helper/core다. 실제 capability·partner page/host, 쿠폰/서버3 이관, 프롬프트·TO DO·다른 관리자 페이지는 제외한다.
+- 보존/금지: 고정 고객 URL과 share ID, 286상품·10분류, 기존 주문 subcollection, 견적 UI와 현재 견적 문서 4개, 기존 owner 계정, 서버3와 쿠폰·기본 작업 폴더 사용자 변경을 보존한다. 새 관리자 권한·계정·credential·capability를 만들지 않고, 이전 거절 push를 재시도하지 않으며 운영 Rules/Auth/Firestore에 아직 쓰지 않는다.
+- 완료 기준: 최신 `origin/main` 기반 diff가 위 파일로만 한정되고 보호 대상 baseline 파일이 byte-identical이어야 한다. helper는 verified workspace hash·286상품·10분류가 다르면 중단하고, 다른 hash의 기존 `adminCatalogs`를 덮어쓰지 않으며, 익명 raw read에서 286상품·10분류·`offer` 0건까지 확인해야 한다. Rules/클라이언트 선행 배포가 필요하므로 실제 데이터 변경 전 사용자 실행 묶음을 정확히 보고한다.
+
+### 작업 후 기록
+- 최소 stage: 최신 원격 `f982ee8`에서 `/tmp/helper-issue2-catalog-cutover-stage`, 브랜치 `codex/issue2-catalog-cutover-stage`를 만들었다. 운영 코드 commit `de29eb4`는 `share.html`, `catalog-editor.html`, `catalog-sync.js`, `quote.html`, `firebase-admin-auth.js`, catalog-only Rules/config, cutover helper/core 9개 파일만 포함한다.
+- 클라이언트 경계: 일반 `share.html?id=c6xxh9`는 수신 메모리에 `offer`를 넣지 않고 sale-only로 계산한다. 카탈로그 editor/sync는 exact owner Auth 뒤 `adminCatalogs`만 사용하며, `quote.html`은 기존 견적 문서 4개 위치와 UI를 유지하되 exact owner Auth로 접근하고 카탈로그 의존성만 `adminCatalogs`에서 읽는다. capability·partner page/host는 생성·배포 대상에 넣지 않았다.
+- Rules 경계: `c6xxh9`는 공개 exact get·list 차단, public order는 sale-only envelope만 허용한다. legacy workspace는 익명·일반 read와 모든 write를 거부하고 exact owner get만 허용한다. `adminCatalogs`와 exact partner config는 owner-only, 기존 견적 문서 4개는 현재 위치에서 owner-only다. 서버3 private/작업 경로의 익명·일반 거부와 exact owner 허용을 그대로 유지하며 다른 live 경로는 현행 호환을 유지한다.
+- cutover helper: verified 실제 workspace hash와 286상품·10분류를 고정 go/no-go로 사용한다. Rules가 legacy 익명 403·public exact get 성공 상태가 아니면 쓰기 전에 중단한다. 1단계는 source를 읽어 목적지가 없을 때만 exact copy하고 원본/복사본 hash·건수와 목적지 익명 403을 READBACK한다. 다른 hash의 기존 목적지는 덮어쓰지 않는다. 2단계는 복사본에서 fresh allowlist projection을 만들고 `c6xxh9` 부모 문서만 교체한 뒤 owner hash와 익명 raw 286상품·10분류·`offer` 0건을 확인한다. 기존 주문 subcollection은 삭제하지 않는다.
+- 검수: actual 16문서 백업에서 workspace 고정 hash·286상품·10분류와 합성 sale-only `offer` 0건을 확인했다. helper core 3/3, helper 정적 4/4, client/security 13/13, catalog Rules/복사/게시/주문보존 Emulator 7/7, JS/HTML module·배포 script 구문과 `git diff --check`가 통과했다. 최소 stage 파일은 full 테스트 원본과 byte-identical이다.
+- 보호 범위 확인: coupon 1/2/3 HTML·JSON, `prompt.html`, `index.html`, `discounts.json`, `auth-gate.js`, 기존 broad `issue2-migration.html`은 모두 `origin/main`과 blob-identical이다. 서버3 데이터 읽기/쓰기, 쿠폰 사용·등록, 새 계정/권한/credential/capability 생성, 데이터 삭제는 없다.
+- 배포 대기와 단일 사용자 실행: 현재는 **운영 미적용**이며 workspace 복사·sale-only 게시도 실행하지 않았다. `scripts/deploy_issue2_catalog_cutover.sh`는 원격 main이 계속 `f982ee8`이고 worktree/diff allowlist가 정확할 때만 비강제 push하고, Pages 8개 파일 hash가 모두 준비본과 같아질 때까지 기다린 뒤 catalog-only Rules만 배포한다. 이후 public 200, legacy/quote/server3 익명 403 상태코드를 값 없이 대조하며 하나라도 다르면 데이터 쓰기 전에 중단한다. 사용자의 최종 실행 후 Work가 owner helper 1·2단계와 PC/모바일/주문 회귀를 이어간다.
+- 영향/남은 차단: 운영 데이터·Rules·Auth·Pages에는 아직 영향이 없다. 남은 차단은 사용자의 정적+Rules 배포 script 1회 승인/실행과 그 성공 readback이다. 그 전에는 원본 workspace 복사와 공개 문서 재게시를 하지 않는다.
+
 ## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
 
 ### 작업 전 기록
