@@ -24,6 +24,11 @@
 - 보존/금지: 고정 고객 URL과 share ID, 286상품·10분류, 기존 주문 subcollection, 견적 UI와 현재 견적 문서 4개, 기존 owner 계정, 서버3와 쿠폰·기본 작업 폴더 사용자 변경을 보존한다. 새 관리자 권한·계정·credential·capability를 만들지 않고, 이전 거절 push를 재시도하지 않으며 운영 Rules/Auth/Firestore에 아직 쓰지 않는다.
 - 완료 기준: 최신 `origin/main` 기반 diff가 위 파일로만 한정되고 보호 대상 baseline 파일이 byte-identical이어야 한다. helper는 verified workspace hash·286상품·10분류가 다르면 중단하고, 다른 hash의 기존 `adminCatalogs`를 덮어쓰지 않으며, 익명 raw read에서 286상품·10분류·`offer` 0건까지 확인해야 한다. Rules/클라이언트 선행 배포가 필요하므로 실제 데이터 변경 전 사용자 실행 묶음을 정확히 보고한다.
 
+### 추가 확인 전 기록 — Firebase CLI 인증 preflight와 중간 서비스 영향
+- 추가 요청: 과거 Firebase CLI에 인증 계정이 없던 상태와 현재를 재확인하고, 정적 push 후 Rules 배포가 인증 부재로 실패하는 부분 적용을 막는다. 스크립트는 push 전에 기존 정상 CLI 인증과 대상 프로젝트 조회 권한을 읽기 전용으로 검증하고, 없으면 GitHub push 전에 중단해야 한다.
+- 영향 확인: 정적 클라이언트→Rules→owner 복사·sale-only 게시 사이의 중간 상태에서 기존 `c6xxh9` 문서가 유지되는지, 새 `share.html`이 기존 286상품을 정상 표시하면서 `offer`를 메모리에 넣지 않는지, 관리자 editor/견적의 `adminCatalogs` 의존성으로 인한 일시 불가 구간과 이전 클라이언트 주문 호환성을 숨김없이 분리해 기록한다.
+- 금지/보존: 새 로그인·토큰·권한을 만들거나 요청하지 않는다. 인증이 없으면 정확한 사용자 선행 조치를 보고하고 운영 push·Rules·Firestore 쓰기를 수행하지 않는다. 고객 URL·백업·주문 subcollection·서버3·쿠폰 범위는 변경하지 않는다.
+
 ### 작업 후 기록
 - 최소 stage: 최신 원격 `f982ee8`에서 `/tmp/helper-issue2-catalog-cutover-stage`, 브랜치 `codex/issue2-catalog-cutover-stage`를 만들었다. 운영 코드 commit `de29eb4`는 `share.html`, `catalog-editor.html`, `catalog-sync.js`, `quote.html`, `firebase-admin-auth.js`, catalog-only Rules/config, cutover helper/core 9개 파일만 포함한다.
 - 클라이언트 경계: 일반 `share.html?id=c6xxh9`는 수신 메모리에 `offer`를 넣지 않고 sale-only로 계산한다. 카탈로그 editor/sync는 exact owner Auth 뒤 `adminCatalogs`만 사용하며, `quote.html`은 기존 견적 문서 4개 위치와 UI를 유지하되 exact owner Auth로 접근하고 카탈로그 의존성만 `adminCatalogs`에서 읽는다. capability·partner page/host는 생성·배포 대상에 넣지 않았다.
@@ -33,6 +38,14 @@
 - 보호 범위 확인: coupon 1/2/3 HTML·JSON, `prompt.html`, `index.html`, `discounts.json`, `auth-gate.js`, 기존 broad `issue2-migration.html`은 모두 `origin/main`과 blob-identical이다. 서버3 데이터 읽기/쓰기, 쿠폰 사용·등록, 새 계정/권한/credential/capability 생성, 데이터 삭제는 없다.
 - 배포 대기와 단일 사용자 실행: 현재는 **운영 미적용**이며 workspace 복사·sale-only 게시도 실행하지 않았다. `scripts/deploy_issue2_catalog_cutover.sh`는 원격 main이 계속 `f982ee8`이고 worktree/diff allowlist가 정확할 때만 비강제 push하고, Pages 8개 파일 hash가 모두 준비본과 같아질 때까지 기다린 뒤 catalog-only Rules만 배포한다. 이후 public 200, legacy/quote/server3 익명 403 상태코드를 값 없이 대조하며 하나라도 다르면 데이터 쓰기 전에 중단한다. 사용자의 최종 실행 후 Work가 owner helper 1·2단계와 PC/모바일/주문 회귀를 이어간다.
 - 영향/남은 차단: 운영 데이터·Rules·Auth·Pages에는 아직 영향이 없다. 남은 차단은 사용자의 정적+Rules 배포 script 1회 승인/실행과 그 성공 readback이다. 그 전에는 원본 workspace 복사와 공개 문서 재게시를 하지 않는다.
+
+### 추가 확인 후 기록 — Firebase CLI 인증 차단과 중간 영향 보강
+- 실제 인증 상태: 기존 Firebase CLI `login:list --json`은 종료코드 2·인증 계정 0이고, `projects:list --json`도 종료코드 2로 대상 프로젝트를 볼 수 없었다. `FIREBASE_TOKEN`, ADC 환경변수·파일, gcloud CLI도 없다. 따라서 현재 그대로는 Rules 배포가 불가하고, Firebase 웹 앱의 existing owner 세션은 Google Cloud/Firebase CLI 배포 인증을 대체하지 않는다.
+- 스크립트 수정: GitHub push 전에 Firebase CLI 인증 계정 존재, 대상 project 조회 가능, Rules 배포에 필요한 IAM 권한을 `testIamPermissions`로 읽기 전용 확인하게 했다. 세 검사 중 하나라도 실패하면 push 전에 종료한다. 현재 자격증명 없음 시험에서 실제로 pre-push 중단되었다.
+- 자격증명 경계: `firebase login`은 기존 Google 계정을 사용해도 로컬 Firebase CLI OAuth 세션을 새로 생성한다. 현재 새 credential 생성 금지 조건에서는 자동으로 수행하거나 승인하지 않았다. CLI 경로를 쓰려면 기존 Firebase 관리자 계정의 CLI 로그인을 사용자가 별도로 확정해야 한다.
+- 고객 중간 상태: 정적 배포에서 Rules 배포와 sale-only 게시 사이에도 `c6xxh9` 부모 문서는 삭제되지 않아 286상품을 계속 읽는다. 새 `share.html`은 수신 allowlist로 `offer`를 버리고 판매가만 표시하며 service worker도 HTML/data GET을 `no-store`로 가져온다. 다만 raw Firestore 문서의 `offer` 286건은 helper 2단계 전까지 exact 공개 read로 남으므로 보안 전환은 완료된 것이 아니다.
+- 관리자/이전 클라이언트 중간 상태: Rules 배포 후 legacy workspace는 owner read-only로 보존되어 helper 복사는 가능하지만, `adminCatalogs`가 생기기 전에는 새 catalog editor와 quote의 상품 불러오기가 일시 불가하다. 기존 quote 문서 4개 자체는 owner-only로 보존된다. 배포 전부터 열려 있던 이전 공개 페이지는 reload 전까지 이전 코드를 실행할 수 있고, `includeOffer=true` 주문은 새 Rules에서 fail-closed로 거부된다. 새로고침하면 일반 주문은 `includeOffer=false`로 정상 생성된다.
+- 실행 순서/영향 고지: script는 위 중간 영향을 출력하고 `YES`를 받기 전에 push를 시작하지 않도록 보강했다. 사용자가 별도 CLI 로그인을 확정한 경우에만 `firebase login` → 배포 script → 즉시 owner helper 1단계(복사·hash READBACK) → 2단계(sale-only 게시·익명 raw READBACK) → PC/모바일·주문·editor·quote 회귀를 연속해야 한다. 현재는 로그인·push·Rules·데이터 쓰기를 하지 않았다.
 
 ## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
 
