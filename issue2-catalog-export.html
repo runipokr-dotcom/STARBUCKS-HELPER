@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>HELPER 카탈로그 백업 내보내기</title>
+  <script src="auth-gate.js"></script>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172019;background:#eef3ef}
+    body{margin:0;padding:24px}.card{max-width:720px;margin:auto;padding:22px;border:1px solid #cad4cd;border-radius:14px;background:#fff;box-shadow:0 12px 34px #0001}
+    h1{margin:0 0 8px;font-size:22px}p{line-height:1.55;color:#536159}button{width:100%;min-height:46px;margin:7px 0;border:0;border-radius:9px;background:#006241;color:#fff;font:800 15px inherit;cursor:pointer}
+    button:disabled{opacity:.45;cursor:not-allowed}.status{margin-top:14px;padding:13px;border-radius:9px;background:#f2f6f3;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.ok{color:#006241}.err{color:#9b1c1c}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>카탈로그 전용 백업 내보내기</h1>
+    <p>기존 verified 백업과 현재 카탈로그만 읽습니다. 운영 Firestore에는 쓰지 않으며 서버3·쿠폰 문서는 접근하지 않습니다. 결과 파일에는 내부 카탈로그와 주문 데이터가 포함되므로 승인된 비공개 위치에만 보관하세요.</p>
+    <button id="export" type="button" disabled>owner 검증 후 백업 파일 만들기</button>
+    <div id="status" class="status" role="status">기존 owner 세션 확인 중…</div>
+  </main>
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  browserLocalPersistence,
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  CATALOG_BACKUP_FORMAT,
+  buildDocumentRecord,
+  compareDocumentSets,
+  documentAggregateHash,
+  encodePath,
+  isCatalogBackupPath,
+} from "./catalog-backup-core.js";
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAQpr3_koSKTAfihI8E3-kW3PknfMrQdaA",
+  authDomain: "starbucks-helper-f578e.firebaseapp.com",
+  projectId: "starbucks-helper-f578e",
+  storageBucket: "starbucks-helper-f578e.firebasestorage.app",
+  messagingSenderId: "1015231512258",
+  appId: "1:1015231512258:web:25bb0229b5bc90b56a455b",
+};
+const OWNER_UID = "DFtc3qItyZQYmE9m4q2JgXJyqrW2";
+const VERIFIED_BACKUP_ID = "issue2-20261015T045852117Z";
+const PUBLIC_PATH = "catalogShares/c6xxh9";
+const WORKSPACE_PATH = "catalogShares/work-k4m8q2x7n9v3c6p5r8t1";
+const PARTNER_CONFIG_PATH = "privateAdminData/partnerCatalogLink";
+const BACKUP_ROOT = `couponWork/coupon-server-3/issue2MigrationBackups/${VERIFIED_BACKUP_ID}`;
+const app = getApps()[0] || initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const button = document.getElementById("export");
+const status = document.getElementById("status");
+
+function show(message, error = false) {
+  status.textContent = message;
+  status.className = `status ${error ? "err" : "ok"}`;
+}
+
+function backupCopyRef(path) {
+  return doc(db, `${BACKUP_ROOT}/documents/${encodePath(path)}`);
+}
+
+function backupEntryRef(path) {
+  return doc(db, `${BACKUP_ROOT}/entries/${encodePath(path)}`);
+}
+
+async function manifestPathsForPrefix(prefix) {
+  const entries = collection(db, `${BACKUP_ROOT}/entries`);
+  const snapshot = await getDocs(query(
+    entries,
+    where("sourcePath", ">=", prefix),
+    where("sourcePath", "<", `${prefix}\uf8ff`),
+  ));
+  return snapshot.docs
+    .map((entry) => entry.data().sourcePath)
+    .filter(isCatalogBackupPath);
+}
+
+async function loadVerifiedBackup() {
+  const root = await getDoc(doc(db, BACKUP_ROOT));
+  if (!root.exists() || root.data().status !== "verified") {
+    throw new Error("verified 백업을 확인할 수 없습니다.");
+  }
+  const paths = new Set();
+  for (const prefix of ["catalogShares/", "adminCatalogs/", "partnerCatalogShares/"]) {
+    for (const path of await manifestPathsForPrefix(prefix)) paths.add(path);
+  }
+  const configEntry = await getDoc(backupEntryRef(PARTNER_CONFIG_PATH));
+  if (configEntry.exists()) paths.add(PARTNER_CONFIG_PATH);
+  const documents = [];
+  for (const path of [...paths].sort()) {
+    const [entry, copy] = await Promise.all([
+      getDoc(backupEntryRef(path)),
+      getDoc(backupCopyRef(path)),
+    ]);
+    if (!entry.exists() || !copy.exists()) throw new Error(`백업 문서 누락: ${path}`);
+    documents.push(await buildDocumentRecord(path, copy.data(), entry.data().hash));
+  }
+  return {
+    backupId: VERIFIED_BACKUP_ID,
+    root: {
+      status: root.data().status,
+      verifiedAt: root.data().verifiedAt || null,
+      sourceDocumentCount: root.data().documentCount || null,
+      sourceAggregateHash: root.data().aggregateHash || null,
+    },
+    documents,
+    aggregateHash: await documentAggregateHash(documents),
+  };
+}
+
+async function addCollectionDocuments(target, collectionName, includeOrders = false) {
+  const snapshot = await getDocs(query(collection(db, collectionName)));
+  for (const item of snapshot.docs) {
+    target.push(await buildDocumentRecord(item.ref.path, item.data()));
+    if (!includeOrders) continue;
+    const orders = await getDocs(query(collection(item.ref, "orders")));
+    for (const order of orders.docs) {
+      target.push(await buildDocumentRecord(order.ref.path, order.data()));
+    }
+  }
+}
+
+async function loadCurrentCatalog() {
+  const documents = [];
+  await addCollectionDocuments(documents, "catalogShares", true);
+  await addCollectionDocuments(documents, "adminCatalogs");
+  await addCollectionDocuments(documents, "partnerCatalogShares", true);
+  const config = await getDoc(doc(db, PARTNER_CONFIG_PATH));
+  if (config.exists()) documents.push(await buildDocumentRecord(config.ref.path, config.data()));
+  documents.sort((left, right) => left.path.localeCompare(right.path));
+  return { documents, aggregateHash: await documentAggregateHash(documents) };
+}
+
+function productCount(record, nested = false) {
+  if (!record) return null;
+  const products = nested ? record.data?.catalogData?.products : record.data?.products;
+  return Array.isArray(products) ? products.length : null;
+}
+
+function offerCount(record) {
+  const products = record?.data?.products;
+  return Array.isArray(products)
+    ? products.filter((product) => Object.hasOwn(product, "offer")).length
+    : null;
+}
+
+function downloadArtifact(artifact) {
+  const blob = new Blob([JSON.stringify(artifact)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const timestamp = new Date().toISOString().replace(/[-:.]/g, "");
+  link.href = url;
+  link.download = `starbucks-helper-catalog-backup-${timestamp}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function exportCatalogBackup() {
+  button.disabled = true;
+  show("verified 백업과 현재 카탈로그를 읽고 대조 중…");
+  try {
+    const [verifiedBackup, current] = await Promise.all([
+      loadVerifiedBackup(),
+      loadCurrentCatalog(),
+    ]);
+    const comparison = compareDocumentSets(verifiedBackup.documents, current.documents);
+    const backupWorkspace = verifiedBackup.documents.find((item) => item.path === WORKSPACE_PATH);
+    const currentWorkspace = current.documents.find((item) => item.path === WORKSPACE_PATH);
+    const currentPublic = current.documents.find((item) => item.path === PUBLIC_PATH);
+    if (!backupWorkspace || !currentWorkspace || !currentPublic) {
+      throw new Error("필수 카탈로그 문서가 누락되었습니다.");
+    }
+    const artifact = {
+      format: CATALOG_BACKUP_FORMAT,
+      exportedAt: new Date().toISOString(),
+      verifiedBackup,
+      current,
+      comparison,
+      checks: {
+        workspacePath: WORKSPACE_PATH,
+        workspaceBackupHash: backupWorkspace.hash,
+        workspaceCurrentHash: currentWorkspace.hash,
+        workspaceExact: backupWorkspace.hash === currentWorkspace.hash,
+        workspaceProductCount: productCount(currentWorkspace, true),
+        publicPath: PUBLIC_PATH,
+        publicProductCount: productCount(currentPublic),
+        publicOfferCount: offerCount(currentPublic),
+      },
+    };
+    downloadArtifact(artifact);
+    show(JSON.stringify({
+      status: "downloaded",
+      verifiedBackupDocumentCount: verifiedBackup.documents.length,
+      verifiedBackupAggregateHash: verifiedBackup.aggregateHash,
+      currentDocumentCount: current.documents.length,
+      currentAggregateHash: current.aggregateHash,
+      exactSetAndHashes: comparison.exact,
+      addedCount: comparison.added.length,
+      removedCount: comparison.removed.length,
+      changedCount: comparison.changed.length,
+      workspaceExact: artifact.checks.workspaceExact,
+      workspaceProductCount: artifact.checks.workspaceProductCount,
+      publicProductCount: artifact.checks.publicProductCount,
+      publicOfferCount: artifact.checks.publicOfferCount,
+    }, null, 2));
+  } catch (error) {
+    console.error("[catalog-export] failed", error?.message || error);
+    show(error?.message || String(error), true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+button.addEventListener("click", exportCatalogBackup);
+await setPersistence(auth, browserLocalPersistence);
+onAuthStateChanged(auth, async (user) => {
+  if (!user || user.uid !== OWNER_UID) {
+    button.disabled = true;
+    show("기존 owner 로그인 세션이 없습니다. 새 계정을 만들지 말고 기존 owner 세션을 확인한 뒤 다시 여세요.", true);
+    return;
+  }
+  try {
+    await user.getIdToken(true);
+    button.disabled = false;
+    show("owner 세션 확인됨. Firestore 쓰기 없이 카탈로그 백업 파일을 만들 수 있습니다.");
+  } catch (error) {
+    button.disabled = true;
+    show("owner 세션을 재검증할 수 없습니다.", true);
+  }
+});
+</script>
+</body>
+</html>
