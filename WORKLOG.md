@@ -36,8 +36,8 @@
 - cutover helper: verified 실제 workspace hash와 286상품·10분류를 고정 go/no-go로 사용한다. Rules가 legacy 익명 403·public exact get 성공 상태가 아니면 쓰기 전에 중단한다. 1단계는 source를 읽어 목적지가 없을 때만 exact copy하고 원본/복사본 hash·건수와 목적지 익명 403을 READBACK한다. 다른 hash의 기존 목적지는 덮어쓰지 않는다. 2단계는 복사본에서 fresh allowlist projection을 만들고 `c6xxh9` 부모 문서만 교체한 뒤 owner hash와 익명 raw 286상품·10분류·`offer` 0건을 확인한다. 기존 주문 subcollection은 삭제하지 않는다.
 - 검수: actual 16문서 백업에서 workspace 고정 hash·286상품·10분류와 합성 sale-only `offer` 0건을 확인했다. helper core 3/3, helper 정적 4/4, client/security 13/13, catalog Rules/복사/게시/주문보존 Emulator 7/7, JS/HTML module·배포 script 구문과 `git diff --check`가 통과했다. 최소 stage 파일은 full 테스트 원본과 byte-identical이다.
 - 보호 범위 확인: coupon 1/2/3 HTML·JSON, `prompt.html`, `index.html`, `discounts.json`, `auth-gate.js`, 기존 broad `issue2-migration.html`은 모두 `origin/main`과 blob-identical이다. 서버3 데이터 읽기/쓰기, 쿠폰 사용·등록, 새 계정/권한/credential/capability 생성, 데이터 삭제는 없다.
-- 배포 대기와 단일 사용자 실행: 현재는 **운영 미적용**이며 workspace 복사·sale-only 게시도 실행하지 않았다. `scripts/deploy_issue2_catalog_cutover.sh`는 원격 main이 계속 `f982ee8`이고 worktree/diff allowlist가 정확할 때만 비강제 push하고, Pages 8개 파일 hash가 모두 준비본과 같아질 때까지 기다린 뒤 catalog-only Rules만 배포한다. 이후 public 200, legacy/quote/server3 익명 403 상태코드를 값 없이 대조하며 하나라도 다르면 데이터 쓰기 전에 중단한다. 사용자의 최종 실행 후 Work가 owner helper 1·2단계와 PC/모바일/주문 회귀를 이어간다.
-- 영향/남은 차단: 운영 데이터·Rules·Auth·Pages에는 아직 영향이 없다. 남은 차단은 사용자의 정적+Rules 배포 script 1회 승인/실행과 그 성공 readback이다. 그 전에는 원본 workspace 복사와 공개 문서 재게시를 하지 않는다.
+- 배포 대기와 단일 사용자 실행: 현재는 **운영 미적용**이며 workspace 복사·sale-only 게시도 실행하지 않았다. `scripts/deploy_issue2_catalog_cutover.sh`는 원격 main이 계속 `f982ee8`이고 worktree/diff allowlist가 정확할 때만 사용자 직접 non-force push를 실행하고 Pages 8개 파일 hash를 대조한다. 그 뒤 CLI를 쓰지 않고 기존 Firebase Console Rules UI에서 사용자가 catalog-only Rules 전체를 직접 게시하도록 일시정지한다. 사용자 확인 후 public 200, legacy/quote/server3 익명 403 상태코드를 대조하고 하나라도 다르면 데이터 쓰기 전에 중단한다.
+- 영향/남은 차단: 운영 데이터·Rules·Auth·Pages에는 아직 영향이 없다. 남은 차단은 사용자가 정적 push → 기존 Console Rules 직접 게시 → 상태코드 readback → owner helper 1·2단계를 연속 실행하는 것이다. 그 전에는 원본 workspace 복사와 공개 문서 재게시를 하지 않는다.
 
 ### 추가 확인 후 기록 — Firebase CLI 인증 차단과 중간 영향 보강
 - 실제 인증 상태: 기존 Firebase CLI `login:list --json`은 종료코드 2·인증 계정 0이고, `projects:list --json`도 종료코드 2로 대상 프로젝트를 볼 수 없었다. `FIREBASE_TOKEN`, ADC 환경변수·파일, gcloud CLI도 없다. 따라서 현재 그대로는 Rules 배포가 불가하고, Firebase 웹 앱의 existing owner 세션은 Google Cloud/Firebase CLI 배포 인증을 대체하지 않는다.
@@ -46,6 +46,19 @@
 - 고객 중간 상태: 정적 배포에서 Rules 배포와 sale-only 게시 사이에도 `c6xxh9` 부모 문서는 삭제되지 않아 286상품을 계속 읽는다. 새 `share.html`은 수신 allowlist로 `offer`를 버리고 판매가만 표시하며 service worker도 HTML/data GET을 `no-store`로 가져온다. 다만 raw Firestore 문서의 `offer` 286건은 helper 2단계 전까지 exact 공개 read로 남으므로 보안 전환은 완료된 것이 아니다.
 - 관리자/이전 클라이언트 중간 상태: Rules 배포 후 legacy workspace는 owner read-only로 보존되어 helper 복사는 가능하지만, `adminCatalogs`가 생기기 전에는 새 catalog editor와 quote의 상품 불러오기가 일시 불가하다. 기존 quote 문서 4개 자체는 owner-only로 보존된다. 배포 전부터 열려 있던 이전 공개 페이지는 reload 전까지 이전 코드를 실행할 수 있고, `includeOffer=true` 주문은 새 Rules에서 fail-closed로 거부된다. 새로고침하면 일반 주문은 `includeOffer=false`로 정상 생성된다.
 - 실행 순서/영향 고지: script는 위 중간 영향을 출력하고 `YES`를 받기 전에 push를 시작하지 않도록 보강했다. 사용자가 별도 CLI 로그인을 확정한 경우에만 `firebase login` → 배포 script → 즉시 owner helper 1단계(복사·hash READBACK) → 2단계(sale-only 게시·익명 raw READBACK) → PC/모바일·주문·editor·quote 회귀를 연속해야 한다. 현재는 로그인·push·Rules·데이터 쓰기를 하지 않았다.
+
+### 추가 확인 전 기록 — 기존 Firebase Console Rules UI 세션
+- 추가 요청: 새 Firebase CLI OAuth를 만들지 않고, 이전에 정상 owner 계정으로 확인된 사용자 Mac 브라우저의 Firebase Console Rules 편집/게시 UI를 기존 세션으로 열 수 있는지 읽기 전용으로 확인한다. Cloud Shell, API 승인, 새 로그인은 사용하지 않고 게시 버튼을 누르지 않는다.
+- 판정 목표: 기존 Google/Firebase Console 세션으로 대상 project의 Firestore Rules 탭과 현재 규칙 editor, 게시 제어가 표시되는지만 확인한다. 로그인·권한 승인·project 선택 요청이 나오면 즉시 중단하고 실제 게시 가능으로 확정하지 않는다.
+- 실행안 경계: 기존 Console 게시가 가능하다면 사용자 직접 non-force 정적 push → Pages hash 확인 → 기존 Console에 catalog-only Rules 전문 붙여넣기·게시 → 익명 상태코드 대조 → owner helper 1·2단계 연속 → 회귀검수로 정리한다. 이 확인은 거절된 push를 우회하지 않으며 운영 Rules·데이터에 쓰지 않는다.
+
+### 추가 확인 후 기록 — 기존 Console Rules UI 경로 확인
+- Mac 브라우저 실확인: 사용자의 기존 Chrome 프로필에서 새 로그인 없이 `starbucks-helper-f578e` Firebase Console과 Firestore 데이터 탭, `(default)` Rules 탭이 열렸다. Google 계정 세션과 프로젝트·Spark 요금제·현재 규칙 버전 이력이 표시됐고, 데이터 탭에는 추가/수정 제어가 표시됐다. 문서 값은 기록하지 않았다.
+- Rules editor 권한 표시: 현재 규칙 전문이 보이는 editor는 accessibility/DOM에서 `settable`, `contenteditable=true`, `readOnly=false`로 확인됐다. 로그인·권한 요청·Cloud Shell/API 승인은 나오지 않았다. 현재 규칙을 변경하지 않아 게시 버튼은 표시되지 않았으며, 실제 게시 성공은 운영 쓰기 없이 증명할 수 없으므로 사용자 직접 게시와 즉시 readback을 최종 권한 확인으로 남긴다.
+- 읽기 전용 준수: Rules editor를 수정하거나 게시하지 않았고, 데이터 추가/수정 제어를 누르지 않았다. `개발 및 테스트`는 게시가 아닌 Emulator 안내 dialog임을 확인한 뒤 닫았고, 임시 확인 탭도 닫았다. 운영 Rules·Firestore·Auth·Pages에 쓰기는 없다.
+- 실행 스크립트 변경: 새 CLI OAuth·Firebase CLI를 전혀 사용하지 않는 경로로 바꾼다. Rules 파일 hash와 중간 영향을 push 전에 확인하고, 사용자 직접 push·Pages 8파일 hash 대조 후 정지해 Console URL, Rules 전체 206줄, 파일 SHA-256를 제시한다. 사용자가 직접 Console 게시 후 `RULES_PUBLISHED`를 입력해야 익명 public 200·legacy/quote/server3 403을 폴링 대조하고 helper URL을 출력한다. script는 Rules·Firestore 데이터를 직접 쓰지 않는다.
+- 중간 영향 정정: 관리자 editor/quote의 catalog 불러오기 일시 불가는 Rules 게시 후가 아니라, `adminCatalogs`를 참조하는 새 정적 파일이 Pages에 반영된 즉시부터 helper 1단계 완료 전까지다. 고객 링크는 기존 공개 문서로 286상품을 계속 표시하지만 raw `offer` 286건은 helper 2단계 전까지 공개된다. 따라서 push부터 Rules·helper 1·2단계를 지연 없이 연속해야 한다.
+- 운영 상태: 스크립트와 WORKLOG만 로컬에서 수정했다. 새 CLI credential·login·API 승인·Cloud Shell, push·Rules 게시·데이터 쓰기는 없다. 최종 실행은 사용자 직접 push와 Console 게시 승인을 기다린다.
 
 ## 2026-10-15 — Codex Work (카탈로그 export 최소 Pages 준비)
 
