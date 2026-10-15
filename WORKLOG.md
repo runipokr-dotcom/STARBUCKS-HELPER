@@ -26,6 +26,17 @@
 - 금지/제외: push·force push·PR·배포, 운영 Auth/Rules/Firestore/쿠폰 데이터 쓰기, 쿠폰 사용·등록, 새 자격증명·권한 승인, 비밀번호·토큰 수집·우회, 기존 브라우저 탭 조작을 하지 않는다.
 - 검수 계획: 기준 SHA와 할인 변경 보존, 적용 충돌 여부와 최종 diff 파일 목록, HTML 인라인 스크립트 구문, 민감 원문·자격증명 패턴, 기존 demo Emulator Rules 회귀, `git diff --check`를 확인한다. 실제 Pages와 Firebase 운영 READBACK이 없으므로 배포 완료로 보고하지 않는다.
 
+### 작업 후 기록
+- 실제 준비: 최신 원격 `5506565`를 부모로 하는 격리 브랜치 `codex/issue2-migration-stage-5506565`에 `issue2-migration.html`과 이슈 #2 WORKLOG 이력만 반영했다. 기능 파일은 이전 `199413a`의 임시 페이지와 blob 해시가 정확히 같고, 원격의 최신 `discounts.json`과 기존 고객 `share.html`은 각각 `origin/main`과 해시가 같아 변경되지 않았다.
+- 충돌/변경 목록: 원격의 두 신규 커밋은 `discounts.json`만 바꾸고 이 준비본은 `WORKLOG.md`, 신규 `issue2-migration.html`만 바꾸므로 내용 충돌이 없다. force push, 원격 브랜치 변경, 기존 기본 작업 폴더의 미커밋 파일 변경은 수행하지 않았다.
+- 정적 검수: 임시 페이지의 module script 구문 파싱, HTML id 중복 0, owner UID 비교 gate와 `noindex,nofollow,noarchive` 존재, 비밀번호 입력/로그인 호출·embedded bearer·쿠폰 필드 literal 0, `git diff --check`를 통과했다. 임시 페이지 해시가 `199413a`와 일치하고 `discounts.json`, `share.html` 해시가 최신 원격과 일치함을 다시 확인했다.
+- 기존 회귀 증거: 같은 로컬 전체 후보의 demo Firestore 최종 Rules 19/19, 이관 Rules 4/4, 정적/인증 13/13, 거래처 만료·폐기 브라우저 2/2 통과 결과를 유지한다. 이번 격리 브랜치에는 해당 테스트 도구 전체를 재반영하지 않았으며 운영 Firebase를 호출하거나 쓰지 않았다.
+- 인증/브라우저: Firebase CLI에는 인증 계정이 없고, 읽기 전용 브라우저 인벤토리에도 Firebase/Cloud Console 탭이 0개라 기존 owner 세션 재사용 가능 여부는 미확인이다. 다른 오리가미·사용자 탭은 열거나 닫거나 조작하지 않았다.
+- PC/모바일 영향: 기존 고객/관리자 페이지는 변경하지 않았다. 신규 임시 페이지는 viewport와 단일 카드·전체폭 버튼 CSS를 포함하지만 실제 Pages PC/모바일 및 owner 로그인 브라우저 검수는 미수행이다.
+- 데이터 영향: 운영 Auth/Rules/Firestore/쿠폰·카탈로그·주문 데이터, 저장소 공개범위와 배포에는 영향이 없다. 백업·이관·공개본 정제 버튼은 실행하지 않았다.
+- 로컬 기능 커밋: `5d726cf` (`chore: stage issue2 migration on latest main`). 배포상태는 로컬 준비만 완료, push·PR·Pages 배포 없음이다.
+- 남은 문제/최소 사용자 단계: 배포 직전 실제 원격 `main`이 여전히 기준 SHA인지 다시 확인한 뒤, 사용자가 승인하면 이 로컬 준비 커밋을 최신 `main`에 비강제 fast-forward 방식으로만 반영해야 한다. 배포 후 Pages 파일 해시 READBACK과 기존 owner Firebase Console 세션 준비가 필요하며, owner-only 백업과 READBACK이 완료되기 전에는 이관·공개본 정제·Rules 전환을 진행하지 않는다.
+
 ## 2026-10-14 — Codex Work (이슈 #2 운영 보안 전환 실행)
 
 ### 작업 전 기록
