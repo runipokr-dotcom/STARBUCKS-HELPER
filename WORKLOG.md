@@ -39,13 +39,13 @@
 - 배포 대기와 단일 사용자 실행: 현재는 **운영 미적용**이며 workspace 복사·sale-only 게시도 실행하지 않았다. `scripts/deploy_issue2_catalog_cutover.sh`는 원격 main이 계속 `f982ee8`이고 worktree/diff allowlist가 정확할 때만 사용자 직접 non-force push를 실행하고 Pages 8개 파일 hash를 대조한다. 그 뒤 CLI를 쓰지 않고 기존 Firebase Console Rules UI에서 사용자가 catalog-only Rules 전체를 직접 게시하도록 일시정지한다. 사용자 확인 후 public 200, legacy/quote/server3 익명 403 상태코드를 대조하고 하나라도 다르면 데이터 쓰기 전에 중단한다.
 - 영향/남은 차단: 운영 데이터·Rules·Auth·Pages에는 아직 영향이 없다. 남은 차단은 사용자가 정적 push → 기존 Console Rules 직접 게시 → 상태코드 readback → owner helper 1·2단계를 연속 실행하는 것이다. 그 전에는 원본 workspace 복사와 공개 문서 재게시를 하지 않는다.
 
-### 추가 확인 후 기록 — Firebase CLI 인증 차단과 중간 영향 보강
+### 추가 확인 후 기록 — Firebase CLI 인증 차단과 중간 영향 보강(후속 Console 경로로 대체)
 - 실제 인증 상태: 기존 Firebase CLI `login:list --json`은 종료코드 2·인증 계정 0이고, `projects:list --json`도 종료코드 2로 대상 프로젝트를 볼 수 없었다. `FIREBASE_TOKEN`, ADC 환경변수·파일, gcloud CLI도 없다. 따라서 현재 그대로는 Rules 배포가 불가하고, Firebase 웹 앱의 existing owner 세션은 Google Cloud/Firebase CLI 배포 인증을 대체하지 않는다.
-- 스크립트 수정: GitHub push 전에 Firebase CLI 인증 계정 존재, 대상 project 조회 가능, Rules 배포에 필요한 IAM 권한을 `testIamPermissions`로 읽기 전용 확인하게 했다. 세 검사 중 하나라도 실패하면 push 전에 종료한다. 현재 자격증명 없음 시험에서 실제로 pre-push 중단되었다.
+- 중간 스크립트 검증: 초기에는 GitHub push 전 Firebase CLI 인증·project·IAM preflight를 추가했고, 자격증명 없음 상태에서 push 전 중단되는 것을 확인했다. 후속에서 기존 Console Rules UI 경로가 확인되어 이 CLI preflight·배포 코드는 현재 script에서 전부 제거했다.
 - 자격증명 경계: `firebase login`은 기존 Google 계정을 사용해도 로컬 Firebase CLI OAuth 세션을 새로 생성한다. 현재 새 credential 생성 금지 조건에서는 자동으로 수행하거나 승인하지 않았다. CLI 경로를 쓰려면 기존 Firebase 관리자 계정의 CLI 로그인을 사용자가 별도로 확정해야 한다.
 - 고객 중간 상태: 정적 배포에서 Rules 배포와 sale-only 게시 사이에도 `c6xxh9` 부모 문서는 삭제되지 않아 286상품을 계속 읽는다. 새 `share.html`은 수신 allowlist로 `offer`를 버리고 판매가만 표시하며 service worker도 HTML/data GET을 `no-store`로 가져온다. 다만 raw Firestore 문서의 `offer` 286건은 helper 2단계 전까지 exact 공개 read로 남으므로 보안 전환은 완료된 것이 아니다.
-- 관리자/이전 클라이언트 중간 상태: Rules 배포 후 legacy workspace는 owner read-only로 보존되어 helper 복사는 가능하지만, `adminCatalogs`가 생기기 전에는 새 catalog editor와 quote의 상품 불러오기가 일시 불가하다. 기존 quote 문서 4개 자체는 owner-only로 보존된다. 배포 전부터 열려 있던 이전 공개 페이지는 reload 전까지 이전 코드를 실행할 수 있고, `includeOffer=true` 주문은 새 Rules에서 fail-closed로 거부된다. 새로고침하면 일반 주문은 `includeOffer=false`로 정상 생성된다.
-- 실행 순서/영향 고지: script는 위 중간 영향을 출력하고 `YES`를 받기 전에 push를 시작하지 않도록 보강했다. 사용자가 별도 CLI 로그인을 확정한 경우에만 `firebase login` → 배포 script → 즉시 owner helper 1단계(복사·hash READBACK) → 2단계(sale-only 게시·익명 raw READBACK) → PC/모바일·주문·editor·quote 회귀를 연속해야 한다. 현재는 로그인·push·Rules·데이터 쓰기를 하지 않았다.
+- 관리자/이전 클라이언트 중간 상태: 새 정적 파일이 Pages에 반영되면 `adminCatalogs`가 생기기 전까지 catalog editor와 quote의 상품 불러오기가 일시 불가하다. Rules 게시 후 legacy workspace는 owner read-only로 보존되어 helper 복사가 가능하고 기존 quote 문서 4개 자체도 owner-only로 보존된다. 배포 전부터 열려 있던 이전 공개 페이지는 reload 전까지 이전 코드를 실행할 수 있고, `includeOffer=true` 주문은 새 Rules에서 fail-closed로 거부된다. 새로고침하면 일반 주문은 `includeOffer=false`로 정상 생성된다.
+- 실행 순서/영향 고지: script는 위 중간 영향을 출력하고 `YES`를 받기 전에 push를 시작하지 않는다. 현재 실행안은 사용자 직접 정적 push·Pages readback → 기존 Console Rules 직접 게시 → 익명 Rules readback → 즉시 owner helper 1단계(복사·hash READBACK) → 2단계(sale-only 게시·익명 raw READBACK) → PC/모바일·주문·editor·quote 회귀다. 새 CLI OAuth는 필요하지 않으며 현재 push·Rules·데이터 쓰기를 하지 않았다.
 
 ### 추가 확인 전 기록 — 기존 Firebase Console Rules UI 세션
 - 추가 요청: 새 Firebase CLI OAuth를 만들지 않고, 이전에 정상 owner 계정으로 확인된 사용자 Mac 브라우저의 Firebase Console Rules 편집/게시 UI를 기존 세션으로 열 수 있는지 읽기 전용으로 확인한다. Cloud Shell, API 승인, 새 로그인은 사용하지 않고 게시 버튼을 누르지 않는다.
