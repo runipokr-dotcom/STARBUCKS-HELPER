@@ -40,5 +40,8 @@ test("deployment gate is limited to the entrypoint and verifies public share unc
 
   assert.match(deploy, /share\.html\?id=c6xxh9/);
   assert.match(deploy, /git push origin HEAD:main/);
+  const checkOnly = deploy.indexOf('if [[ "$MODE" == "--check-only" ]]');
+  const push = deploy.indexOf("git push origin HEAD:main");
+  assert.ok(checkOnly >= 0 && checkOnly < push);
   assert.doesNotMatch(deploy, /firebase\s+deploy|firestore\.googleapis\.com|setDoc\(|updateDoc\(|deleteDoc\(/);
 });

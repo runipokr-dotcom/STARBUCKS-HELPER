@@ -7,6 +7,12 @@ PARTNER_SHA256="19be50d9bfbc302c9c015ee57202950afc9b2e12e325425a50787c03048af322
 PUBLIC_SHARE_SHA256="a7c34b9a693d3e8dcb5ba6bb859210c572dac33051f5259f39642ca7c04dba52"
 PAGES_BASE="https://runipokr-dotcom.github.io/STARBUCKS-HELPER"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+MODE="${1:-deploy}"
+
+if [[ "$MODE" != "deploy" && "$MODE" != "--check-only" ]]; then
+  echo "사용법: $0 [--check-only]" >&2
+  exit 2
+fi
 
 cd "$REPO_ROOT"
 
@@ -53,6 +59,11 @@ fi
 node --test \
   tests/partner-entry.static.test.mjs \
   tests/share.partner-lifecycle.browser.test.mjs
+
+if [[ "$MODE" == "--check-only" ]]; then
+  echo "사전검사 완료: push·Pages·Rules/Auth/Firestore/capability 변경 없음"
+  exit 0
+fi
 
 cat <<'EOF'
 중간 영향 안내:
