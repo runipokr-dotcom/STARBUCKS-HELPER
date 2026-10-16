@@ -31,7 +31,7 @@
 - 검수 결과: 정적 테스트 3/3, 합성 Chrome 만료·회수 2/2, 390px 모바일 2열·1280px PC 5열, 만료/회수 뒤 상품·제안가 견적·고객 입력·fragment·listener/client 정리, `/bin/bash -n`, `git diff --check`, 민감 자격증명·쿠폰 필드 및 서버3 경로 부재를 확인했다. `partner.html`과 `share.html` hash는 각각 준비본과 기존 운영 기준에 일치했다.
 - PC/모바일·데이터 영향: 신규 wrapper는 기존 반응형 viewer를 그대로 사용해 별도 UI·데이터 구조 변경이 없다. 공개 URL·286상품·판매가-only 표시, 주문·관리자 원본은 유지된다. 실제 capability·partner 문서 생성/게시, 운영 데이터 읽기/쓰기, Rules/Auth/권한 변경, push·PR·배포·이슈 댓글은 수행하지 않았다.
 - 중간 영향/복구: 승인 후 정적 파일만 배포되면 무효·누락 capability는 기존 fail-closed 안내를 보이고, 이미 활성화된 유효 capability가 있다면 링크 소지자는 즉시 접근할 수 있다. 정적 이상은 해당 commit revert로 `partner.html`을 제거해 복구하되, 향후 partner 문서가 생성된 뒤에는 정적 파일 제거만으로 Firestore 접근이 회수되지 않으므로 owner revoke 또는 별도 Rules 변경 승인이 필요하다.
-- commit/배포 상태: 기능·검수 local commit SHA는 다음 기록 보강에서 확정한다. 현재 운영 배포 없음. 남은 승인 항목은 활성 partner 문서/설정 유무의 owner read-only 확인, bearer-link 정책·전달/만료 기준, 실제 capability 생성·partner 게시, push·Pages PC/실모바일 readback이다.
+- commit/배포 상태: 기능·검수 local commit은 `1eaf751`이며 push·PR·배포하지 않았다. 남은 승인 항목은 활성 partner 문서/설정 유무의 owner read-only 확인, bearer-link 정책·전달/만료 기준, 실제 capability 생성·partner 게시, push·Pages PC/실모바일 readback이다.
 
 ## 2026-10-15 — Codex Work (카탈로그 최소 보안 전환 stage)
 
