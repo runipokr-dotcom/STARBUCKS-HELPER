@@ -1,30 +1,30 @@
 {
  "version": 1,
- "updatedAt": "2026-10-16T10:40:06+09:00",
+ "updatedAt": "2026-10-16T22:32:26+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-16T10:40:06+09:00",
-   "lastSuccessAt": "2026-10-16T10:40:06+09:00",
-   "scanned": 255,
-   "discounted": 0,
+   "checkedAt": "2026-10-16T22:32:26+09:00",
+   "lastSuccessAt": "2026-10-16T22:32:26+09:00",
+   "scanned": 256,
+   "discounted": 2,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-16T10:40:06+09:00",
-   "lastSuccessAt": "2026-10-16T10:40:06+09:00",
-   "scanned": 295,
+   "checkedAt": "2026-10-16T22:32:26+09:00",
+   "lastSuccessAt": "2026-10-16T22:32:26+09:00",
+   "scanned": 296,
    "discounted": 2,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-16T10:40:06+09:00",
-   "lastSuccessAt": "2026-10-16T10:40:06+09:00",
+   "checkedAt": "2026-10-16T22:32:26+09:00",
+   "lastSuccessAt": "2026-10-16T22:32:26+09:00",
    "scanned": 271,
    "discounted": 239,
    "error": ""
@@ -32,10 +32,10 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-16T10:40:06+09:00",
-   "lastSuccessAt": "2026-10-16T10:40:06+09:00",
-   "scanned": 148,
-   "discounted": 23,
+   "checkedAt": "2026-10-16T22:32:26+09:00",
+   "lastSuccessAt": "2026-10-16T22:32:26+09:00",
+   "scanned": 162,
+   "discounted": 26,
    "error": ""
   }
  },
@@ -99,6 +99,42 @@
    "rate": 30,
    "soldOut": false,
    "firstSeen": "2026-10-12T11:39:22+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "11563881",
+   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 2P (블랙/그린/민트)",
+   "url": "https://gift.kakao.com/product/11563881",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 37800,
+   "originalPrice": 0,
+   "rate": 30,
+   "soldOut": false,
+   "firstSeen": "2026-10-16T22:32:26+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "11563941",
+   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 2종 세트 (민트+그린) (집들이/결혼/자취선물)",
+   "url": "https://gift.kakao.com/product/11563941",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 37800,
+   "originalPrice": 0,
+   "rate": 30,
+   "soldOut": false,
+   "firstSeen": "2026-10-16T22:32:26+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "11563866",
+   "name": "\"축하 감사 집들이선물\" SS 데비 머그 414ml 4P (민트/그린/블랙2P)",
+   "url": "https://gift.kakao.com/product/11563866",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 75600,
+   "originalPrice": 0,
+   "rate": 30,
+   "soldOut": false,
+   "firstSeen": "2026-10-16T22:32:26+09:00"
   },
   {
    "store": "kakao",
@@ -222,6 +258,30 @@
   },
   {
    "store": "kakao",
+   "id": "7712218",
+   "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/7712218",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261016154316_4c12b99a848c408b95932ccb083b4439.png",
+   "price": 28800,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "2244072",
+   "name": "\"넉넉한 벤티\" SS 콩코드 사이렌 화이트 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/2244072",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261016154407_99c4dfade41841a5832879c388b3a858.png",
+   "price": 31500,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-12T00:05:27+09:00"
+  },
+  {
+   "store": "kakao",
    "id": "12051198",
    "name": "\"대용량 텀블러\" SS 하트풀 오왈라 트래블 콜드컵 1185ml +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/12051198",
@@ -235,9 +295,9 @@
   {
    "store": "kakao",
    "id": "4607214",
-   "name": "\"메쉬 미니백 키링 증정\" SS 뉴트럴 밸류 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
+   "name": "\"소중한 마음을 담아\" SS 뉴트럴 밸류 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/4607214",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261011194559_54d98b8e7f01400f9deeefbc583b3402.png",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
    "price": 29700,
    "originalPrice": 0,
    "rate": 10,
@@ -247,9 +307,9 @@
   {
    "store": "kakao",
    "id": "10038304",
-   "name": "\"메쉬 미니백 키링 증정\" SS 블랙 매트 데비 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
+   "name": "\"소중한 마음을 담아\" SS 블랙 매트 데비 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/10038304",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261011194546_cfcc96b3f18c4711ae2bf3c7e52bdb32.png",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261016154511_1bbdaa9587864970889ad193998c1d53.png",
    "price": 30600,
    "originalPrice": 0,
    "rate": 10,
@@ -258,22 +318,10 @@
   },
   {
    "store": "kakao",
-   "id": "2244072",
-   "name": "\"메쉬 미니백 키링 증정\" SS 콩코드 사이렌 화이트 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/2244072",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261011194534_ecffddb2e57f42b4875c85d7d8ab9f37.png",
-   "price": 31500,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-10-12T00:05:27+09:00"
-  },
-  {
-   "store": "kakao",
    "id": "7661276",
-   "name": "\"메쉬 미니백 키링 증정\" SS 콩코드 하우스 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
+   "name": "\"소중한 마음을 담아\" SS 콩코드 하우스 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/7661276",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261011194624_0b9cb9f3b1b04e67a0a44962a82d1748.png",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
    "price": 32400,
    "originalPrice": 0,
    "rate": 10,
@@ -282,22 +330,10 @@
   },
   {
    "store": "kakao",
-   "id": "7712218",
-   "name": "\"메쉬 미니백 키링 증정\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/7712218",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261012110954_a3578c6fabbb49dbbfb5561283828ad4.png",
-   "price": 28800,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-10-12T00:05:27+09:00"
-  },
-  {
-   "store": "kakao",
    "id": "3502937",
-   "name": "\"메쉬 미니백 키링 증정\" 그린 사이렌 도트 머그 355ml*2ea 세트",
+   "name": "\"축하 집들이 선물\" 그린 사이렌 도트 머그 355ml*2ea 세트",
    "url": "https://gift.kakao.com/product/3502937",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261011194552_cf6173ccd428447ab394934b35b18b18.png",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261016154557_d547c5f55b434d8583c7fe1118fc972c.png",
    "price": 26100,
    "originalPrice": 0,
    "rate": 10,
@@ -365,6 +401,30 @@
    "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-10-15T10:51:44+09:00"
+  },
+  {
+   "store": "musinsa",
+   "id": "7486656",
+   "name": "베스트오브럭 도시락&텀블러 세트(그린) +텀블러음료쿠폰(카톡발송)",
+   "url": "https://www.musinsa.com/products/7486656",
+   "image": "https://image.msscdn.net/images/goods_img/20261011/7486656/7486656_17917902071919_500.jpg",
+   "price": 90250,
+   "originalPrice": 95000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-16T22:32:26+09:00"
+  },
+  {
+   "store": "musinsa",
+   "id": "7486650",
+   "name": "베스트오브럭 도시락&텀블러 세트(핑크) +텀블러음료쿠폰(카톡발송)",
+   "url": "https://www.musinsa.com/products/7486650",
+   "image": "https://image.msscdn.net/images/goods_img/20261011/7486650/7486650_17917903576123_500.jpg",
+   "price": 90250,
+   "originalPrice": 95000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-16T22:32:26+09:00"
   },
   {
    "store": "wconcept",
