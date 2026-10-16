@@ -48,7 +48,7 @@ STARBUCKS HELPER는 단순 쿠폰 페이지가 아니라 디스이스마인 운�
 - 위 URL은 이미 QR로 사용 중인 운영 주소다. 사용자가 명시적으로 변경을 지시하지 않는 한 `shareId=c6xxh9`, `share.html` 경로, GitHub Pages 프로젝트 경로를 변경하거나 새 주소로 교체하지 않는다.
 - **카탈로그 최소 보안 전환 운영 적용 완료(2026-10-15):** 일반 `c6xxh9`는 상품 상세·판매가만 공개하고 제안가는 별도 승인 경계로 분리한다. legacy workspace는 exact owner 읽기 전용, `adminCatalogs` 복사본은 owner-only이며 기존 견적 문서 4개도 현재 위치에서 owner-only다. 카탈로그 전용 백업·내부 workspace 대조는 서버3 live 데이터 조사·복원·이관을 포함하지 않는다.
 - **운영 READBACK 기준:** 고정 공개 문서는 286상품·10분류·`offer` 0건, 공개 상품 키는 `category/id/images/name/sale/tags/updatedAt`만 확인됐다. 기존 고객 URL, 주문 subcollection, 관리자 원본은 유지됐다. 이 전환을 다시 실행하거나 공개 부모 문서를 재게시하지 않는다.
-- **거래처 전용 링크 상태:** `share.html`, 편집기와 catalog-only Rules에는 별도 `partnerCatalogShares` capability·만료·회수 로직이 있지만 2026-10-16 현재 원격 `main`에는 기본 진입 파일 `partner.html`이 없다. 로컬 최소 stage와 검증만 준비하며 실제 capability 생성, partner 문서 게시, push·배포는 사용자 최종 승인 전 수행하지 않는다.
+- **거래처 전용 링크 상태:** 2026-10-16 원격 `main` `97d5f93`까지 `partner.html` 진입점과 편집기의 프로젝트 경로 복사 수정이 배포됐다. owner 설정 및 30일 만료 `partnerCatalogShares` 문서 1건은 재생성·회전 없이 유지된다. Mac owner 브라우저에서 `전용 링크 복사`가 `/STARBUCKS-HELPER/partner.html`과 기존 capability를 그대로 반환했고, 전용 화면은 286상품·제안가를 표시하며 capability 없는 접근은 차단된다. 일반 `share.html?id=c6xxh9`는 286상품·판매가-only 상태다. capability 실값은 WORKLOG·커밋·명령에 기록하지 않는다.
 - 카탈로그 코드 최적화/리팩터링/게시 기능 수정 후에도 기존 QR 주소가 그대로 열리는지 확인한다.
 - 판매가 0원은 현재 판매하지 않는 상품이다. 가격 정책 계산을 건너뛰고 매입가/제안가도 0원으로 유지하며, 고객 공유 화면에서는 `판매 중지`로 표시하고 선택·견적 합산을 차단한다.
 - 배송비·케이스·쇼핑백 조건은 공유 목록별 확인된 안내만 게시한다. 특정 거래 1건의 조건을 전체 카탈로그 기본 정책으로 일반화하지 않는다.

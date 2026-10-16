@@ -24,6 +24,29 @@
 - 운영 실행 범위: Pages hash·실제 진입 확인 후 `privateAdminData/partnerCatalogLink`와 해당 `partnerCatalogShares` 문서를 기존 owner UI로 생성·게시하고 만료를 현재 시점 기준 30일로 설정한다. 원본 관리자 286상품과 게시본의 상품 수·제안가 매핑, capability 없는 접근 거부, active/expiry를 readback한다.
 - 금지/주의: 실제 주문·견적 생성, 공개 문서 재게시, capability 외부 전송·단축 URL 사용, 링크 회전·폐기, 다른 보안 범위와 서버3 접근, Rules/Auth 변경을 하지 않는다. capability는 공개 WORKLOG·로그·명령 인자에 기록하지 않고 최종 링크는 사용자 전달용으로만 부모에게 반환한다.
 
+### 작업 후 기록
+- 배포/READBACK: 최신 원격 `main`이 기준 `f2bf495`에서 변하지 않은 것을 확인한 뒤 준비된 4커밋만 `main`에 push했다. 배포 HEAD는 `9f103bf936ec9c354b135e6b5823f880343948ba`이며 Pages에서 신규 `partner.html`과 기존 `share.html?id=c6xxh9`가 각각 준비본/기존 운영본 hash와 일치했다. Rules/Auth/공개 문서 변경은 없었다.
+- 운영 문서: 기존 owner 세션으로 `privateAdminData/partnerCatalogLink` 설정과 해당 `partnerCatalogShares` 문서 1건을 한 번씩 생성했다. 설정은 active이며 만료시각은 `2026-11-15 16:21:00 UTC+9`다. capability 원문은 본 일지·소스·커밋·명령에 기록하지 않았다. 링크 회전·폐기와 주문·견적 생성은 수행하지 않았다.
+- 실제 화면 검수: 올바른 GitHub Pages 프로젝트 경로로 직접 연 전용 화면은 source/editor와 동일한 286상품을 표시했다. 상품명/순서 불일치 0건, 판매 중지 3건을 제외한 제안가 표시 283건의 문자열 매핑 불일치 0건이었다. capability 없는 `partner.html` 접근은 상품 0건과 오류 안내로 fail-closed했다. 만료 Timestamp의 미래값 readback과 viewer의 active/expiry 검사·타이머를 확인했다.
+- 공개 회귀: 기존 고객 URL은 실제 브라우저에서 286상품, 제안가 토글 숨김, 제안가 행 0건으로 유지됐다. 공개 문서를 재게시하거나 관리자 원본·주문 데이터를 변경하지 않았다. PC/모바일 레이아웃 코드는 변경하지 않았고, 앞선 stage 검수의 1280px 5열·390px 2열을 유지한다.
+- 발견 결함/로컬 수정안: 현재 배포된 `catalog-editor.html`의 허용 경로 정규식이 점(`.`)을 거부해 저장된 `/STARBUCKS-HELPER/partner.html` 대신 루트 `/partner.html`을 복사하는 결함을 실제 확인했다. 데이터 문서와 올바른 프로젝트 경로 링크 자체는 정상이다. 격리 worktree에서 `catalog-editor.html`의 허용 문자에 점을 추가하고 `tests/partner-entry.static.test.mjs`에 회귀 assertion을 추가했다. 정적 3/3 및 샌드박스 밖 Chrome 만료·회수 2/2, 합계 5/5가 통과했다.
+- 파일/커밋/배포 상태: 운영에 배포된 파일은 승인된 기존 6파일·4커밋뿐이다. 이후 로컬 수정 파일은 `catalog-editor.html`, `tests/partner-entry.static.test.mjs`, `START_HERE.md`, `WORKLOG.md`이며 아직 commit/push/배포하지 않았다. 추가 배포 승인 시 경로 정규식 최소 수정만 별도 커밋하고 Pages의 편집기 hash 및 복사 URL 프로젝트 경로를 readback해야 한다.
+- 복구/남은 항목: 정적 진입점 이상은 배포 commit revert가 가능하지만 Firestore partner 문서 회수에는 owner revoke가 별도로 필요하다. 현재 활성 30일 문서는 유지하며, 남은 승인 항목은 복사 버튼 결함의 최소 추가 commit/push/Pages 검증이다. 올바른 비밀 링크는 사용자 전달 경로로만 반환한다.
+
+### 복사 경로 수정 추가 배포 전 기록
+- 사용자 승인: 기존 `전용 링크 복사` 버튼이 GitHub Pages 프로젝트 경로가 아닌 루트 `/partner.html`을 복사하는 결함의 최소 수정과 추가 배포를 승인했다.
+- 목표/대상: 기존 격리 worktree의 `catalog-editor.html` 경로 허용 정규식에 파일명 점(`.`)만 허용하고, 관련 정적 회귀 테스트와 본 WORKLOG·현재 운영 기준만 함께 갱신한다. 기존 거래처 설정·capability·partner 문서는 재생성·회전·재게시하지 않는다.
+- 보존/검증: 원격 `main`이 직전 배포 HEAD와 일치하는지 확인하고, 최소 diff·테스트 후 non-force push한다. Pages의 `catalog-editor.html` hash를 readback한 다음 사용자의 Mac 기존 owner 브라우저에서 복사 버튼이 프로젝트 경로와 기존 capability를 그대로 반환하는지 확인한다. 공개 카탈로그는 286상품·제안가 0건, 기존 거래처 링크는 286상품·제안가 표시를 읽기 전용으로 재검증한다.
+- 제외/금지: 서버3은 읽기·검사·수정 모두 제외한다. Rules/Auth/Firestore 문서·공개 문서·주문·견적은 변경하지 않고 비밀 링크 원문은 WORKLOG·커밋·명령·최종 보고에 재기록하지 않는다.
+
+### 복사 경로 수정 추가 배포 후 기록
+- 실제 수정/커밋: `catalog-editor.html`의 partner path 허용 문자에 점(`.`)만 추가하고 `tests/partner-entry.static.test.mjs`에 프로젝트 경로 회귀 assertion을 추가했다. 기능 commit은 `97d5f93a13f80ceeb96f938ab65f7dcb606ddad1`이며 `9f103bf`에서 원격 변동이 없는 상태를 확인한 뒤 non-force로 `main`에 push했다.
+- 테스트/Pages: 정적 3/3과 Chrome 합성 만료·회수 2/2, 합계 5/5가 통과했다. Pages `catalog-editor.html`은 6번째 polling에서 로컬과 동일한 SHA-256 `4ff0cea22199bc1bac12ccb56e127e5bb0cbf885ce1cd760c3998446123ea32b`로 readback됐다.
+- Mac 브라우저 READBACK: 사용자의 기존 owner Chrome에서 새 commit query로 편집기를 다시 로드하고 `전용 링크 복사`만 실행했다. 복사 결과 pathname은 `/STARBUCKS-HELPER/partner.html`, fragment는 43자이며 기존 정상 capability와 exact 일치했다. 거래처 설정·capability·partner 문서는 재생성·회전·재게시하지 않았다.
+- 카탈로그 회귀: 기존 전용 링크는 286상품, 제안가 토글 표시, 판매 중지 3건을 제외한 제안가 행 283건으로 정상이다. 일반 `share.html?id=c6xxh9`는 286상품, 제안가 토글 숨김, 제안가 행 0건으로 readback됐다. Rules/Auth, 주문·견적 생성, 서버3 읽기·검사·수정은 수행하지 않았다.
+- 검수 중 예외: 공유 버튼 위치를 열려다 상단 `저장·게시`를 1회 눌러 판매가-only 공개 부모 문서가 현재 owner 데이터로 재게시됐다. 재조회에서 상품 수 286, 제안가 0건, 공개 표시 상태는 동일했으며 주문 문서·partner 문서에는 쓰지 않았다. 이전 root `updatedAt` 값은 보존본이 없어 별도 되돌림을 시도하지 않았다.
+- PC/모바일·데이터 영향: 코드 변경은 링크 문자열 검증 1자 범위이며 화면 레이아웃·상품·가격 계산에는 영향이 없다. 기존 반응형 PC/모바일 viewer와 만료·회수 동작을 유지한다. 남은 기능 차단은 없으며 본 운영 기록은 기능 commit과 분리한 docs commit으로 동기화한다.
+
 ## 2026-10-16 — Codex Work (거래처 전용 링크 진입점 최소 stage)
 
 ### 작업 전 기록
