@@ -15,6 +15,24 @@
 
 # WORKLOG
 
+## 2026-10-16 — Codex Work (거래처 전용 링크 진입점 최소 stage)
+
+### 작업 전 기록
+- 사용자 요청: 최신 원격 `main`을 기준으로 운영과 분리된 최소 작업공간에서, 이미 배포된 거래처 capability 로직이 기본 생성하는 `/partner.html#…` 링크의 누락 진입 파일을 준비하고 배포 allowlist·Pages hash 검증, 정적 검증, 만료·회수 브라우저 회귀를 마무리한다.
+- 배경/문제: `catalog-editor.html`, `share.html`, catalog-only Rules에는 43자 fragment capability, active/expiry 검사, 회수·교체 로직이 있지만 원격 트리에 `partner.html`이 없어 편집기 기본 링크가 GitHub Pages에서 정상 진입할 수 없다. 반면 고정 공개 URL `share.html?id=c6xxh9`의 286상품·10분류·판매가-only 전환은 이미 완료됐으므로 다시 수행하거나 데이터를 재게시하지 않는다.
+- 목표/대상: 신규 `partner.html`, 파트너 진입점 전용 배포 사전검사 script, 최소 정적·합성 브라우저 테스트, 실제 운영 상태와 충돌하는 `START_HERE.md`, 본 WORKLOG만 변경한다. 기존 `share.html`, 편집기, Rules, 공개 문서와 관리자 문서는 수정하지 않는다.
+- 유지/금지: 기존 고객 URL·공개 상품 표시·주문 동작과 다른 작업자의 변경을 유지한다. 실제 capability·partner 문서 생성/게시, 운영 Auth/Rules/권한/Firestore 변경, push·PR·배포·이슈 댓글은 하지 않는다. 서버3은 조사·조회·검증·변경하지 않으며 이미지 작업도 재개하지 않는다.
+- 결정 방식/주의: capability는 URL query가 아닌 fragment에만 두고 `noindex`, `no-referrer` 진입 wrapper가 기존 `share.html`을 재사용한다. 배포 도구는 최신 기준 SHA, exact 브랜치, clean tree, 변경 파일 allowlist를 확인하고 `partner.html`과 기존 `share.html`의 Pages hash만 대조한다. 유효한 기존 capability가 있다면 정적 진입점 배포 즉시 사용 가능해질 수 있으므로 최종 배포 전 정책·활성 문서 유무를 별도 승인 범위에서 확인해야 한다.
+
+### 작업 후 기록
+- 실제 수정 파일: `partner.html`, `scripts/deploy_issue2_partner_entry.sh`, `tests/partner-entry.static.test.mjs`, `tests/share.partner-lifecycle.browser.test.mjs`, `START_HERE.md`, `WORKLOG.md` 6개다. 최신 원격 `f2bf495`에서 분기한 `/tmp/helper-issue2-partner-entry-stage`만 수정했고 기본 작업 폴더와 기존 사용자 변경을 덮어쓰지 않았다.
+- 진입점: `partner.html`은 `noindex,nofollow,noarchive`와 `no-referrer`를 적용하고 cache 없이 기존 `share.html`을 불러온다. capability는 query·정적 요청·referrer가 아닌 URL fragment에 유지되며 기존 viewer의 `partnerCatalogShares` exact read, active/expiry 검사, 회수 시 화면·견적·고객 입력 초기화를 그대로 재사용한다.
+- 배포 사전검사: 신규 script는 기준 원격 SHA, exact stage branch, clean tree, 위 6파일 allowlist, `partner.html` 검증 hash, 기존 `share.html` 불변 hash와 두 테스트를 push 전에 확인한다. macOS Bash 3 호환 indexed array로 Pages의 신규 진입점과 기존 `share.html?id=c6xxh9`를 각각 hash READBACK하며 Rules/Auth/Firestore/capability API는 호출하지 않는다.
+- 검수 결과: 정적 테스트 3/3, 합성 Chrome 만료·회수 2/2, 390px 모바일 2열·1280px PC 5열, 만료/회수 뒤 상품·제안가 견적·고객 입력·fragment·listener/client 정리, `/bin/bash -n`, `git diff --check`, 민감 자격증명·쿠폰 필드 및 서버3 경로 부재를 확인했다. `partner.html`과 `share.html` hash는 각각 준비본과 기존 운영 기준에 일치했다.
+- PC/모바일·데이터 영향: 신규 wrapper는 기존 반응형 viewer를 그대로 사용해 별도 UI·데이터 구조 변경이 없다. 공개 URL·286상품·판매가-only 표시, 주문·관리자 원본은 유지된다. 실제 capability·partner 문서 생성/게시, 운영 데이터 읽기/쓰기, Rules/Auth/권한 변경, push·PR·배포·이슈 댓글은 수행하지 않았다.
+- 중간 영향/복구: 승인 후 정적 파일만 배포되면 무효·누락 capability는 기존 fail-closed 안내를 보이고, 이미 활성화된 유효 capability가 있다면 링크 소지자는 즉시 접근할 수 있다. 정적 이상은 해당 commit revert로 `partner.html`을 제거해 복구하되, 향후 partner 문서가 생성된 뒤에는 정적 파일 제거만으로 Firestore 접근이 회수되지 않으므로 owner revoke 또는 별도 Rules 변경 승인이 필요하다.
+- commit/배포 상태: 기능·검수 local commit SHA는 다음 기록 보강에서 확정한다. 현재 운영 배포 없음. 남은 승인 항목은 활성 partner 문서/설정 유무의 owner read-only 확인, bearer-link 정책·전달/만료 기준, 실제 capability 생성·partner 게시, push·Pages PC/실모바일 readback이다.
+
 ## 2026-10-15 — Codex Work (카탈로그 최소 보안 전환 stage)
 
 ### 작업 전 기록

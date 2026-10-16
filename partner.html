@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <title>거래처 전용 상품 안내 | 디스이스마인</title>
+  </head>
+  <body>
+    <p id="partnerLoading">거래처 전용 상품 안내를 불러오는 중…</p>
+    <script>
+      // The capability stays in location.hash, which is not sent with this
+      // static-page request or in the HTTP Referer header. share.html detects
+      // the partner.html pathname and reads only the separately ruled document.
+      fetch("./share.html", { cache: "no-store", referrerPolicy: "no-referrer" })
+        .then((response) => {
+          if (!response.ok) throw new Error("viewer unavailable");
+          return response.text();
+        })
+        .then((html) => {
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(() => {
+          document.querySelector("#partnerLoading").textContent =
+            "전용 상품 안내를 불러오지 못했습니다. 링크를 다시 확인해주세요.";
+        });
+    </script>
+  </body>
+</html>
