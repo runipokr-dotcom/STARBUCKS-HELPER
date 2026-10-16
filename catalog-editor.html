@@ -1345,7 +1345,7 @@ Fixed : mobile two-column cards / autosave after product edits
         const base = new URL(config.baseUrl);
         if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash)
           throw new Error("전용 링크 설정 오류: HTTPS 기본 주소를 확인해 주세요.");
-        const path = typeof config.path === "string" && /^\/[A-Za-z0-9/_-]{1,80}$/.test(config.path)
+        const path = typeof config.path === "string" && /^\/[A-Za-z0-9/_.-]{1,80}$/.test(config.path)
           ? config.path
           : "/partner.html";
         return `${base.origin}${path}#${config.capability}`;

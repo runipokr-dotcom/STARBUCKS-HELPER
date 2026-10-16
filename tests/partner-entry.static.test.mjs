@@ -24,6 +24,7 @@ test("editor generates the separate partner path while preserving the fixed publ
   assert.match(editor, /PUBLIC_SHARE_ID\s*=\s*"c6xxh9"/);
   assert.match(editor, /share\.html\?id=\$\{id\}/);
   assert.match(editor, /:\s*"\/partner\.html"/);
+  assert.match(editor, /\^\\\/\[A-Za-z0-9\/_\.\-\]\{1,80\}\$/);
   assert.match(editor, /return `\$\{base\.origin\}\$\{path\}#\$\{config\.capability\}`/);
   assert.doesNotMatch(editor, /partner\.html\?capability=/);
 });
