@@ -15,6 +15,15 @@
 
 # WORKLOG
 
+## 2026-10-16 — Codex Work (거래처 진입점 배포·30일 전용 링크 생성)
+
+### 작업 전 기록
+- 사용자 요청/승인: 원격 `main` 변동과 연결 상태를 다시 확인한 뒤 준비된 최소 6개 파일·4커밋만 배포하고, Pages 파일 hash와 실제 진입을 검증한 다음 기존 owner UI에서 제안가 포함 거래처 전용 링크를 30일 만료로 생성한다.
+- 배경/목표: 일반 고객 URL `share.html?id=c6xxh9`와 286상품 판매가-only 공개 문서는 그대로 유지한다. 누락된 `partner.html` 정적 진입점만 추가하고, owner-only 설정·거래처 문서에 별도 projection을 게시해 유효한 fragment capability 소지자에게만 제안가를 제공한다.
+- 대상/보존: 배포 대상은 기존 stage의 `partner.html`, 배포 사전검사, 정적·합성 브라우저 테스트, `START_HERE.md`, 본 WORKLOG 6개 파일과 관련 4커밋뿐이다. `share.html`, 편집기, Rules, 공개 문서, 관리자 원본과 주문 데이터는 수정하지 않는다.
+- 운영 실행 범위: Pages hash·실제 진입 확인 후 `privateAdminData/partnerCatalogLink`와 해당 `partnerCatalogShares` 문서를 기존 owner UI로 생성·게시하고 만료를 현재 시점 기준 30일로 설정한다. 원본 관리자 286상품과 게시본의 상품 수·제안가 매핑, capability 없는 접근 거부, active/expiry를 readback한다.
+- 금지/주의: 실제 주문·견적 생성, 공개 문서 재게시, capability 외부 전송·단축 URL 사용, 링크 회전·폐기, 다른 보안 범위와 서버3 접근, Rules/Auth 변경을 하지 않는다. capability는 공개 WORKLOG·로그·명령 인자에 기록하지 않고 최종 링크는 사용자 전달용으로만 부모에게 반환한다.
+
 ## 2026-10-16 — Codex Work (거래처 전용 링크 진입점 최소 stage)
 
 ### 작업 전 기록
@@ -28,10 +37,10 @@
 - 실제 수정 파일: `partner.html`, `scripts/deploy_issue2_partner_entry.sh`, `tests/partner-entry.static.test.mjs`, `tests/share.partner-lifecycle.browser.test.mjs`, `START_HERE.md`, `WORKLOG.md` 6개다. 최신 원격 `f2bf495`에서 분기한 `/tmp/helper-issue2-partner-entry-stage`만 수정했고 기본 작업 폴더와 기존 사용자 변경을 덮어쓰지 않았다.
 - 진입점: `partner.html`은 `noindex,nofollow,noarchive`와 `no-referrer`를 적용하고 cache 없이 기존 `share.html`을 불러온다. capability는 query·정적 요청·referrer가 아닌 URL fragment에 유지되며 기존 viewer의 `partnerCatalogShares` exact read, active/expiry 검사, 회수 시 화면·견적·고객 입력 초기화를 그대로 재사용한다.
 - 배포 사전검사: 신규 script는 기준 원격 SHA, exact stage branch, clean tree, 위 6파일 allowlist, `partner.html` 검증 hash, 기존 `share.html` 불변 hash와 두 테스트를 push 전에 확인한다. `--check-only`는 이 검사 직후 반드시 종료해 push·Pages 변경을 실행하지 않는다. 실제 승인 실행은 macOS Bash 3 호환 indexed array로 Pages의 신규 진입점과 기존 `share.html?id=c6xxh9`를 각각 hash READBACK하며 Rules/Auth/Firestore/capability API는 호출하지 않는다.
-- 검수 결과: 정적 테스트 3/3, 합성 Chrome 만료·회수 2/2, 390px 모바일 2열·1280px PC 5열, 만료/회수 뒤 상품·제안가 견적·고객 입력·fragment·listener/client 정리, `/bin/bash -n`, `git diff --check`, 민감 자격증명·쿠폰 필드 및 서버3 경로 부재를 확인했다. `partner.html`과 `share.html` hash는 각각 준비본과 기존 운영 기준에 일치했다.
+- 검수 결과: 정적 테스트 3/3, 합성 Chrome 만료·회수 2/2, 390px 모바일 2열·1280px PC 5열, 만료/회수 뒤 상품·제안가 견적·고객 입력·fragment·listener/client 정리, `/bin/bash -n`, `git diff --check`, 민감 자격증명·쿠폰 필드 및 서버3 경로 부재를 확인했다. clean worktree에서 `--check-only` 전체 사전검사가 5/5로 성공하고 push 전에 종료됐다. `partner.html`과 `share.html` hash는 각각 준비본과 기존 운영 기준에 일치했다.
 - PC/모바일·데이터 영향: 신규 wrapper는 기존 반응형 viewer를 그대로 사용해 별도 UI·데이터 구조 변경이 없다. 공개 URL·286상품·판매가-only 표시, 주문·관리자 원본은 유지된다. 실제 capability·partner 문서 생성/게시, 운영 데이터 읽기/쓰기, Rules/Auth/권한 변경, push·PR·배포·이슈 댓글은 수행하지 않았다.
 - 중간 영향/복구: 승인 후 정적 파일만 배포되면 무효·누락 capability는 기존 fail-closed 안내를 보이고, 이미 활성화된 유효 capability가 있다면 링크 소지자는 즉시 접근할 수 있다. 정적 이상은 해당 commit revert로 `partner.html`을 제거해 복구하되, 향후 partner 문서가 생성된 뒤에는 정적 파일 제거만으로 Firestore 접근이 회수되지 않으므로 owner revoke 또는 별도 Rules 변경 승인이 필요하다.
-- commit/배포 상태: 기능·검수 local commit은 `1eaf751`이며 push·PR·배포하지 않았다. 남은 승인 항목은 활성 partner 문서/설정 유무의 owner read-only 확인, bearer-link 정책·전달/만료 기준, 실제 capability 생성·partner 게시, push·Pages PC/실모바일 readback이다.
+- commit/배포 상태: 기능 준비 local commit은 `1eaf751`, 강제 push 전 종료 사전검사 보강은 `ef1f01c`이며 push·PR·배포하지 않았다. 남은 승인 항목은 활성 partner 문서/설정 유무의 owner read-only 확인, bearer-link 정책·전달/만료 기준, 실제 capability 생성·partner 게시, push·Pages PC/실모바일 readback이다.
 
 ## 2026-10-15 — Codex Work (카탈로그 최소 보안 전환 stage)
 
