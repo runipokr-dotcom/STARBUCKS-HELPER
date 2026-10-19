@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-10-19T10:43:25+09:00",
+ "updatedAt": "2026-10-20T00:52:23+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-19T10:43:25+09:00",
-   "lastSuccessAt": "2026-10-19T10:43:25+09:00",
-   "scanned": 256,
+   "checkedAt": "2026-10-20T00:52:23+09:00",
+   "lastSuccessAt": "2026-10-20T00:52:23+09:00",
+   "scanned": 257,
    "discounted": 2,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-19T10:43:25+09:00",
-   "lastSuccessAt": "2026-10-19T10:43:25+09:00",
+   "checkedAt": "2026-10-20T00:52:23+09:00",
+   "lastSuccessAt": "2026-10-20T00:52:23+09:00",
    "scanned": 296,
    "discounted": 2,
    "error": ""
@@ -23,19 +23,19 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-19T10:43:25+09:00",
-   "lastSuccessAt": "2026-10-19T10:43:25+09:00",
-   "scanned": 271,
-   "discounted": 249,
+   "checkedAt": "2026-10-20T00:52:23+09:00",
+   "lastSuccessAt": "2026-10-20T00:52:23+09:00",
+   "scanned": 273,
+   "discounted": 251,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-19T10:43:25+09:00",
-   "lastSuccessAt": "2026-10-19T10:43:25+09:00",
-   "scanned": 148,
-   "discounted": 23,
+   "checkedAt": "2026-10-20T00:52:23+09:00",
+   "lastSuccessAt": "2026-10-20T00:52:23+09:00",
+   "scanned": 149,
+   "discounted": 22,
    "error": ""
   }
  },
@@ -123,18 +123,6 @@
    "rate": 25,
    "soldOut": false,
    "firstSeen": "2026-10-12T11:39:22+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "9158489",
-   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (3종 택 1) +에코텀블러음료쿠폰 2장 (카톡발송)",
-   "url": "https://gift.kakao.com/product/9158489",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261012110812_e74860aec34b4f25bb5f4c632704a95f.png",
-   "price": 26250,
-   "originalPrice": 0,
-   "rate": 25,
-   "soldOut": false,
-   "firstSeen": "2026-10-08T00:46:52+09:00"
   },
   {
    "store": "wconcept",
@@ -1112,6 +1100,18 @@
   },
   {
    "store": "wconcept",
+   "id": "308516983",
+   "name": "SS 시그니처 포포 텀블러 296ml",
+   "url": "https://www.wconcept.co.kr/Product/308516983",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/83/308516983_OG94899.jpg",
+   "price": 27550,
+   "originalPrice": 29000,
+   "rate": 5,
+   "soldOut": true,
+   "firstSeen": "2026-10-20T00:52:23+09:00"
+  },
+  {
+   "store": "wconcept",
    "id": "308548200",
    "name": "SS 알로하 CTG 콜드컵 710ml",
    "url": "https://www.wconcept.co.kr/Product/308548200",
@@ -1817,6 +1817,18 @@
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308516716",
+   "name": "디어유 고블렛 세트 276ml (2P)",
+   "url": "https://www.wconcept.co.kr/Product/308516716",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/16/308516716_QQ57734.jpg",
+   "price": 33250,
+   "originalPrice": 35000,
+   "rate": 5,
+   "soldOut": true,
+   "firstSeen": "2026-10-20T00:52:23+09:00"
   },
   {
    "store": "wconcept",
