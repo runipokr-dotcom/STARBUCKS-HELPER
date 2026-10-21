@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-21T11:03:07+09:00",
+ "updatedAt": "2026-10-21T23:08:41+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-21T11:03:07+09:00",
-   "lastSuccessAt": "2026-10-21T11:03:07+09:00",
+   "checkedAt": "2026-10-21T23:08:41+09:00",
+   "lastSuccessAt": "2026-10-21T23:08:41+09:00",
    "scanned": 254,
    "discounted": 2,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-21T11:03:07+09:00",
-   "lastSuccessAt": "2026-10-21T11:03:07+09:00",
+   "checkedAt": "2026-10-21T23:08:41+09:00",
+   "lastSuccessAt": "2026-10-21T23:08:41+09:00",
    "scanned": 296,
    "discounted": 2,
    "error": ""
@@ -23,18 +23,18 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-21T11:03:07+09:00",
-   "lastSuccessAt": "2026-10-21T11:03:07+09:00",
-   "scanned": 274,
-   "discounted": 252,
+   "checkedAt": "2026-10-21T23:08:41+09:00",
+   "lastSuccessAt": "2026-10-21T23:08:41+09:00",
+   "scanned": 273,
+   "discounted": 251,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-21T11:03:07+09:00",
-   "lastSuccessAt": "2026-10-21T11:03:07+09:00",
-   "scanned": 150,
+   "checkedAt": "2026-10-21T23:08:41+09:00",
+   "lastSuccessAt": "2026-10-21T23:08:41+09:00",
+   "scanned": 148,
    "discounted": 22,
    "error": ""
   }
@@ -725,18 +725,6 @@
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "309113528",
-   "name": "SS 멜로 딜라이트 캠프 텀블러 710ml",
-   "url": "https://www.wconcept.co.kr/Product/309113528",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/28/309113528_IY53234.jpg",
-   "price": 49400,
-   "originalPrice": 52000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-20T22:51:31+09:00"
   },
   {
    "store": "wconcept",
