@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ko">
+<head><script src="auth-gate.js?v=20260925-1"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>상품정보 이미지 만들기 2</title>
+  <style>
+    :root{--tool-bg:#f3f1ed;--tool-paper:#fff;--tool-ink:#252925;--tool-muted:#707870;--tool-line:#ddd9d1;--tool-accent:#24483d}
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;background:var(--tool-bg);color:var(--tool-ink);font-family:"Noto Sans CJK KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+    .tool-header{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--tool-line)}
+    .tool-header h1{margin:0;font-size:18px;letter-spacing:-.35px}
+    .tool-header p{margin:0;color:var(--tool-muted);font-size:12px}
+    .workspace{display:grid;grid-template-columns:minmax(330px,430px) minmax(0,1fr);gap:24px;width:min(100%,1500px);margin:0 auto;padding:24px}
+    .editor,.preview-panel{border:1px solid var(--tool-line);border-radius:18px;background:var(--tool-paper);box-shadow:0 8px 30px rgba(40,34,23,.06)}
+    .editor{padding:22px}
+    .form-section{margin:0 0 22px;padding:0 0 22px;border-bottom:1px solid #ebe8e2}
+    .form-section:last-of-type{margin-bottom:0;padding-bottom:0;border-bottom:0}
+    .form-section h2{margin:0 0 12px;font-size:14px}
+    .form-note{margin:0 0 12px;color:var(--tool-muted);font-size:11px;line-height:1.6;word-break:keep-all}
+    label{display:block;margin:11px 0 6px;color:#4f554f;font-size:12px;font-weight:650}
+    input,textarea{width:100%;border:1px solid #d8d4cc;border-radius:10px;padding:11px 12px;background:#fff;color:#252925;font:inherit;font-size:14px;outline:none}
+    input:focus,textarea:focus{border-color:var(--tool-accent);box-shadow:0 0 0 3px rgba(36,72,61,.1)}
+    textarea{min-height:78px;resize:vertical;line-height:1.55}
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .field-grid.three{grid-template-columns:repeat(3,1fr)}
+    .upload{position:relative;display:grid;place-items:center;min-height:98px;padding:14px;border:1.5px dashed #c7c3bb;border-radius:12px;background:#fbfaf8;color:var(--tool-muted);text-align:center;cursor:pointer}
+    .upload strong{display:block;margin-bottom:5px;color:var(--tool-ink)}
+    .upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .tool-actions{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:9px;margin-top:22px}
+    .tool-actions button{min-height:45px;border:0;border-radius:11px;padding:11px 9px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+    .secondary{background:#ece9e3;color:#312f2b}
+    .primary{background:var(--tool-accent);color:#fff}
+    .status{min-height:18px;margin:10px 2px 0;color:var(--tool-muted);font-size:11px;line-height:1.55}
+    .preview-panel{min-width:0;padding:22px;overflow:hidden}
+    .preview-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 13px;font-size:12px;color:var(--tool-muted)}
+    .preview-heading b{color:var(--tool-ink);font-size:14px}
+    .preview-frame{width:100%;overflow:hidden}
+    .preview-scaler{width:780px;transform-origin:top left}
+    .review-note{margin:12px auto 0;max-width:780px;font-size:11px;line-height:1.8;color:#727a70;text-align:center;padding:0 20px}
+    @media(max-width:980px){.workspace{grid-template-columns:1fr}.preview-panel{order:-1}}
+    @media(max-width:560px){.tool-header{align-items:flex-start;flex-direction:column;gap:4px;padding:15px 16px}.workspace{padding:12px;gap:12px}.editor,.preview-panel{border-radius:14px}.editor,.preview-panel{padding:15px}.field-grid,.field-grid.three{grid-template-columns:1fr}.tool-actions{grid-template-columns:1fr 1fr}.tool-actions .primary{grid-column:1/-1}}
+  </style>
+  <style id="templateStyles">
+    #infoCard{box-sizing:border-box;width:780px;margin:0;background:#fff;padding:40px 44px 30px;color:#272b28;font-family:"Noto Sans CJK KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+    #infoCard *{box-sizing:border-box}
+    #infoCard .info-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #24483d;padding-bottom:14px}
+    #infoCard .info-header strong{font-family:Arial,sans-serif;font-size:24px;font-weight:500;letter-spacing:4px}
+    #infoCard .info-header span{font-size:11px;letter-spacing:.8px;color:#767c78}
+    #infoCard .intro{display:grid;grid-template-columns:150px 1fr;gap:25px;align-items:center;margin:25px 0}
+    #infoCard .image-placeholder{height:166px;background:#f6f5f1;border:1px dashed #d1d4ce;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#7b817a;text-align:center;font-size:12px;line-height:1.8;overflow:hidden}
+    #infoCard .image-placeholder small{font-size:10px;color:#959a94}
+    #infoCard #imagePlaceholder{display:flex;flex-direction:column;align-items:center}
+    #infoCard #imagePlaceholder[hidden],#infoCard .product-image[hidden]{display:none}
+    #infoCard .product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+    #infoCard .eyebrow{min-height:14px;font-size:10px;letter-spacing:1.4px;color:#66796e;margin:0 0 8px}
+    #infoCard .product-title{min-height:35px;font-size:25px;line-height:1.4;letter-spacing:-1.1px;margin:0 0 10px;font-weight:600;white-space:pre-wrap;word-break:keep-all}
+    #infoCard .product-title span{display:block;min-height:1px}
+    #infoCard .description{min-height:23px;font-size:12px;line-height:1.9;color:#676c67;margin:0;white-space:pre-wrap;word-break:keep-all}
+    #infoCard .section-title{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px}
+    #infoCard h2{font-size:14px;letter-spacing:-.2px;margin:0;font-weight:600}
+    #infoCard .section-title small{font-size:10px;color:#899087}
+    #infoCard .specs{border-top:1px solid #b6bdb6;margin:0}
+    #infoCard .info-row{display:grid;grid-template-columns:130px 1fr;min-height:40px;border-bottom:1px solid #e8ebe6;align-items:center;font-size:12px;line-height:1.7;padding:9px 0}
+    #infoCard .info-row dt{color:#737a73}
+    #infoCard .info-row dd{margin:0;min-height:20px}
+    #infoCard .capacity{font-size:19px;line-height:1.2;font-weight:500;color:#24483d}
+    #infoCard .capacity small{font-size:12px;font-weight:400;margin-left:3px}
+    #infoCard .pending{color:#8b8a7a}
+    #infoCard .dimension{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    #infoCard .dimension span{font-size:11px;color:#747b73}
+    #infoCard .dimension b{display:block;min-height:20px;font-size:12px;font-weight:400;color:#4a4f4a}
+    #infoCard .parts{display:flex;gap:24px;flex-wrap:wrap}
+    #infoCard .parts span{color:#72796f}
+    #infoCard .parts b{font-weight:400;color:#4a4f4a;margin-left:7px}
+    #infoCard .care{background:#f5f6f2;padding:12px 15px;display:flex;gap:12px;margin-top:15px;font-size:11px;line-height:1.8}
+    #infoCard .care strong{font-weight:500;white-space:nowrap;color:#466152}
+    #infoCard .care p{min-height:20px;margin:0;color:#73796e;white-space:pre-wrap;word-break:keep-all}
+    #infoCard .disclosure{margin-top:24px;border-top:1px solid #45594b;padding-top:14px}
+    #infoCard .disclosure h2{font-size:12px}
+    #infoCard .disclosure dl{margin:0}
+    #infoCard .disclosure .info-row{grid-template-columns:130px 1fr;min-height:30px;padding:6px 0;font-size:10px}
+    #infoCard .disclosure .info-row dd{color:#767d73}
+    #infoCard .footnote{font-size:10px;line-height:1.7;color:#93988f;margin:13px 0 0}
+    #infoCard .footnote a{color:inherit;text-underline-offset:3px}
+    #infoCard .source-line:empty{display:none}
+  </style>
+</head>
+<body>
+  <header class="tool-header"><h1>이미지만들기 2</h1><p>확인된 상품정보 입력 → INFO 미리보기 → PNG 저장</p></header>
+  <main class="workspace">
+    <section class="editor" aria-label="상품정보 입력">
+      <div class="form-section">
+        <h2>1. 확정 상품 이미지</h2>
+        <p class="form-note">확정된 원본 이미지만 선택하세요. 이미지는 잘라내거나 늘리지 않고 원본 비율로 맞춥니다.</p>
+        <label class="upload"><span><strong id="uploadTitle">이미지 선택 또는 드래그</strong><small>PNG · JPG · WEBP 등 이미지 파일 1장</small></span><input id="productImageInput" type="file" accept="image/*"></label>
+      </div>
+
+      <div class="form-section">
+        <h2>2. 기본 상품정보</h2>
+        <label for="eyebrowInput">브랜드 · 시리즈</label><input id="eyebrowInput" data-preview placeholder="예: STARBUCKS · 시리즈명">
+        <label for="productNameInput">상품명 첫 줄</label><input id="productNameInput" data-preview placeholder="확인된 상품명을 입력하세요">
+        <label for="productNameSecondInput">상품명 둘째 줄</label><input id="productNameSecondInput" data-preview placeholder="필요할 때만 입력하세요">
+        <label for="descriptionInput">상품 설명</label><textarea id="descriptionInput" data-preview placeholder="확인된 설명만 입력하세요"></textarea>
+        <div class="field-grid">
+          <div><label for="priceInput">가격</label><input id="priceInput" data-preview inputmode="numeric" placeholder="예: 35000"></div>
+          <div><label for="capacityInput">용량 (ml)</label><input id="capacityInput" data-preview inputmode="decimal" placeholder="예: 355"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>3. 크기 · 부위별 재질</h2>
+        <div class="field-grid three">
+          <div><label for="widthInput">가로 (cm)</label><input id="widthInput" data-preview inputmode="decimal"></div>
+          <div><label for="depthInput">세로 (cm)</label><input id="depthInput" data-preview inputmode="decimal"></div>
+          <div><label for="heightInput">높이 (cm)</label><input id="heightInput" data-preview inputmode="decimal"></div>
+        </div>
+        <label for="bodyMaterialInput">몸체 재질</label><input id="bodyMaterialInput" data-preview>
+        <label for="lidMaterialInput">뚜껑 재질</label><input id="lidMaterialInput" data-preview>
+        <label for="packingMaterialInput">패킹 재질</label><input id="packingMaterialInput" data-preview>
+        <label for="careGuideInput">사용 안내</label><textarea id="careGuideInput" data-preview placeholder="확인된 사용 안내만 입력하세요"></textarea>
+      </div>
+
+      <div class="form-section">
+        <h2>4. 상품정보 제공고시</h2>
+        <div class="field-grid">
+          <div><label for="noticeNameInput">품명</label><input id="noticeNameInput" data-preview></div>
+          <div><label for="modelNameInput">모델명</label><input id="modelNameInput" data-preview></div>
+        </div>
+        <label for="componentsInput">구성품</label><input id="componentsInput" data-preview>
+        <div class="field-grid">
+          <div><label for="manufacturerInput">제조자</label><input id="manufacturerInput" data-preview></div>
+          <div><label for="importerInput">수입자</label><input id="importerInput" data-preview></div>
+        </div>
+        <div class="field-grid">
+          <div><label for="countryInput">제조국</label><input id="countryInput" data-preview></div>
+          <div><label for="releaseDateInput">출시년월</label><input id="releaseDateInput" data-preview placeholder="확인된 표기 그대로"></div>
+        </div>
+        <label for="importNoticeInput">수입신고 문구</label><textarea id="importNoticeInput" data-preview></textarea>
+        <div class="field-grid">
+          <div><label for="warrantyInput">품질보증</label><input id="warrantyInput" data-preview></div>
+          <div><label for="serviceInput">A/S 연락처</label><input id="serviceInput" data-preview></div>
+        </div>
+        <div class="field-grid">
+          <div><label for="productCodeInput">상품 코드</label><input id="productCodeInput" data-preview inputmode="numeric"></div>
+          <div><label for="officialUrlInput">공식 상품 URL</label><input id="officialUrlInput" data-preview inputmode="url" placeholder="https://"></div>
+        </div>
+      </div>
+
+      <div class="tool-actions">
+        <button class="secondary" type="button" id="loadPrevious">이전 입력 불러오기</button>
+        <button class="secondary" type="button" id="resetForm">입력 초기화</button>
+        <button class="primary" type="button" id="downloadPng">PNG 저장</button>
+      </div>
+      <p class="status" id="status" role="status">미확인 값은 자동으로 채우지 않습니다.</p>
+    </section>
+
+    <section class="preview-panel" aria-label="INFO 미리보기">
+      <div class="preview-heading"><b>미리보기</b><span>780px 원본 · PNG는 2배율</span></div>
+      <div class="preview-frame" id="previewFrame">
+        <div class="preview-scaler" id="previewScaler">
+          <article id="infoCard" aria-label="상품 INFO 카드">
+            <div class="info-header"><strong>INFO</strong><span>PRODUCT DETAILS</span></div>
+            <section class="intro">
+              <div class="image-placeholder" id="imageArea" role="img" aria-label="확정 상품 이미지 영역">
+                <span id="imagePlaceholder">확정 이미지 영역<small>원본 연결 후 삽입</small></span>
+                <img class="product-image" id="productImagePreview" alt="" hidden>
+              </div>
+              <div>
+                <p class="eyebrow" id="eyebrowOutput"></p>
+                <h1 class="product-title"><span id="productNameOutput"></span><span id="productNameSecondOutput"></span></h1>
+                <p class="description" id="descriptionOutput"></p>
+              </div>
+            </section>
+
+            <div class="section-title"><h2>제품 규격</h2><small>확인된 정보만 표기</small></div>
+            <dl class="specs">
+              <div class="info-row"><dt>가격</dt><dd id="priceOutput"></dd></div>
+              <div class="info-row"><dt>용량</dt><dd class="capacity" id="capacityOutput"></dd></div>
+              <div class="info-row"><dt>크기 <small>(cm)</small></dt><dd class="dimension"><span>가로<b id="widthOutput"></b></span><span>세로<b id="depthOutput"></b></span><span>높이<b id="heightOutput"></b></span></dd></div>
+              <div class="info-row"><dt>부위별 재질</dt><dd class="parts"><span>몸체<b id="bodyMaterialOutput"></b></span><span>뚜껑<b id="lidMaterialOutput"></b></span><span>패킹<b id="packingMaterialOutput"></b></span></dd></div>
+            </dl>
+
+            <aside class="care"><strong>사용 안내</strong><p id="careGuideOutput"></p></aside>
+
+            <section class="disclosure">
+              <h2>상품정보 제공고시</h2>
+              <dl>
+                <div class="info-row"><dt>품명 / 모델명</dt><dd id="noticeNameOutput"></dd></div>
+                <div class="info-row"><dt>구성품</dt><dd id="componentsOutput"></dd></div>
+                <div class="info-row"><dt>제조자 / 수입자</dt><dd id="manufacturerOutput"></dd></div>
+                <div class="info-row"><dt>제조국 / 출시년월</dt><dd id="countryOutput"></dd></div>
+                <div class="info-row"><dt>수입신고 문구</dt><dd id="importNoticeOutput"></dd></div>
+                <div class="info-row"><dt>품질보증 / A/S</dt><dd id="warrantyOutput"></dd></div>
+              </dl>
+              <p class="footnote">규격·재질은 위 제품 규격란과 연동됩니다. 미확인 항목은 실물 라벨 대조 후 확정합니다.<br><span class="source-line" id="sourceLine"></span></p>
+            </section>
+          </article>
+        </div>
+      </div>
+      <p class="review-note">기존 확정 이미지와 확인된 정보만 입력해 사용하세요. 미입력 값은 결과에 임의 생성되지 않습니다.</p>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const STATE_KEY = 'starbucks-helper-image-maker-2-draft-v1';
+    const FORM_FIELD_IDS = [
+      'eyebrowInput','productNameInput','productNameSecondInput','descriptionInput','priceInput','capacityInput',
+      'widthInput','depthInput','heightInput','bodyMaterialInput','lidMaterialInput','packingMaterialInput','careGuideInput',
+      'noticeNameInput','modelNameInput','componentsInput','manufacturerInput','importerInput','countryInput','releaseDateInput',
+      'importNoticeInput','warrantyInput','serviceInput','productCodeInput','officialUrlInput'
+    ];
+    let productImageDataUrl = '';
+
+    function value(id){ return $(id).value.trim(); }
+    function text(id,next){ $(id).textContent = next; }
+    function joined(left,right){ return [left,right].filter(Boolean).join(' / '); }
+    function formatPrice(raw){
+      if(!raw) return '';
+      const compact = raw.replace(/[\s,원]/g,'');
+      return /^\d+$/.test(compact) ? `${Number(compact).toLocaleString('ko-KR')}원` : raw;
+    }
+    function safeUrl(raw){
+      if(!raw) return '';
+      try { const url = new URL(raw); return /^(https?):$/.test(url.protocol) ? url.href : ''; }
+      catch { return ''; }
+    }
+    function render(){
+      text('eyebrowOutput',value('eyebrowInput'));
+      text('productNameOutput',value('productNameInput'));
+      text('productNameSecondOutput',value('productNameSecondInput'));
+      text('descriptionOutput',value('descriptionInput'));
+      text('priceOutput',formatPrice(value('priceInput')));
+      const capacity = value('capacityInput');
+      $('capacityOutput').replaceChildren();
+      if(capacity){ $('capacityOutput').append(document.createTextNode(capacity)); const unit=document.createElement('small'); unit.textContent='ml'; $('capacityOutput').append(unit); }
+      text('widthOutput',value('widthInput'));
+      text('depthOutput',value('depthInput'));
+      text('heightOutput',value('heightInput'));
+      text('bodyMaterialOutput',value('bodyMaterialInput'));
+      text('lidMaterialOutput',value('lidMaterialInput'));
+      text('packingMaterialOutput',value('packingMaterialInput'));
+      text('careGuideOutput',value('careGuideInput'));
+      text('noticeNameOutput',joined(value('noticeNameInput'),value('modelNameInput')));
+      text('componentsOutput',value('componentsInput'));
+      text('manufacturerOutput',joined(value('manufacturerInput'),value('importerInput')));
+      text('countryOutput',joined(value('countryInput'),value('releaseDateInput')));
+      text('importNoticeOutput',value('importNoticeInput'));
+      text('warrantyOutput',joined(value('warrantyInput'),value('serviceInput')));
+      const sourceLine = $('sourceLine');
+      sourceLine.replaceChildren();
+      const code = value('productCodeInput'), url = safeUrl(value('officialUrlInput'));
+      if(code) sourceLine.append(document.createTextNode(`상품 코드 ${code}`));
+      if(url){
+        if(code) sourceLine.append(document.createTextNode(' · '));
+        const link=document.createElement('a'); link.href=url; link.target='_blank'; link.rel='noopener'; link.textContent='스타벅스 공식 상품 정보'; sourceLine.append(link,document.createTextNode(' 기준'));
+      }
+      fitPreview();
+    }
+
+    function fitPreview(){
+      const frame=$('previewFrame'), scaler=$('previewScaler'), card=$('infoCard');
+      const scale=Math.min(1,frame.clientWidth/780);
+      scaler.style.transform=`scale(${scale})`;
+      frame.style.height=`${Math.ceil(card.offsetHeight*scale)}px`;
+    }
+
+    function readImage(file){
+      return new Promise((resolve,reject)=>{
+        const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result)); reader.onerror=reject; reader.readAsDataURL(file);
+      });
+    }
+    async function setProductImage(file){
+      if(!file || !file.type.startsWith('image/')) return;
+      try{
+        productImageDataUrl=await readImage(file);
+        const img=$('productImagePreview'); img.src=productImageDataUrl; img.hidden=false; $('imagePlaceholder').hidden=true;
+        await img.decode().catch(()=>{});
+        $('uploadTitle').textContent=file.name;
+        $('imageArea').setAttribute('aria-label',`${file.name} 확정 상품 이미지`);
+        fitPreview();
+      }catch(error){ console.error(error); $('status').textContent='이미지를 읽지 못했습니다. 다른 확정 원본 파일을 선택해 주세요.'; }
+    }
+
+    function currentState(){
+      return {version:1,fields:Object.fromEntries(FORM_FIELD_IDS.map(id=>[id,$(id).value]))};
+    }
+    function saveState(){ localStorage.setItem(STATE_KEY,JSON.stringify(currentState())); }
+    function loadState(){
+      try{
+        const saved=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
+        if(!saved || saved.version!==1 || !saved.fields || typeof saved.fields!=='object') return false;
+        FORM_FIELD_IDS.forEach(id=>{ if(typeof saved.fields[id]==='string') $(id).value=saved.fields[id]; });
+        render(); return true;
+      }catch(error){ console.error(error); return false; }
+    }
+
+    function resetInputs(){
+      FORM_FIELD_IDS.forEach(id=>$(id).value='');
+      productImageDataUrl='';
+      const img=$('productImagePreview'); img.removeAttribute('src'); img.hidden=true;
+      $('imagePlaceholder').hidden=false; $('uploadTitle').textContent='이미지 선택 또는 드래그'; $('productImageInput').value='';
+      $('imageArea').setAttribute('aria-label','확정 상품 이미지 영역');
+      render(); $('status').textContent='입력 화면만 초기화했습니다. 기존 이미지 만들기와 저장 데이터는 변경하지 않았습니다.';
+    }
+
+    function relativeRect(element,cardRect){
+      const rect=element.getBoundingClientRect();
+      return {x:rect.left-cardRect.left,y:rect.top-cardRect.top,w:rect.width,h:rect.height,right:rect.right-cardRect.left,bottom:rect.bottom-cardRect.top};
+    }
+    function canvasFont(element){
+      const style=getComputedStyle(element), size=parseFloat(style.fontSize)||12;
+      return {style,size,lineHeight:parseFloat(style.lineHeight)||size*1.4,font:`${style.fontStyle} ${style.fontWeight} ${size}px ${style.fontFamily}`};
+    }
+    function wrapCanvasText(ctx,raw,maxWidth){
+      const rows=[];
+      for(const source of String(raw).split('\n')){
+        if(!source){rows.push('');continue;}
+        let line='';
+        for(const character of Array.from(source)){
+          const next=line+character;
+          if(!line||ctx.measureText(next).width<=maxWidth){line=next;continue;}
+          rows.push(line.trimEnd()); line=character.trimStart();
+        }
+        rows.push(line.trimEnd());
+      }
+      return rows;
+    }
+    function drawElementText(ctx,element,cardRect,content=element.textContent,nowrap=false){
+      if(!element||!content)return;
+      const rect=relativeRect(element,cardRect), {style,size,lineHeight,font}=canvasFont(element);
+      ctx.save(); ctx.font=font; ctx.fillStyle=style.color; ctx.textBaseline='top';
+      const align=style.textAlign==='right'?'right':style.textAlign==='center'?'center':'left';
+      ctx.textAlign=align;
+      const x=align==='right'?rect.right:align==='center'?rect.x+rect.w/2:rect.x;
+      const rows=nowrap?[String(content)]:wrapCanvasText(ctx,content,rect.w), textHeight=rows.length*lineHeight;
+      let y=rect.y+(rows.length===1?Math.max(0,(rect.h-textHeight)/2):0);
+      rows.forEach(row=>{if(row)ctx.fillText(row,x,y);y+=lineHeight;}); ctx.restore();
+    }
+    function drawCardCanvas(){
+      const card=$('infoCard'), scaler=$('previewScaler'), frame=$('previewFrame');
+      const previousTransform=scaler.style.transform, previousHeight=frame.style.height;
+      scaler.style.transform='none'; frame.style.height='auto';
+      const cardRect=card.getBoundingClientRect(), width=780, height=Math.ceil(card.offsetHeight), scale=2;
+      const canvas=document.createElement('canvas'); canvas.width=width*scale; canvas.height=height*scale;
+      const ctx=canvas.getContext('2d'); ctx.scale(scale,scale); ctx.fillStyle='#fff'; ctx.fillRect(0,0,width,height);
+
+      const line=(element,color,widthPx=1)=>{const rect=relativeRect(element,cardRect);ctx.fillStyle=color;ctx.fillRect(rect.x,rect.bottom-widthPx,rect.w,widthPx);};
+      line(card.querySelector('.info-header'),'#24483d',2);
+      const imageArea=$('imageArea'), imageRect=relativeRect(imageArea,cardRect);
+      ctx.fillStyle='#f6f5f1'; ctx.fillRect(imageRect.x,imageRect.y,imageRect.w,imageRect.h);
+      if(productImageDataUrl&&!$('productImagePreview').hidden){
+        const image=$('productImagePreview'), ratio=Math.min(imageRect.w/image.naturalWidth,imageRect.h/image.naturalHeight), drawWidth=image.naturalWidth*ratio, drawHeight=image.naturalHeight*ratio;
+        ctx.drawImage(image,imageRect.x+(imageRect.w-drawWidth)/2,imageRect.y+(imageRect.h-drawHeight)/2,drawWidth,drawHeight);
+      }else{
+        ctx.save();ctx.strokeStyle='#d1d4ce';ctx.lineWidth=1;ctx.setLineDash([5,5]);ctx.strokeRect(imageRect.x+.5,imageRect.y+.5,imageRect.w-1,imageRect.h-1);ctx.restore();
+        drawElementText(ctx,$('imagePlaceholder'),cardRect,'확정 이미지 영역',true);
+        drawElementText(ctx,$('imagePlaceholder').querySelector('small'),cardRect,undefined,true);
+      }
+
+      const specs=card.querySelector('.specs'), specsRect=relativeRect(specs,cardRect);
+      ctx.fillStyle='#b6bdb6';ctx.fillRect(specsRect.x,specsRect.y,specsRect.w,1);
+      card.querySelectorAll('.info-row').forEach(row=>line(row,'#e8ebe6',1));
+      const care=card.querySelector('.care'), careRect=relativeRect(care,cardRect);ctx.fillStyle='#f5f6f2';ctx.fillRect(careRect.x,careRect.y,careRect.w,careRect.h);
+      const disclosure=card.querySelector('.disclosure'), disclosureRect=relativeRect(disclosure,cardRect);ctx.fillStyle='#45594b';ctx.fillRect(disclosureRect.x,disclosureRect.y,disclosureRect.w,1);
+
+      [card.querySelector('.info-header strong'),card.querySelector('.info-header span'),$('eyebrowOutput')].forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      card.querySelectorAll('.product-title span').forEach(element=>drawElementText(ctx,element,cardRect));
+      drawElementText(ctx,$('descriptionOutput'),cardRect);
+      [card.querySelector('.section-title h2'),card.querySelector('.section-title small')].forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      card.querySelectorAll('.info-row dt').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      drawElementText(ctx,$('priceOutput'),cardRect,undefined,true);
+      const capacity=value('capacityInput'), capacityRect=relativeRect($('capacityOutput'),cardRect);
+      if(capacity){
+        const {style,size,font}=canvasFont($('capacityOutput'));ctx.save();ctx.font=font;ctx.fillStyle=style.color;ctx.textBaseline='top';ctx.fillText(capacity,capacityRect.x,capacityRect.y);const numberWidth=ctx.measureText(capacity).width;ctx.font=`400 12px ${style.fontFamily}`;ctx.fillText('ml',capacityRect.x+numberWidth+3,capacityRect.y+6);ctx.restore();
+      }
+      card.querySelectorAll('.dimension span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
+      card.querySelectorAll('.dimension b').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      card.querySelectorAll('.parts span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
+      card.querySelectorAll('.parts b').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      drawElementText(ctx,care.querySelector('strong'),cardRect,undefined,true);drawElementText(ctx,$('careGuideOutput'),cardRect);
+      drawElementText(ctx,disclosure.querySelector('h2'),cardRect,undefined,true);disclosure.querySelectorAll('dd').forEach(element=>drawElementText(ctx,element,cardRect));
+      const footnote=disclosure.querySelector('.footnote');drawElementText(ctx,footnote,cardRect,'규격·재질은 위 제품 규격란과 연동됩니다. 미확인 항목은 실물 라벨 대조 후 확정합니다.');drawElementText(ctx,$('sourceLine'),cardRect);
+
+      scaler.style.transform=previousTransform;frame.style.height=previousHeight;fitPreview();
+      return canvas;
+    }
+    async function exportPng(){
+      const button=$('downloadPng'); button.disabled=true; $('status').textContent='PNG를 만드는 중입니다…';
+      try{
+        await document.fonts.ready;
+        if(productImageDataUrl) await $('productImagePreview').decode().catch(()=>{});
+        render();
+        const canvas=drawCardCanvas();
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+        if(!blob) throw new Error('PNG 생성 실패');
+        const objectUrl=URL.createObjectURL(blob), link=document.createElement('a');
+        link.href=objectUrl; link.download=`${(value('productNameInput')||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-INFO.png`; link.click();
+        setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
+        let stateSaved=true;
+        try{saveState();}catch(error){stateSaved=false;console.warn('이미지만들기 2 입력 저장 실패',error);}
+        $('status').textContent=`PNG 저장 완료 · ${canvas.width} × ${canvas.height}px · ${stateSaved?'입력 내용은 이 메뉴 전용으로 저장했습니다.':'입력 저장은 실패했지만 PNG는 정상 저장했습니다.'}`;
+      }catch(error){ console.error(error); $('status').textContent='PNG를 만들지 못했습니다. 브라우저 콘솔과 입력 이미지를 확인해 주세요.'; }
+      finally{ button.disabled=false; }
+    }
+
+    document.querySelectorAll('[data-preview]').forEach(field=>field.addEventListener('input',render));
+    $('productImageInput').addEventListener('change',event=>setProductImage(event.target.files[0]));
+    $('loadPrevious').addEventListener('click',()=>{ $('status').textContent=loadState()?'이 메뉴에서 마지막으로 PNG 저장한 입력을 불러왔습니다. 이미지는 다시 선택해 주세요.':'이 메뉴에 저장된 이전 입력이 없습니다.'; });
+    $('resetForm').addEventListener('click',resetInputs);
+    $('downloadPng').addEventListener('click',exportPng);
+    ['dragenter','dragover'].forEach(type=>document.addEventListener(type,event=>event.preventDefault()));
+    document.addEventListener('drop',event=>{ event.preventDefault(); const file=[...event.dataTransfer.files].find(item=>item.type.startsWith('image/')); if(file) setProductImage(file); });
+    window.addEventListener('resize',fitPreview);
+    render();
+  </script>
+</body>
+</html>
