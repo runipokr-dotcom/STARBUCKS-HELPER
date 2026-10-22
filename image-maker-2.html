@@ -18,6 +18,10 @@
     .form-section{margin:0 0 22px;padding:0 0 22px;border-bottom:1px solid #ebe8e2}
     .form-section:last-of-type{margin-bottom:0;padding-bottom:0;border-bottom:0}
     .form-section h2{margin:0 0 12px;font-size:14px}
+    .form-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .form-section-heading h2{margin:0}
+    .section-memory{display:flex;align-items:center;gap:6px;margin:0;color:#596159;font-size:10px;font-weight:650;cursor:pointer;white-space:nowrap}
+    .section-memory input{width:15px;height:15px;margin:0;padding:0;accent-color:var(--tool-accent)}
     .form-note{margin:0 0 12px;color:var(--tool-muted);font-size:11px;line-height:1.6;word-break:keep-all}
     label{display:block;margin:11px 0 6px;color:#4f554f;font-size:12px;font-weight:650}
     input,textarea,select{width:100%;border:1px solid #d8d4cc;border-radius:10px;padding:11px 12px;background:#fff;color:#252925;font:inherit;font-size:14px;outline:none}
@@ -25,7 +29,20 @@
     textarea{min-height:78px;resize:vertical;line-height:1.55}
     .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .field-grid.three{grid-template-columns:repeat(3,1fr)}
+    .field-grid.three>div{min-width:0}
+    .field-grid.three input{text-align:center;font-variant-numeric:tabular-nums}
     .field-grid.four{grid-template-columns:repeat(4,1fr)}
+    .font-targets{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+    .font-target-option{display:flex;align-items:center;gap:7px;min-width:0;margin:0;padding:9px;border:1px solid #ebe8e2;border-radius:10px;background:#fbfaf8;cursor:pointer}
+    .font-target-option input{flex:0 0 16px;width:16px;height:16px;margin:0;padding:0;accent-color:var(--tool-accent)}
+    .font-target-option span{min-width:0;font-size:11px;font-weight:700}
+    .font-target-option small{display:block;margin-top:2px;color:var(--tool-muted);font-size:9px;font-weight:500}
+    .font-slider-row{display:grid;grid-template-columns:74px 1fr 48px;align-items:center;gap:9px;margin:9px 0}
+    .font-slider-row label{margin:0}
+    .font-slider-row input[type="range"]{padding:0;border:0;border-radius:0;box-shadow:none;accent-color:var(--tool-accent)}
+    .font-slider-row input[type="range"].mixed{accent-color:#9b8d78}
+    .font-slider-row output{text-align:right;color:#3e3a35;font-size:11px;font-weight:700}
+    .font-slider-hint{margin:8px 0 0;color:var(--tool-muted);font-size:10px;line-height:1.55}
     .preset-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0 9px}
     .preset-buttons button{border:1px solid #d8d4cc;border-radius:999px;padding:7px 10px;background:#f8f6f2;color:#3e3a35;font:inherit;font-size:12px;cursor:pointer}
     .preset-buttons button:hover,.preset-buttons button:focus-visible{border-color:var(--tool-accent);color:var(--tool-accent);background:#fff}
@@ -48,10 +65,10 @@
     @media(max-width:560px){.tool-header{align-items:flex-start;flex-direction:column;gap:4px;padding:15px 16px}.workspace{padding:12px;gap:12px}.editor,.preview-panel{border-radius:14px}.editor,.preview-panel{padding:15px}.field-grid,.field-grid.three,.field-grid.four{grid-template-columns:1fr}.tool-actions{grid-template-columns:1fr 1fr}}
   </style>
   <style id="templateStyles">
-    #infoCard{--title-weight:600;--heading-weight:600;--body-weight:400;--accent-weight:500;box-sizing:border-box;width:780px;margin:0;background:#fff;padding:40px 44px 30px;color:#272b28;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-weight:var(--body-weight);-webkit-font-smoothing:antialiased}
+    #infoCard{--title-weight:600;--heading-weight:600;--body-weight:400;--accent-weight:500;--title-size:25px;--header-title-size:24px;--section-heading-size:14px;--disclosure-heading-size:12px;--heading-label-size:12px;--dimension-label-size:11px;--body-size:12px;--description-size:12px;--care-size:11px;--disclosure-body-size:10px;--accent-size:19px;--accent-body-size:12px;--accent-unit-size:12px;box-sizing:border-box;width:780px;margin:0;background:#fff;padding:40px 44px 30px;color:#272b28;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-weight:var(--body-weight);-webkit-font-smoothing:antialiased}
     #infoCard *{box-sizing:border-box}
     #infoCard .info-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #24483d;padding-bottom:14px}
-    #infoCard .info-header strong{font-size:24px;font-weight:var(--heading-weight);letter-spacing:4px}
+    #infoCard .info-header strong{font-size:var(--header-title-size);font-weight:var(--heading-weight);letter-spacing:4px}
     #infoCard .info-header span{font-size:11px;letter-spacing:.8px;color:#767c78}
     #infoCard .intro{display:grid;grid-template-columns:150px 1fr;gap:25px;align-items:center;margin:25px 0}
     #infoCard .image-placeholder{height:166px;background:#f6f5f1;border:1px dashed #d1d4ce;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#7b817a;text-align:center;font-size:12px;line-height:1.8;overflow:hidden}
@@ -60,34 +77,35 @@
     #infoCard #imagePlaceholder[hidden],#infoCard .product-image[hidden]{display:none}
     #infoCard .product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
     #infoCard .eyebrow{min-height:14px;font-size:10px;letter-spacing:1.4px;color:#66796e;margin:0 0 8px}
-    #infoCard .product-title{min-height:35px;font-size:25px;line-height:1.4;letter-spacing:-1.1px;margin:0 0 10px;font-weight:var(--title-weight);white-space:pre-wrap;word-break:keep-all}
+    #infoCard .product-title{min-height:35px;font-size:var(--title-size);line-height:1.4;letter-spacing:-1.1px;margin:0 0 10px;font-weight:var(--title-weight);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
     #infoCard .product-title span{display:block;min-height:1px}
-    #infoCard .description{min-height:23px;font-size:12px;line-height:1.9;color:#676c67;margin:0;white-space:pre-wrap;word-break:keep-all}
+    #infoCard .description{min-height:23px;font-size:var(--description-size);line-height:1.9;color:#676c67;margin:0;white-space:pre-wrap;word-break:keep-all}
     #infoCard .section-title{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px}
-    #infoCard h2{font-size:14px;letter-spacing:-.2px;margin:0;font-weight:var(--heading-weight)}
+    #infoCard h2{font-size:var(--section-heading-size);letter-spacing:-.2px;margin:0;font-weight:var(--heading-weight)}
     #infoCard .section-title small{font-size:10px;color:#899087}
     #infoCard .specs{border-top:1px solid #b6bdb6;margin:0}
-    #infoCard .info-row{display:grid;grid-template-columns:130px 1fr;min-height:40px;border-bottom:1px solid #e8ebe6;align-items:center;font-size:12px;line-height:1.7;padding:9px 0}
-    #infoCard .info-row dt{color:#737a73;font-weight:var(--heading-weight)}
+    #infoCard .info-row{display:grid;grid-template-columns:130px 1fr;min-height:40px;border-bottom:1px solid #e8ebe6;align-items:center;font-size:var(--body-size);line-height:1.7;padding:9px 0}
+    #infoCard .info-row dt{color:#737a73;font-size:var(--heading-label-size);font-weight:var(--heading-weight)}
     #infoCard .info-row dd{margin:0;min-height:20px;font-weight:var(--body-weight)}
-    #infoCard .info-row dd.capacity{font-size:19px;line-height:1.2;font-weight:var(--accent-weight);color:#24483d}
-    #infoCard .capacity small{font-size:12px;font-weight:400;margin-left:3px}
+    #infoCard #priceOutput{font-size:var(--accent-body-size);font-weight:var(--accent-weight)}
+    #infoCard .info-row dd.capacity{display:flex;align-items:baseline;font-size:var(--accent-size);line-height:1.2;font-weight:var(--accent-weight);color:#24483d}
+    #infoCard .capacity small{font-size:var(--accent-unit-size);font-weight:400;margin-left:3px}
     #infoCard .pending{color:#8b8a7a}
-    #infoCard .dimension{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    #infoCard .dimension>span{display:grid;grid-template-rows:18px 22px;min-width:0;font-size:11px;color:#747b73;text-align:center}
-    #infoCard .dimension b{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:baseline;min-height:20px;font-size:12px;font-weight:var(--body-weight);font-variant-numeric:tabular-nums;color:#4a4f4a}
-    #infoCard .dimension .integer{justify-self:end}
-    #infoCard .dimension .decimal-point{justify-self:center}
-    #infoCard .dimension .fraction{justify-self:start}
-    #infoCard .dimension .decimal-point.placeholder{visibility:hidden}
+    #infoCard .info-row.dimension-row{grid-template-columns:130px minmax(0,1fr)}
+    #infoCard .dimension-row>dt{white-space:nowrap}
+    #infoCard .dimension{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+    #infoCard .dimension>span{display:grid;grid-template-rows:18px 22px;min-width:0;font-size:var(--dimension-label-size);color:#747b73;text-align:center}
+    #infoCard .dimension-label{display:block;min-width:0;text-align:center}
+    #infoCard .dimension b{display:flex;align-items:baseline;justify-content:center;width:100%;min-width:0;min-height:20px;white-space:nowrap;text-align:center;font-size:var(--body-size);font-weight:var(--body-weight);font-variant-numeric:tabular-nums;color:#4a4f4a}
     #infoCard .material-output{white-space:pre-wrap;word-break:keep-all}
-    #infoCard .care{background:#f5f6f2;padding:12px 15px;display:flex;gap:12px;margin-top:15px;font-size:11px;line-height:1.8}
+    #infoCard .care{background:#f5f6f2;padding:12px 15px;display:flex;gap:12px;margin-top:15px;font-size:var(--care-size);line-height:1.8}
     #infoCard .care strong{font-weight:var(--heading-weight);white-space:nowrap;color:#466152}
     #infoCard .care p{min-height:20px;margin:0;color:#73796e;white-space:pre-wrap;word-break:keep-all}
     #infoCard .disclosure{margin-top:24px;border-top:1px solid #45594b;padding-top:14px}
-    #infoCard .disclosure h2{font-size:12px}
+    #infoCard .disclosure h2{font-size:var(--disclosure-heading-size)}
     #infoCard .disclosure dl{margin:0}
-    #infoCard .disclosure .info-row{grid-template-columns:130px 1fr;min-height:30px;padding:6px 0;font-size:10px}
+    #infoCard .disclosure .info-row{grid-template-columns:130px 1fr;min-height:30px;padding:6px 0;font-size:var(--disclosure-body-size)}
+    #infoCard .disclosure .info-row dt{font-size:var(--disclosure-heading-size)}
     #infoCard .disclosure .info-row dd{color:#767d73}
     #infoCard .footnote{font-size:10px;line-height:1.7;color:#93988f;margin:13px 0 0}
     #infoCard .footnote a{color:inherit;text-underline-offset:3px}
@@ -100,26 +118,35 @@
   <main class="workspace">
     <section class="editor" aria-label="상품정보 입력">
       <div class="form-section">
-        <h2>글자 설정</h2>
-        <div class="field-grid four">
-          <div><label for="titleWeightInput">상품명</label><select id="titleWeightInput" data-preview><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option></select></div>
-          <div><label for="headingWeightInput">제목 · 라벨</label><select id="headingWeightInput" data-preview><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option></select></div>
-          <div><label for="bodyWeightInput">본문 · 정보값</label><select id="bodyWeightInput" data-preview><option>300</option><option selected>400</option><option>500</option><option>600</option><option>700</option><option>800</option></select></div>
-          <div><label for="accentWeightInput">가격 · 용량</label><select id="accentWeightInput" data-preview><option>300</option><option>400</option><option selected>500</option><option>600</option><option>700</option><option>800</option></select></div>
+        <div class="form-section-heading"><h2>1. 글자 설정</h2><label class="section-memory"><input type="checkbox" data-remember-group="1">이 영역 기억</label></div>
+        <div class="font-targets" aria-label="글자 설정 대상">
+          <label class="font-target-option"><input type="checkbox" data-font-target="title"><span>상품명<small id="titleFontValue">100% · 600</small></span></label>
+          <label class="font-target-option"><input type="checkbox" data-font-target="heading"><span>제목 · 라벨<small id="headingFontValue">100% · 600</small></span></label>
+          <label class="font-target-option"><input type="checkbox" data-font-target="body"><span>본문 · 정보값<small id="bodyFontValue">100% · 400</small></span></label>
+          <label class="font-target-option"><input type="checkbox" data-font-target="accent"><span>가격 · 용량<small id="accentFontValue">100% · 500</small></span></label>
         </div>
+        <div class="font-slider-row"><label for="fontSizeRange">글씨 크기</label><input id="fontSizeRange" type="range" min="70" max="150" step="5" value="100" disabled><output id="fontSizeValue">대상 선택</output></div>
+        <div class="font-slider-row"><label for="fontWeightRange">글꼴 두께</label><input id="fontWeightRange" type="range" min="300" max="800" step="100" value="400" disabled><output id="fontWeightValue">대상 선택</output></div>
+        <p class="font-slider-hint">대상을 하나 이상 선택한 뒤 슬라이더를 움직이면 선택한 항목에만 적용됩니다. 값이 다르면 혼합으로 표시됩니다.</p>
+        <input id="titleWeightInput" type="hidden" data-preview value="600"><input id="titleSizeInput" type="hidden" data-preview value="100">
+        <input id="headingWeightInput" type="hidden" data-preview value="600"><input id="headingSizeInput" type="hidden" data-preview value="100">
+        <input id="bodyWeightInput" type="hidden" data-preview value="400"><input id="bodySizeInput" type="hidden" data-preview value="100">
+        <input id="accentWeightInput" type="hidden" data-preview value="500"><input id="accentSizeInput" type="hidden" data-preview value="100">
       </div>
 
       <div class="form-section">
-        <h2>1. 확정 상품 이미지</h2>
+        <div class="form-section-heading"><h2>2. 확정 상품 이미지</h2><label class="section-memory"><input type="checkbox" data-remember-group="2">이 영역 기억</label></div>
         <p class="form-note">확정된 원본 이미지만 선택하세요. 이미지는 잘라내거나 늘리지 않고 원본 비율로 맞춥니다.</p>
         <label class="upload"><span><strong id="uploadTitle">이미지 선택 또는 드래그</strong><small>PNG · JPG · WEBP 등 이미지 파일 1장</small></span><input id="productImageInput" type="file" accept="image/*"></label>
       </div>
 
       <div class="form-section">
-        <h2>2. 기본 상품정보</h2>
-        <label for="eyebrowInput">브랜드 · 시리즈</label><input id="eyebrowInput" data-preview placeholder="예: STARBUCKS · 시리즈명">
-        <label for="productNameInput">상품명 첫 줄</label><input id="productNameInput" data-preview placeholder="확인된 상품명을 입력하세요">
-        <label for="productNameSecondInput">상품명 둘째 줄</label><input id="productNameSecondInput" data-preview placeholder="필요할 때만 입력하세요">
+        <div class="form-section-heading"><h2>3. 기본 상품정보</h2><label class="section-memory"><input type="checkbox" data-remember-group="3">이 영역 기억</label></div>
+        <div class="field-grid">
+          <div><label for="brandInput">브랜드</label><input id="brandInput" data-preview value="스타벅스" placeholder="브랜드를 입력하세요"></div>
+          <div><label for="eyebrowInput">시리즈</label><input id="eyebrowInput" data-preview placeholder="시리즈명을 입력하세요"></div>
+        </div>
+        <label for="productNameInput">상품명</label><input id="productNameInput" data-preview placeholder="확인된 상품명을 입력하세요">
         <label for="descriptionInput">상품 설명</label><textarea id="descriptionInput" data-preview placeholder="확인된 설명만 입력하세요"></textarea>
         <div class="field-grid">
           <div><label for="priceInput">가격</label><input id="priceInput" data-preview inputmode="numeric" placeholder="예: 35000"></div>
@@ -128,7 +155,7 @@
       </div>
 
       <div class="form-section">
-        <h2>3. 크기 · 재질</h2>
+        <div class="form-section-heading"><h2>4. 크기 · 재질</h2><label class="section-memory"><input type="checkbox" data-remember-group="4">이 영역 기억</label></div>
         <div class="field-grid three">
           <div><label for="widthInput">가로 (cm)</label><input id="widthInput" data-preview inputmode="decimal"></div>
           <div><label for="depthInput">세로 (cm)</label><input id="depthInput" data-preview inputmode="decimal"></div>
@@ -144,7 +171,7 @@
       </div>
 
       <div class="form-section">
-        <h2>4. 상품정보 제공고시</h2>
+        <div class="form-section-heading"><h2>5. 상품정보 제공고시</h2><label class="section-memory"><input type="checkbox" data-remember-group="5">이 영역 기억</label></div>
         <div class="preset-buttons" aria-label="상품정보 제공고시 빠른 입력">
           <button type="button" data-notice-label="품명">품명</button><button type="button" data-notice-label="모델명">모델명</button><button type="button" data-notice-label="구성품">구성품</button><button type="button" data-notice-label="제조자">제조자</button><button type="button" data-notice-label="수입자">수입자</button><button type="button" data-notice-label="제조국">제조국</button><button type="button" data-notice-label="출시년월">출시년월</button><button type="button" data-notice-label="수입신고 문구">수입신고 문구</button><button type="button" data-notice-label="품질보증기준">품질보증기준</button>
         </div>
@@ -155,7 +182,6 @@
         </div>
       </div>
 
-      <label class="check-row"><input id="rememberLastInput" type="checkbox">마지막 입력값 기억하기</label>
       <div class="tool-actions">
         <button class="secondary" type="button" id="resetForm">입력 초기화</button>
         <button class="primary" type="button" id="downloadPng">PNG 저장</button>
@@ -176,7 +202,7 @@
               </div>
               <div>
                 <p class="eyebrow" id="eyebrowOutput"></p>
-                <h1 class="product-title"><span id="productNameOutput"></span><span id="productNameSecondOutput"></span></h1>
+                <h1 class="product-title"><span id="productNameOutput"></span></h1>
                 <p class="description" id="descriptionOutput"></p>
               </div>
             </section>
@@ -185,7 +211,7 @@
             <dl class="specs">
               <div class="info-row"><dt>가격</dt><dd id="priceOutput"></dd></div>
               <div class="info-row"><dt>용량</dt><dd class="capacity" id="capacityOutput"></dd></div>
-              <div class="info-row"><dt>크기 <small>(cm)</small></dt><dd class="dimension"><span>가로<b id="widthOutput"></b></span><span>세로<b id="depthOutput"></b></span><span>높이<b id="heightOutput"></b></span></dd></div>
+              <div class="info-row dimension-row"><dt>크기 <small>(cm)</small></dt><dd class="dimension"><span><span class="dimension-label">가로</span><b id="widthOutput"></b></span><span><span class="dimension-label">세로</span><b id="depthOutput"></b></span><span><span class="dimension-label">높이</span><b id="heightOutput"></b></span></dd></div>
               <div class="info-row"><dt>재질</dt><dd class="material-output" id="materialOutput"></dd></div>
             </dl>
 
@@ -204,16 +230,26 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const STATE_KEY = 'starbucks-helper-image-maker-2-remembered-v2';
-    const REMEMBER_KEY = 'starbucks-helper-image-maker-2-remember-enabled-v1';
+    const GROUP_PREFS_KEY = 'starbucks-helper-image-maker-2-remember-groups-v3';
+    const GROUP_STATE_PREFIX = 'starbucks-helper-image-maker-2-section-v3-';
+    const IMAGE_DB_NAME = 'starbucks-helper-image-maker-2-v3';
+    const IMAGE_STORE_NAME = 'remembered-sections';
     const FIXED_SERVICE = '디스이스마인 010-5711-3730';
     const FORM_FIELD_IDS = [
-      'titleWeightInput','headingWeightInput','bodyWeightInput','accentWeightInput',
-      'eyebrowInput','productNameInput','productNameSecondInput','descriptionInput','priceInput','capacityInput',
+      'titleWeightInput','titleSizeInput','headingWeightInput','headingSizeInput','bodyWeightInput','bodySizeInput','accentWeightInput','accentSizeInput',
+      'brandInput','eyebrowInput','productNameInput','descriptionInput','priceInput','capacityInput',
       'widthInput','depthInput','heightInput','materialInput','careGuideInput','noticeInput','productCodeInput','officialUrlInput'
     ];
-    const FIELD_DEFAULTS = {titleWeightInput:'600',headingWeightInput:'600',bodyWeightInput:'400',accentWeightInput:'500'};
+    const FIELD_DEFAULTS = {titleWeightInput:'600',titleSizeInput:'100',headingWeightInput:'600',headingSizeInput:'100',bodyWeightInput:'400',bodySizeInput:'100',accentWeightInput:'500',accentSizeInput:'100',brandInput:'스타벅스'};
+    const GROUP_FIELDS = {
+      1:['titleWeightInput','titleSizeInput','headingWeightInput','headingSizeInput','bodyWeightInput','bodySizeInput','accentWeightInput','accentSizeInput'],
+      3:['brandInput','eyebrowInput','productNameInput','descriptionInput','priceInput','capacityInput'],
+      4:['widthInput','depthInput','heightInput','materialInput','careGuideInput'],
+      5:['noticeInput','productCodeInput','officialUrlInput']
+    };
+    const FIELD_GROUP = Object.fromEntries(Object.entries(GROUP_FIELDS).flatMap(([group,ids])=>ids.map(id=>[id,group])));
     let productImageDataUrl = '';
+    let productImageFileName = '';
 
     function value(id){ return $(id).value.trim(); }
     function text(id,next){ $(id).textContent = next; }
@@ -228,11 +264,7 @@
       catch { return ''; }
     }
     function renderDimension(id,raw){
-      const output=$(id), dot=raw.indexOf('.'), hasDecimal=dot>=0;
-      const integer=document.createElement('span'), point=document.createElement('span'), fraction=document.createElement('span');
-      integer.className='integer'; point.className=`decimal-point${hasDecimal?'':' placeholder'}`; fraction.className='fraction';
-      integer.textContent=hasDecimal?raw.slice(0,dot):raw; point.textContent='.'; fraction.textContent=hasDecimal?raw.slice(dot+1):'';
-      output.replaceChildren(integer,point,fraction);
+      text(id,raw);
     }
     function noticeRows(){
       const rows=[];
@@ -253,23 +285,41 @@
         row.className='info-row'; term.textContent=label; detail.textContent=content; row.append(term,detail); output.append(row);
       });
     }
-    function applyWeights(){
+    function scaleValue(id){
+      const parsed=Number(value(id));
+      return Math.max(70,Math.min(150,Number.isFinite(parsed)?parsed:100))/100;
+    }
+    function applyTypography(){
       const card=$('infoCard');
       card.style.setProperty('--title-weight',value('titleWeightInput'));
       card.style.setProperty('--heading-weight',value('headingWeightInput'));
       card.style.setProperty('--body-weight',value('bodyWeightInput'));
       card.style.setProperty('--accent-weight',value('accentWeightInput'));
+      const title=scaleValue('titleSizeInput'), heading=scaleValue('headingSizeInput'), body=scaleValue('bodySizeInput'), accent=scaleValue('accentSizeInput');
+      const size=(base,ratio)=>`${Math.round(base*ratio*100)/100}px`;
+      card.style.setProperty('--title-size',size(25,title));
+      card.style.setProperty('--header-title-size',size(24,heading));
+      card.style.setProperty('--section-heading-size',size(14,heading));
+      card.style.setProperty('--disclosure-heading-size',size(12,heading));
+      card.style.setProperty('--heading-label-size',size(12,heading));
+      card.style.setProperty('--dimension-label-size',size(11,heading));
+      card.style.setProperty('--body-size',size(12,body));
+      card.style.setProperty('--description-size',size(12,body));
+      card.style.setProperty('--care-size',size(11,body));
+      card.style.setProperty('--disclosure-body-size',size(10,body));
+      card.style.setProperty('--accent-size',size(19,accent));
+      card.style.setProperty('--accent-body-size',size(12,accent));
+      card.style.setProperty('--accent-unit-size',size(12,accent));
     }
     function render(){
-      applyWeights();
-      text('eyebrowOutput',value('eyebrowInput'));
+      applyTypography();
+      text('eyebrowOutput',[value('brandInput'),value('eyebrowInput')].filter(Boolean).join(' · '));
       text('productNameOutput',value('productNameInput'));
-      text('productNameSecondOutput',value('productNameSecondInput'));
       text('descriptionOutput',value('descriptionInput'));
       text('priceOutput',formatPrice(value('priceInput')));
       const capacity = value('capacityInput');
       $('capacityOutput').replaceChildren();
-      if(capacity){ $('capacityOutput').append(document.createTextNode(capacity)); const unit=document.createElement('small'); unit.textContent='ml'; $('capacityOutput').append(unit); }
+      if(capacity){ const number=document.createElement('span'); number.className='capacity-number'; number.textContent=capacity; const unit=document.createElement('small'); unit.textContent='ml'; $('capacityOutput').append(number,unit); }
       renderDimension('widthOutput',value('widthInput'));
       renderDimension('depthOutput',value('depthInput'));
       renderDimension('heightOutput',value('heightInput'));
@@ -288,6 +338,33 @@
       fitPreview();
     }
 
+    const FONT_TARGETS={
+      title:{size:'titleSizeInput',weight:'titleWeightInput',display:'titleFontValue'},
+      heading:{size:'headingSizeInput',weight:'headingWeightInput',display:'headingFontValue'},
+      body:{size:'bodySizeInput',weight:'bodyWeightInput',display:'bodyFontValue'},
+      accent:{size:'accentSizeInput',weight:'accentWeightInput',display:'accentFontValue'}
+    };
+    function selectedFontTargets(){ return [...document.querySelectorAll('[data-font-target]:checked')].map(input=>FONT_TARGETS[input.dataset.fontTarget]); }
+    function updateFontTargetValues(){
+      Object.values(FONT_TARGETS).forEach(target=>text(target.display,`${value(target.size)}% · ${value(target.weight)}`));
+    }
+    function syncFontControls(){
+      updateFontTargetValues();
+      const targets=selectedFontTargets();
+      [['fontSizeRange','fontSizeValue','size','%'],['fontWeightRange','fontWeightValue','weight','']].forEach(([rangeId,outputId,key,suffix])=>{
+        const range=$(rangeId), output=$(outputId); range.disabled=!targets.length; range.classList.remove('mixed');
+        if(!targets.length){output.value='대상 선택';return;}
+        const values=targets.map(target=>value(target[key])), same=values.every(item=>item===values[0]);
+        range.value=values[0]; range.classList.toggle('mixed',!same); output.value=same?`${values[0]}${suffix}`:'혼합';
+      });
+    }
+    function applySharedFontControl(property,next){
+      const targets=selectedFontTargets(); if(!targets.length)return;
+      targets.forEach(target=>$(target[property]).value=next);
+      render(); syncFontControls();
+      if(groupEnabled('1'))saveTextGroup('1');
+    }
+
     function fitPreview(){
       const frame=$('previewFrame'), scaler=$('previewScaler'), card=$('infoCard');
       const scale=Math.min(1,frame.clientWidth/780);
@@ -300,40 +377,89 @@
         const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result)); reader.onerror=reject; reader.readAsDataURL(file);
       });
     }
+    async function applyProductImage(dataUrl,fileName='기억한 상품 이미지'){
+      productImageDataUrl=dataUrl; productImageFileName=fileName;
+      const img=$('productImagePreview'); img.src=dataUrl; img.hidden=false; $('imagePlaceholder').hidden=true;
+      await img.decode().catch(()=>{});
+      $('uploadTitle').textContent=fileName;
+      $('imageArea').setAttribute('aria-label',`${fileName} 확정 상품 이미지`);
+      fitPreview();
+    }
     async function setProductImage(file){
       if(!file || !file.type.startsWith('image/')) return;
       try{
-        productImageDataUrl=await readImage(file);
-        const img=$('productImagePreview'); img.src=productImageDataUrl; img.hidden=false; $('imagePlaceholder').hidden=true;
-        await img.decode().catch(()=>{});
-        $('uploadTitle').textContent=file.name;
-        $('imageArea').setAttribute('aria-label',`${file.name} 확정 상품 이미지`);
-        fitPreview();
+        await applyProductImage(await readImage(file),file.name);
+        if(groupEnabled('2')) await saveImageGroup();
       }catch(error){ console.error(error); $('status').textContent='이미지를 읽지 못했습니다. 다른 확정 원본 파일을 선택해 주세요.'; }
     }
 
-    function currentState(){
-      return {version:2,fields:Object.fromEntries(FORM_FIELD_IDS.map(id=>[id,$(id).value]))};
-    }
-    function saveState(){ localStorage.setItem(STATE_KEY,JSON.stringify(currentState())); }
-    function saveStateIfEnabled(){ if($('rememberLastInput').checked) saveState(); }
-    function loadState(){
+    function groupCheckbox(group){ return document.querySelector(`[data-remember-group="${group}"]`); }
+    function groupEnabled(group){ return Boolean(groupCheckbox(String(group))?.checked); }
+    function readGroupPrefs(){
       try{
-        const saved=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
-        if(!saved || saved.version!==2 || !saved.fields || typeof saved.fields!=='object') return false;
-        FORM_FIELD_IDS.forEach(id=>{ if(typeof saved.fields[id]==='string') $(id).value=saved.fields[id]; });
-        render(); return true;
-      }catch(error){ console.error(error); return false; }
+        const stored=JSON.parse(localStorage.getItem(GROUP_PREFS_KEY)||'[]');
+        return new Set(Array.isArray(stored)?stored.map(String).filter(group=>/^[1-5]$/.test(group)):[]);
+      }catch(error){ console.warn('이미지만들기 2 영역 기억 설정 읽기 실패',error); return new Set(); }
+    }
+    function writeGroupPrefs(groups){ localStorage.setItem(GROUP_PREFS_KEY,JSON.stringify([...groups].sort())); }
+    function groupStateKey(group){ return `${GROUP_STATE_PREFIX}${group}`; }
+    function saveTextGroup(group){
+      const fields=GROUP_FIELDS[group]; if(!fields)return;
+      localStorage.setItem(groupStateKey(group),JSON.stringify({version:1,fields:Object.fromEntries(fields.map(id=>[id,$(id).value]))}));
+    }
+    function loadTextGroup(group){
+      const fields=GROUP_FIELDS[group]; if(!fields)return false;
+      try{
+        const saved=JSON.parse(localStorage.getItem(groupStateKey(group))||'null');
+        if(!saved||saved.version!==1||!saved.fields||typeof saved.fields!=='object')return false;
+        fields.forEach(id=>{if(typeof saved.fields[id]==='string')$(id).value=saved.fields[id];});
+        return true;
+      }catch(error){console.warn(`이미지만들기 2 ${group}영역 읽기 실패`,error);return false;}
+    }
+    function deleteTextGroup(group){ localStorage.removeItem(groupStateKey(group)); }
+    function saveFieldGroup(fieldId){ const group=FIELD_GROUP[fieldId]; if(group&&groupEnabled(group))saveTextGroup(group); }
+
+    function openImageDb(){
+      return new Promise((resolve,reject)=>{
+        if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return;}
+        const request=indexedDB.open(IMAGE_DB_NAME,1);
+        request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(IMAGE_STORE_NAME))request.result.createObjectStore(IMAGE_STORE_NAME,{keyPath:'id'});};
+        request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error||new Error('IndexedDB open failed'));
+      });
+    }
+    async function imageDbRequest(mode,operation){
+      const db=await openImageDb();
+      try{
+        return await new Promise((resolve,reject)=>{
+          const transaction=db.transaction(IMAGE_STORE_NAME,mode), store=transaction.objectStore(IMAGE_STORE_NAME), request=operation(store);
+          request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error||new Error('IndexedDB request failed'));
+          transaction.onerror=()=>reject(transaction.error||new Error('IndexedDB transaction failed'));
+        });
+      }finally{db.close();}
+    }
+    function saveImageGroup(){
+      if(!productImageDataUrl)return deleteImageGroup();
+      return imageDbRequest('readwrite',store=>store.put({id:'section-2-image',dataUrl:productImageDataUrl,fileName:productImageFileName}));
+    }
+    function deleteImageGroup(){return imageDbRequest('readwrite',store=>store.delete('section-2-image'));}
+    async function loadImageGroup(){
+      const saved=await imageDbRequest('readonly',store=>store.get('section-2-image'));
+      if(!saved||typeof saved.dataUrl!=='string'||!saved.dataUrl.startsWith('data:image/'))return false;
+      await applyProductImage(saved.dataUrl,typeof saved.fileName==='string'&&saved.fileName?saved.fileName:'기억한 상품 이미지');
+      return true;
     }
 
-    function resetInputs(){
+    async function resetInputs(){
       FORM_FIELD_IDS.forEach(id=>$(id).value=FIELD_DEFAULTS[id]||'');
-      productImageDataUrl='';
+      productImageDataUrl=''; productImageFileName='';
       const img=$('productImagePreview'); img.removeAttribute('src'); img.hidden=true;
       $('imagePlaceholder').hidden=false; $('uploadTitle').textContent='이미지 선택 또는 드래그'; $('productImageInput').value='';
       $('imageArea').setAttribute('aria-label','확정 상품 이미지 영역');
-      render();
-      try{saveStateIfEnabled();}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}
+      render(); syncFontControls();
+      try{
+        Object.keys(GROUP_FIELDS).forEach(group=>{if(groupEnabled(group))saveTextGroup(group);});
+        if(groupEnabled('2'))await deleteImageGroup();
+      }catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}
       $('status').textContent='입력 화면을 초기화했습니다.';
     }
 
@@ -380,16 +506,6 @@
       let y=rect.y+(rows.length===1?Math.max(0,(rect.h-textHeight)/2):0);
       rows.forEach(row=>{if(row)ctx.fillText(row,x,y);y+=lineHeight;}); ctx.restore();
     }
-    function drawDimensionValue(ctx,element,cardRect,raw){
-      if(!raw)return;
-      const rect=relativeRect(element,cardRect), {style,lineHeight,font}=canvasFont(element), dot=raw.indexOf('.'), hasDecimal=dot>=0;
-      const integer=hasDecimal?raw.slice(0,dot):raw, fraction=hasDecimal?raw.slice(dot+1):'';
-      ctx.save();ctx.font=font;ctx.fillStyle=style.color;ctx.textBaseline='top';
-      const center=rect.x+rect.w/2, pointWidth=ctx.measureText('.').width, y=rect.y+Math.max(0,(rect.h-lineHeight)/2);
-      ctx.textAlign='right';ctx.fillText(integer,center-pointWidth/2,y);
-      if(hasDecimal){ctx.textAlign='center';ctx.fillText('.',center,y);ctx.textAlign='left';ctx.fillText(fraction,center+pointWidth/2,y);}
-      ctx.restore();
-    }
     function drawCardCanvas(){
       const card=$('infoCard'), scaler=$('previewScaler'), frame=$('previewFrame');
       const previousTransform=scaler.style.transform, previousHeight=frame.style.height;
@@ -423,14 +539,10 @@
       drawElementText(ctx,card.querySelector('.section-title h2'),cardRect,undefined,true);
       card.querySelectorAll('.info-row dt').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
       drawElementText(ctx,$('priceOutput'),cardRect,undefined,true);
-      const capacity=value('capacityInput'), capacityRect=relativeRect($('capacityOutput'),cardRect);
-      if(capacity){
-        const {style,size,font}=canvasFont($('capacityOutput'));ctx.save();ctx.font=font;ctx.fillStyle=style.color;ctx.textBaseline='top';ctx.fillText(capacity,capacityRect.x,capacityRect.y);const numberWidth=ctx.measureText(capacity).width;ctx.font=`400 12px ${style.fontFamily}`;ctx.fillText('ml',capacityRect.x+numberWidth+3,capacityRect.y+6);ctx.restore();
-      }
-      card.querySelectorAll('.dimension>span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
-      drawDimensionValue(ctx,$('widthOutput'),cardRect,value('widthInput'));
-      drawDimensionValue(ctx,$('depthOutput'),cardRect,value('depthInput'));
-      drawDimensionValue(ctx,$('heightOutput'),cardRect,value('heightInput'));
+      drawElementText(ctx,$('capacityOutput').querySelector('.capacity-number'),cardRect,undefined,true);
+      drawElementText(ctx,$('capacityOutput').querySelector('small'),cardRect,undefined,true);
+      card.querySelectorAll('.dimension-label').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      [$('widthOutput'),$('depthOutput'),$('heightOutput')].forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
       drawElementText(ctx,$('materialOutput'),cardRect);
       drawElementText(ctx,care.querySelector('strong'),cardRect,undefined,true);drawElementText(ctx,$('careGuideOutput'),cardRect);
       drawElementText(ctx,disclosure.querySelector('h2'),cardRect,undefined,true);disclosure.querySelectorAll('dd').forEach(element=>drawElementText(ctx,element,cardRect));
@@ -451,40 +563,59 @@
         const objectUrl=URL.createObjectURL(blob), link=document.createElement('a');
         link.href=objectUrl; link.download=`${(value('productNameInput')||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-INFO.png`; link.click();
         setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
-        let stateSaved=false;
-        if($('rememberLastInput').checked){try{saveState();stateSaved=true;}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}}
-        $('status').textContent=`PNG 저장 완료 · ${canvas.width} × ${canvas.height}px${stateSaved?' · 마지막 입력값을 기억했습니다.':''}`;
+        const remembered=[1,2,3,4,5].filter(group=>groupEnabled(String(group))).length;
+        $('status').textContent=`PNG 저장 완료 · ${canvas.width} × ${canvas.height}px${remembered?` · ${remembered}개 영역 기억 중`:''}`;
       }catch(error){ console.error(error); $('status').textContent='PNG를 만들지 못했습니다. 브라우저 콘솔과 입력 이미지를 확인해 주세요.'; }
       finally{ button.disabled=false; }
     }
 
-    document.querySelectorAll('[data-preview]').forEach(field=>field.addEventListener('input',()=>{render();try{saveStateIfEnabled();}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}}));
+    document.querySelectorAll('[data-preview]').forEach(field=>field.addEventListener('input',()=>{
+      render(); updateFontTargetValues();
+      try{saveFieldGroup(field.id);}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}
+    }));
+    document.querySelectorAll('[data-font-target]').forEach(field=>field.addEventListener('change',syncFontControls));
+    $('fontSizeRange').addEventListener('input',event=>applySharedFontControl('size',event.target.value));
+    $('fontWeightRange').addEventListener('input',event=>applySharedFontControl('weight',event.target.value));
     document.querySelectorAll('[data-material-part]').forEach(button=>button.addEventListener('click',()=>insertAtCursor($('materialInput'),`${button.dataset.materialPart} : `,'\n')));
     document.querySelectorAll('[data-material-value]').forEach(button=>button.addEventListener('click',()=>{
       const field=$('materialInput'), start=field.selectionStart??field.value.length, before=field.value.slice(0,start), separator=before&&!/[\s,:]$/.test(before)?', ':'';
       insertAtCursor(field,button.dataset.materialValue,separator);
     }));
     document.querySelectorAll('[data-notice-label]').forEach(button=>button.addEventListener('click',()=>insertAtCursor($('noticeInput'),`${button.dataset.noticeLabel} : `,'\n')));
-    $('rememberLastInput').addEventListener('change',()=>{
+    document.querySelectorAll('[data-remember-group]').forEach(checkbox=>checkbox.addEventListener('change',async()=>{
+      const group=checkbox.dataset.rememberGroup;
       try{
-        if($('rememberLastInput').checked){localStorage.setItem(REMEMBER_KEY,'1');saveState();$('status').textContent='이제 마지막 입력값을 이 메뉴 전용으로 기억합니다.';}
-        else{localStorage.removeItem(REMEMBER_KEY);localStorage.removeItem(STATE_KEY);$('status').textContent='마지막 입력값 기억을 껐습니다.';}
+        const groups=readGroupPrefs();
+        if(checkbox.checked){
+          if(group==='2')await saveImageGroup(); else saveTextGroup(group);
+          groups.add(group); writeGroupPrefs(groups);
+          $('status').textContent=`${group}번 영역의 마지막 입력값을 기억합니다.`;
+        }else{
+          if(group==='2')await deleteImageGroup(); else deleteTextGroup(group);
+          groups.delete(group); writeGroupPrefs(groups);
+          $('status').textContent=`${group}번 영역 기억을 껐습니다.`;
+        }
       }catch(error){
-        console.error(error);$('rememberLastInput').checked=false;
-        try{localStorage.removeItem(REMEMBER_KEY);localStorage.removeItem(STATE_KEY);}catch{}
-        $('status').textContent='브라우저 저장소를 사용할 수 없어 기억하기를 켜지 못했습니다.';
+        console.error(error); checkbox.checked=!checkbox.checked;
+        $('status').textContent='브라우저 저장소를 사용할 수 없어 영역 기억 설정을 바꾸지 못했습니다.';
       }
-    });
+    }));
     $('productImageInput').addEventListener('change',event=>setProductImage(event.target.files[0]));
     $('resetForm').addEventListener('click',resetInputs);
     $('downloadPng').addEventListener('click',exportPng);
     ['dragenter','dragover'].forEach(type=>document.addEventListener(type,event=>event.preventDefault()));
     document.addEventListener('drop',event=>{ event.preventDefault(); const file=[...event.dataTransfer.files].find(item=>item.type.startsWith('image/')); if(file) setProductImage(file); });
     window.addEventListener('resize',fitPreview);
-    try{
-      if(localStorage.getItem(REMEMBER_KEY)==='1'){$('rememberLastInput').checked=true;if(!loadState())render();}
-      else render();
-    }catch(error){console.error(error);render();}
+    async function initializeRememberedSections(){
+      try{
+        const groups=readGroupPrefs();
+        document.querySelectorAll('[data-remember-group]').forEach(checkbox=>{checkbox.checked=groups.has(checkbox.dataset.rememberGroup);});
+        ['1','3','4','5'].forEach(group=>{if(groups.has(group))loadTextGroup(group);});
+        render(); syncFontControls();
+        if(groups.has('2'))await loadImageGroup();
+      }catch(error){console.error(error);render();syncFontControls();}
+    }
+    initializeRememberedSections();
   </script>
 </body>
 </html>
