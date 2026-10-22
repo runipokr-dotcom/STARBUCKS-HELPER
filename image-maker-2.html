@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>상품정보 이미지 만들기 2</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
   <style>
     :root{--tool-bg:#f3f1ed;--tool-paper:#fff;--tool-ink:#252925;--tool-muted:#707870;--tool-line:#ddd9d1;--tool-accent:#24483d}
     *{box-sizing:border-box}
-    body{margin:0;min-width:320px;background:var(--tool-bg);color:var(--tool-ink);font-family:"Noto Sans CJK KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+    body{margin:0;min-width:320px;background:var(--tool-bg);color:var(--tool-ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}
     .tool-header{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--tool-line)}
     .tool-header h1{margin:0;font-size:18px;letter-spacing:-.35px}
     .tool-header p{margin:0;color:var(--tool-muted);font-size:12px}
@@ -19,15 +20,21 @@
     .form-section h2{margin:0 0 12px;font-size:14px}
     .form-note{margin:0 0 12px;color:var(--tool-muted);font-size:11px;line-height:1.6;word-break:keep-all}
     label{display:block;margin:11px 0 6px;color:#4f554f;font-size:12px;font-weight:650}
-    input,textarea{width:100%;border:1px solid #d8d4cc;border-radius:10px;padding:11px 12px;background:#fff;color:#252925;font:inherit;font-size:14px;outline:none}
-    input:focus,textarea:focus{border-color:var(--tool-accent);box-shadow:0 0 0 3px rgba(36,72,61,.1)}
+    input,textarea,select{width:100%;border:1px solid #d8d4cc;border-radius:10px;padding:11px 12px;background:#fff;color:#252925;font:inherit;font-size:14px;outline:none}
+    input:focus,textarea:focus,select:focus{border-color:var(--tool-accent);box-shadow:0 0 0 3px rgba(36,72,61,.1)}
     textarea{min-height:78px;resize:vertical;line-height:1.55}
     .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .field-grid.three{grid-template-columns:repeat(3,1fr)}
+    .field-grid.four{grid-template-columns:repeat(4,1fr)}
+    .preset-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0 9px}
+    .preset-buttons button{border:1px solid #d8d4cc;border-radius:999px;padding:7px 10px;background:#f8f6f2;color:#3e3a35;font:inherit;font-size:12px;cursor:pointer}
+    .preset-buttons button:hover,.preset-buttons button:focus-visible{border-color:var(--tool-accent);color:var(--tool-accent);background:#fff}
+    .check-row{display:flex;align-items:center;gap:9px;margin:18px 2px 0;color:#4f554f;font-size:12px;font-weight:650;cursor:pointer}
+    .check-row input{width:17px;height:17px;margin:0;padding:0;accent-color:var(--tool-accent)}
     .upload{position:relative;display:grid;place-items:center;min-height:98px;padding:14px;border:1.5px dashed #c7c3bb;border-radius:12px;background:#fbfaf8;color:var(--tool-muted);text-align:center;cursor:pointer}
     .upload strong{display:block;margin-bottom:5px;color:var(--tool-ink)}
     .upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
-    .tool-actions{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:9px;margin-top:22px}
+    .tool-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:9px;margin-top:22px}
     .tool-actions button{min-height:45px;border:0;border-radius:11px;padding:11px 9px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
     .secondary{background:#ece9e3;color:#312f2b}
     .primary{background:var(--tool-accent);color:#fff}
@@ -37,15 +44,14 @@
     .preview-heading b{color:var(--tool-ink);font-size:14px}
     .preview-frame{width:100%;overflow:hidden}
     .preview-scaler{width:780px;transform-origin:top left}
-    .review-note{margin:12px auto 0;max-width:780px;font-size:11px;line-height:1.8;color:#727a70;text-align:center;padding:0 20px}
     @media(max-width:980px){.workspace{grid-template-columns:1fr}.preview-panel{order:-1}}
-    @media(max-width:560px){.tool-header{align-items:flex-start;flex-direction:column;gap:4px;padding:15px 16px}.workspace{padding:12px;gap:12px}.editor,.preview-panel{border-radius:14px}.editor,.preview-panel{padding:15px}.field-grid,.field-grid.three{grid-template-columns:1fr}.tool-actions{grid-template-columns:1fr 1fr}.tool-actions .primary{grid-column:1/-1}}
+    @media(max-width:560px){.tool-header{align-items:flex-start;flex-direction:column;gap:4px;padding:15px 16px}.workspace{padding:12px;gap:12px}.editor,.preview-panel{border-radius:14px}.editor,.preview-panel{padding:15px}.field-grid,.field-grid.three,.field-grid.four{grid-template-columns:1fr}.tool-actions{grid-template-columns:1fr 1fr}}
   </style>
   <style id="templateStyles">
-    #infoCard{box-sizing:border-box;width:780px;margin:0;background:#fff;padding:40px 44px 30px;color:#272b28;font-family:"Noto Sans CJK KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+    #infoCard{--title-weight:600;--heading-weight:600;--body-weight:400;--accent-weight:500;box-sizing:border-box;width:780px;margin:0;background:#fff;padding:40px 44px 30px;color:#272b28;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-weight:var(--body-weight);-webkit-font-smoothing:antialiased}
     #infoCard *{box-sizing:border-box}
     #infoCard .info-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #24483d;padding-bottom:14px}
-    #infoCard .info-header strong{font-family:Arial,sans-serif;font-size:24px;font-weight:500;letter-spacing:4px}
+    #infoCard .info-header strong{font-size:24px;font-weight:var(--heading-weight);letter-spacing:4px}
     #infoCard .info-header span{font-size:11px;letter-spacing:.8px;color:#767c78}
     #infoCard .intro{display:grid;grid-template-columns:150px 1fr;gap:25px;align-items:center;margin:25px 0}
     #infoCard .image-placeholder{height:166px;background:#f6f5f1;border:1px dashed #d1d4ce;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#7b817a;text-align:center;font-size:12px;line-height:1.8;overflow:hidden}
@@ -54,27 +60,29 @@
     #infoCard #imagePlaceholder[hidden],#infoCard .product-image[hidden]{display:none}
     #infoCard .product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
     #infoCard .eyebrow{min-height:14px;font-size:10px;letter-spacing:1.4px;color:#66796e;margin:0 0 8px}
-    #infoCard .product-title{min-height:35px;font-size:25px;line-height:1.4;letter-spacing:-1.1px;margin:0 0 10px;font-weight:600;white-space:pre-wrap;word-break:keep-all}
+    #infoCard .product-title{min-height:35px;font-size:25px;line-height:1.4;letter-spacing:-1.1px;margin:0 0 10px;font-weight:var(--title-weight);white-space:pre-wrap;word-break:keep-all}
     #infoCard .product-title span{display:block;min-height:1px}
     #infoCard .description{min-height:23px;font-size:12px;line-height:1.9;color:#676c67;margin:0;white-space:pre-wrap;word-break:keep-all}
     #infoCard .section-title{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px}
-    #infoCard h2{font-size:14px;letter-spacing:-.2px;margin:0;font-weight:600}
+    #infoCard h2{font-size:14px;letter-spacing:-.2px;margin:0;font-weight:var(--heading-weight)}
     #infoCard .section-title small{font-size:10px;color:#899087}
     #infoCard .specs{border-top:1px solid #b6bdb6;margin:0}
     #infoCard .info-row{display:grid;grid-template-columns:130px 1fr;min-height:40px;border-bottom:1px solid #e8ebe6;align-items:center;font-size:12px;line-height:1.7;padding:9px 0}
-    #infoCard .info-row dt{color:#737a73}
-    #infoCard .info-row dd{margin:0;min-height:20px}
-    #infoCard .capacity{font-size:19px;line-height:1.2;font-weight:500;color:#24483d}
+    #infoCard .info-row dt{color:#737a73;font-weight:var(--heading-weight)}
+    #infoCard .info-row dd{margin:0;min-height:20px;font-weight:var(--body-weight)}
+    #infoCard .info-row dd.capacity{font-size:19px;line-height:1.2;font-weight:var(--accent-weight);color:#24483d}
     #infoCard .capacity small{font-size:12px;font-weight:400;margin-left:3px}
     #infoCard .pending{color:#8b8a7a}
     #infoCard .dimension{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    #infoCard .dimension span{font-size:11px;color:#747b73}
-    #infoCard .dimension b{display:block;min-height:20px;font-size:12px;font-weight:400;color:#4a4f4a}
-    #infoCard .parts{display:flex;gap:24px;flex-wrap:wrap}
-    #infoCard .parts span{color:#72796f}
-    #infoCard .parts b{font-weight:400;color:#4a4f4a;margin-left:7px}
+    #infoCard .dimension>span{display:grid;grid-template-rows:18px 22px;min-width:0;font-size:11px;color:#747b73;text-align:center}
+    #infoCard .dimension b{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:baseline;min-height:20px;font-size:12px;font-weight:var(--body-weight);font-variant-numeric:tabular-nums;color:#4a4f4a}
+    #infoCard .dimension .integer{justify-self:end}
+    #infoCard .dimension .decimal-point{justify-self:center}
+    #infoCard .dimension .fraction{justify-self:start}
+    #infoCard .dimension .decimal-point.placeholder{visibility:hidden}
+    #infoCard .material-output{white-space:pre-wrap;word-break:keep-all}
     #infoCard .care{background:#f5f6f2;padding:12px 15px;display:flex;gap:12px;margin-top:15px;font-size:11px;line-height:1.8}
-    #infoCard .care strong{font-weight:500;white-space:nowrap;color:#466152}
+    #infoCard .care strong{font-weight:var(--heading-weight);white-space:nowrap;color:#466152}
     #infoCard .care p{min-height:20px;margin:0;color:#73796e;white-space:pre-wrap;word-break:keep-all}
     #infoCard .disclosure{margin-top:24px;border-top:1px solid #45594b;padding-top:14px}
     #infoCard .disclosure h2{font-size:12px}
@@ -84,12 +92,23 @@
     #infoCard .footnote{font-size:10px;line-height:1.7;color:#93988f;margin:13px 0 0}
     #infoCard .footnote a{color:inherit;text-underline-offset:3px}
     #infoCard .source-line:empty{display:none}
+    #infoCard .footnote[hidden]{display:none}
   </style>
 </head>
 <body>
   <header class="tool-header"><h1>이미지만들기 2</h1><p>확인된 상품정보 입력 → INFO 미리보기 → PNG 저장</p></header>
   <main class="workspace">
     <section class="editor" aria-label="상품정보 입력">
+      <div class="form-section">
+        <h2>글자 설정</h2>
+        <div class="field-grid four">
+          <div><label for="titleWeightInput">상품명</label><select id="titleWeightInput" data-preview><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option></select></div>
+          <div><label for="headingWeightInput">제목 · 라벨</label><select id="headingWeightInput" data-preview><option>300</option><option>400</option><option>500</option><option selected>600</option><option>700</option><option>800</option></select></div>
+          <div><label for="bodyWeightInput">본문 · 정보값</label><select id="bodyWeightInput" data-preview><option>300</option><option selected>400</option><option>500</option><option>600</option><option>700</option><option>800</option></select></div>
+          <div><label for="accentWeightInput">가격 · 용량</label><select id="accentWeightInput" data-preview><option>300</option><option>400</option><option selected>500</option><option>600</option><option>700</option><option>800</option></select></div>
+        </div>
+      </div>
+
       <div class="form-section">
         <h2>1. 확정 상품 이미지</h2>
         <p class="form-note">확정된 원본 이미지만 선택하세요. 이미지는 잘라내거나 늘리지 않고 원본 비율로 맞춥니다.</p>
@@ -109,50 +128,39 @@
       </div>
 
       <div class="form-section">
-        <h2>3. 크기 · 부위별 재질</h2>
+        <h2>3. 크기 · 재질</h2>
         <div class="field-grid three">
           <div><label for="widthInput">가로 (cm)</label><input id="widthInput" data-preview inputmode="decimal"></div>
           <div><label for="depthInput">세로 (cm)</label><input id="depthInput" data-preview inputmode="decimal"></div>
           <div><label for="heightInput">높이 (cm)</label><input id="heightInput" data-preview inputmode="decimal"></div>
         </div>
-        <label for="bodyMaterialInput">몸체 재질</label><input id="bodyMaterialInput" data-preview>
-        <label for="lidMaterialInput">뚜껑 재질</label><input id="lidMaterialInput" data-preview>
-        <label for="packingMaterialInput">패킹 재질</label><input id="packingMaterialInput" data-preview>
+        <label for="materialInput">재질</label>
+        <div class="preset-buttons" aria-label="재질 빠른 입력">
+          <button type="button" data-material-part="몸체">몸체</button><button type="button" data-material-part="뚜껑">뚜껑</button><button type="button" data-material-part="빨대">빨대</button><button type="button" data-material-part="패킹">패킹</button>
+          <button type="button" data-material-value="스테인리스제">스테인리스제</button><button type="button" data-material-value="폴리프로필렌">폴리프로필렌</button><button type="button" data-material-value="아크릴로니트릴스티렌">아크릴로니트릴스티렌</button><button type="button" data-material-value="도자기제">도자기제</button><button type="button" data-material-value="폴리시클로헥산-1,4-디메틸렌테레프탈레이트">폴리시클로헥산-1,4-디메틸렌테레프탈레이트</button><button type="button" data-material-value="고무제">고무제</button>
+        </div>
+        <textarea id="materialInput" data-preview placeholder="부위와 재질 버튼을 순서대로 누르거나 직접 입력하세요"></textarea>
         <label for="careGuideInput">사용 안내</label><textarea id="careGuideInput" data-preview placeholder="확인된 사용 안내만 입력하세요"></textarea>
       </div>
 
       <div class="form-section">
         <h2>4. 상품정보 제공고시</h2>
-        <div class="field-grid">
-          <div><label for="noticeNameInput">품명</label><input id="noticeNameInput" data-preview></div>
-          <div><label for="modelNameInput">모델명</label><input id="modelNameInput" data-preview></div>
+        <div class="preset-buttons" aria-label="상품정보 제공고시 빠른 입력">
+          <button type="button" data-notice-label="품명">품명</button><button type="button" data-notice-label="모델명">모델명</button><button type="button" data-notice-label="구성품">구성품</button><button type="button" data-notice-label="제조자">제조자</button><button type="button" data-notice-label="수입자">수입자</button><button type="button" data-notice-label="제조국">제조국</button><button type="button" data-notice-label="출시년월">출시년월</button><button type="button" data-notice-label="수입신고 문구">수입신고 문구</button><button type="button" data-notice-label="품질보증기준">품질보증기준</button>
         </div>
-        <label for="componentsInput">구성품</label><input id="componentsInput" data-preview>
-        <div class="field-grid">
-          <div><label for="manufacturerInput">제조자</label><input id="manufacturerInput" data-preview></div>
-          <div><label for="importerInput">수입자</label><input id="importerInput" data-preview></div>
-        </div>
-        <div class="field-grid">
-          <div><label for="countryInput">제조국</label><input id="countryInput" data-preview></div>
-          <div><label for="releaseDateInput">출시년월</label><input id="releaseDateInput" data-preview placeholder="확인된 표기 그대로"></div>
-        </div>
-        <label for="importNoticeInput">수입신고 문구</label><textarea id="importNoticeInput" data-preview></textarea>
-        <div class="field-grid">
-          <div><label for="warrantyInput">품질보증</label><input id="warrantyInput" data-preview></div>
-          <div><label for="serviceInput">A/S 연락처</label><input id="serviceInput" data-preview></div>
-        </div>
+        <label for="noticeInput">고시 내용</label><textarea id="noticeInput" data-preview placeholder="항목 버튼을 누른 뒤 내용을 입력하거나 직접 입력하세요"></textarea>
         <div class="field-grid">
           <div><label for="productCodeInput">상품 코드</label><input id="productCodeInput" data-preview inputmode="numeric"></div>
           <div><label for="officialUrlInput">공식 상품 URL</label><input id="officialUrlInput" data-preview inputmode="url" placeholder="https://"></div>
         </div>
       </div>
 
+      <label class="check-row"><input id="rememberLastInput" type="checkbox">마지막 입력값 기억하기</label>
       <div class="tool-actions">
-        <button class="secondary" type="button" id="loadPrevious">이전 입력 불러오기</button>
         <button class="secondary" type="button" id="resetForm">입력 초기화</button>
         <button class="primary" type="button" id="downloadPng">PNG 저장</button>
       </div>
-      <p class="status" id="status" role="status">미확인 값은 자동으로 채우지 않습니다.</p>
+      <p class="status" id="status" role="status"></p>
     </section>
 
     <section class="preview-panel" aria-label="INFO 미리보기">
@@ -173,49 +181,42 @@
               </div>
             </section>
 
-            <div class="section-title"><h2>제품 규격</h2><small>확인된 정보만 표기</small></div>
+            <div class="section-title"><h2>제품 규격</h2></div>
             <dl class="specs">
               <div class="info-row"><dt>가격</dt><dd id="priceOutput"></dd></div>
               <div class="info-row"><dt>용량</dt><dd class="capacity" id="capacityOutput"></dd></div>
               <div class="info-row"><dt>크기 <small>(cm)</small></dt><dd class="dimension"><span>가로<b id="widthOutput"></b></span><span>세로<b id="depthOutput"></b></span><span>높이<b id="heightOutput"></b></span></dd></div>
-              <div class="info-row"><dt>부위별 재질</dt><dd class="parts"><span>몸체<b id="bodyMaterialOutput"></b></span><span>뚜껑<b id="lidMaterialOutput"></b></span><span>패킹<b id="packingMaterialOutput"></b></span></dd></div>
+              <div class="info-row"><dt>재질</dt><dd class="material-output" id="materialOutput"></dd></div>
             </dl>
 
             <aside class="care"><strong>사용 안내</strong><p id="careGuideOutput"></p></aside>
 
             <section class="disclosure">
               <h2>상품정보 제공고시</h2>
-              <dl>
-                <div class="info-row"><dt>품명 / 모델명</dt><dd id="noticeNameOutput"></dd></div>
-                <div class="info-row"><dt>구성품</dt><dd id="componentsOutput"></dd></div>
-                <div class="info-row"><dt>제조자 / 수입자</dt><dd id="manufacturerOutput"></dd></div>
-                <div class="info-row"><dt>제조국 / 출시년월</dt><dd id="countryOutput"></dd></div>
-                <div class="info-row"><dt>수입신고 문구</dt><dd id="importNoticeOutput"></dd></div>
-                <div class="info-row"><dt>품질보증 / A/S</dt><dd id="warrantyOutput"></dd></div>
-              </dl>
-              <p class="footnote">규격·재질은 위 제품 규격란과 연동됩니다. 미확인 항목은 실물 라벨 대조 후 확정합니다.<br><span class="source-line" id="sourceLine"></span></p>
+              <dl id="noticeOutput"></dl>
+              <p class="footnote" id="sourceFootnote" hidden><span class="source-line" id="sourceLine"></span></p>
             </section>
           </article>
         </div>
       </div>
-      <p class="review-note">기존 확정 이미지와 확인된 정보만 입력해 사용하세요. 미입력 값은 결과에 임의 생성되지 않습니다.</p>
     </section>
   </main>
 
   <script>
     const $ = id => document.getElementById(id);
-    const STATE_KEY = 'starbucks-helper-image-maker-2-draft-v1';
+    const STATE_KEY = 'starbucks-helper-image-maker-2-remembered-v2';
+    const REMEMBER_KEY = 'starbucks-helper-image-maker-2-remember-enabled-v1';
+    const FIXED_SERVICE = '디스이스마인 010-5711-3730';
     const FORM_FIELD_IDS = [
+      'titleWeightInput','headingWeightInput','bodyWeightInput','accentWeightInput',
       'eyebrowInput','productNameInput','productNameSecondInput','descriptionInput','priceInput','capacityInput',
-      'widthInput','depthInput','heightInput','bodyMaterialInput','lidMaterialInput','packingMaterialInput','careGuideInput',
-      'noticeNameInput','modelNameInput','componentsInput','manufacturerInput','importerInput','countryInput','releaseDateInput',
-      'importNoticeInput','warrantyInput','serviceInput','productCodeInput','officialUrlInput'
+      'widthInput','depthInput','heightInput','materialInput','careGuideInput','noticeInput','productCodeInput','officialUrlInput'
     ];
+    const FIELD_DEFAULTS = {titleWeightInput:'600',headingWeightInput:'600',bodyWeightInput:'400',accentWeightInput:'500'};
     let productImageDataUrl = '';
 
     function value(id){ return $(id).value.trim(); }
     function text(id,next){ $(id).textContent = next; }
-    function joined(left,right){ return [left,right].filter(Boolean).join(' / '); }
     function formatPrice(raw){
       if(!raw) return '';
       const compact = raw.replace(/[\s,원]/g,'');
@@ -226,7 +227,41 @@
       try { const url = new URL(raw); return /^(https?):$/.test(url.protocol) ? url.href : ''; }
       catch { return ''; }
     }
+    function renderDimension(id,raw){
+      const output=$(id), dot=raw.indexOf('.'), hasDecimal=dot>=0;
+      const integer=document.createElement('span'), point=document.createElement('span'), fraction=document.createElement('span');
+      integer.className='integer'; point.className=`decimal-point${hasDecimal?'':' placeholder'}`; fraction.className='fraction';
+      integer.textContent=hasDecimal?raw.slice(0,dot):raw; point.textContent='.'; fraction.textContent=hasDecimal?raw.slice(dot+1):'';
+      output.replaceChildren(integer,point,fraction);
+    }
+    function noticeRows(){
+      const rows=[];
+      for(const raw of value('noticeInput').split('\n')){
+        const line=raw.trim(); if(!line) continue;
+        const colon=line.indexOf(':'), sourceLabel=colon>=0?line.slice(0,colon).trim():'', content=colon>=0?line.slice(colon+1).trim():line;
+        const label=sourceLabel==='품질보증'?'품질보증기준':sourceLabel;
+        if(/^A\/?S(?:\s*연락처)?$/i.test(label)) continue;
+        rows.push({label,content});
+      }
+      rows.push({label:'A/S',content:FIXED_SERVICE});
+      return rows;
+    }
+    function renderNotice(){
+      const output=$('noticeOutput'); output.replaceChildren();
+      noticeRows().forEach(({label,content})=>{
+        const row=document.createElement('div'), term=document.createElement('dt'), detail=document.createElement('dd');
+        row.className='info-row'; term.textContent=label; detail.textContent=content; row.append(term,detail); output.append(row);
+      });
+    }
+    function applyWeights(){
+      const card=$('infoCard');
+      card.style.setProperty('--title-weight',value('titleWeightInput'));
+      card.style.setProperty('--heading-weight',value('headingWeightInput'));
+      card.style.setProperty('--body-weight',value('bodyWeightInput'));
+      card.style.setProperty('--accent-weight',value('accentWeightInput'));
+    }
     function render(){
+      applyWeights();
       text('eyebrowOutput',value('eyebrowInput'));
       text('productNameOutput',value('productNameInput'));
       text('productNameSecondOutput',value('productNameSecondInput'));
@@ -235,19 +270,12 @@
       const capacity = value('capacityInput');
       $('capacityOutput').replaceChildren();
       if(capacity){ $('capacityOutput').append(document.createTextNode(capacity)); const unit=document.createElement('small'); unit.textContent='ml'; $('capacityOutput').append(unit); }
-      text('widthOutput',value('widthInput'));
-      text('depthOutput',value('depthInput'));
-      text('heightOutput',value('heightInput'));
-      text('bodyMaterialOutput',value('bodyMaterialInput'));
-      text('lidMaterialOutput',value('lidMaterialInput'));
-      text('packingMaterialOutput',value('packingMaterialInput'));
+      renderDimension('widthOutput',value('widthInput'));
+      renderDimension('depthOutput',value('depthInput'));
+      renderDimension('heightOutput',value('heightInput'));
+      text('materialOutput',value('materialInput'));
       text('careGuideOutput',value('careGuideInput'));
-      text('noticeNameOutput',joined(value('noticeNameInput'),value('modelNameInput')));
-      text('componentsOutput',value('componentsInput'));
-      text('manufacturerOutput',joined(value('manufacturerInput'),value('importerInput')));
-      text('countryOutput',joined(value('countryInput'),value('releaseDateInput')));
-      text('importNoticeOutput',value('importNoticeInput'));
-      text('warrantyOutput',joined(value('warrantyInput'),value('serviceInput')));
+      renderNotice();
       const sourceLine = $('sourceLine');
       sourceLine.replaceChildren();
       const code = value('productCodeInput'), url = safeUrl(value('officialUrlInput'));
@@ -256,6 +284,7 @@
         if(code) sourceLine.append(document.createTextNode(' · '));
         const link=document.createElement('a'); link.href=url; link.target='_blank'; link.rel='noopener'; link.textContent='스타벅스 공식 상품 정보'; sourceLine.append(link,document.createTextNode(' 기준'));
       }
+      $('sourceFootnote').hidden=!(code||url);
       fitPreview();
     }
 
@@ -284,25 +313,36 @@
     }
 
     function currentState(){
-      return {version:1,fields:Object.fromEntries(FORM_FIELD_IDS.map(id=>[id,$(id).value]))};
+      return {version:2,fields:Object.fromEntries(FORM_FIELD_IDS.map(id=>[id,$(id).value]))};
     }
     function saveState(){ localStorage.setItem(STATE_KEY,JSON.stringify(currentState())); }
+    function saveStateIfEnabled(){ if($('rememberLastInput').checked) saveState(); }
     function loadState(){
       try{
         const saved=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
-        if(!saved || saved.version!==1 || !saved.fields || typeof saved.fields!=='object') return false;
+        if(!saved || saved.version!==2 || !saved.fields || typeof saved.fields!=='object') return false;
         FORM_FIELD_IDS.forEach(id=>{ if(typeof saved.fields[id]==='string') $(id).value=saved.fields[id]; });
         render(); return true;
       }catch(error){ console.error(error); return false; }
     }
 
     function resetInputs(){
-      FORM_FIELD_IDS.forEach(id=>$(id).value='');
+      FORM_FIELD_IDS.forEach(id=>$(id).value=FIELD_DEFAULTS[id]||'');
       productImageDataUrl='';
       const img=$('productImagePreview'); img.removeAttribute('src'); img.hidden=true;
       $('imagePlaceholder').hidden=false; $('uploadTitle').textContent='이미지 선택 또는 드래그'; $('productImageInput').value='';
       $('imageArea').setAttribute('aria-label','확정 상품 이미지 영역');
-      render(); $('status').textContent='입력 화면만 초기화했습니다. 기존 이미지 만들기와 저장 데이터는 변경하지 않았습니다.';
+      render();
+      try{saveStateIfEnabled();}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}
+      $('status').textContent='입력 화면을 초기화했습니다.';
+    }
+
+    function insertAtCursor(element,insert,separator=''){
+      const start=element.selectionStart??element.value.length, end=element.selectionEnd??start;
+      const before=element.value.slice(0,start), after=element.value.slice(end), prefix=before&&separator&&!before.endsWith(separator)?separator:'';
+      element.value=before+prefix+insert+after;
+      const cursor=(before+prefix+insert).length; element.focus(); element.setSelectionRange(cursor,cursor);
+      element.dispatchEvent(new Event('input',{bubbles:true}));
     }
 
     function relativeRect(element,cardRect){
@@ -327,16 +367,28 @@
       }
       return rows;
     }
-    function drawElementText(ctx,element,cardRect,content=element.textContent,nowrap=false){
-      if(!element||!content)return;
+    function drawElementText(ctx,element,cardRect,content,nowrap=false){
+      if(!element)return;
+      const resolved=content===undefined?element.textContent:content;
+      if(!resolved)return;
       const rect=relativeRect(element,cardRect), {style,size,lineHeight,font}=canvasFont(element);
       ctx.save(); ctx.font=font; ctx.fillStyle=style.color; ctx.textBaseline='top';
       const align=style.textAlign==='right'?'right':style.textAlign==='center'?'center':'left';
       ctx.textAlign=align;
       const x=align==='right'?rect.right:align==='center'?rect.x+rect.w/2:rect.x;
-      const rows=nowrap?[String(content)]:wrapCanvasText(ctx,content,rect.w), textHeight=rows.length*lineHeight;
+      const rows=nowrap?[String(resolved)]:wrapCanvasText(ctx,resolved,rect.w), textHeight=rows.length*lineHeight;
       let y=rect.y+(rows.length===1?Math.max(0,(rect.h-textHeight)/2):0);
       rows.forEach(row=>{if(row)ctx.fillText(row,x,y);y+=lineHeight;}); ctx.restore();
+    }
+    function drawDimensionValue(ctx,element,cardRect,raw){
+      if(!raw)return;
+      const rect=relativeRect(element,cardRect), {style,lineHeight,font}=canvasFont(element), dot=raw.indexOf('.'), hasDecimal=dot>=0;
+      const integer=hasDecimal?raw.slice(0,dot):raw, fraction=hasDecimal?raw.slice(dot+1):'';
+      ctx.save();ctx.font=font;ctx.fillStyle=style.color;ctx.textBaseline='top';
+      const center=rect.x+rect.w/2, pointWidth=ctx.measureText('.').width, y=rect.y+Math.max(0,(rect.h-lineHeight)/2);
+      ctx.textAlign='right';ctx.fillText(integer,center-pointWidth/2,y);
+      if(hasDecimal){ctx.textAlign='center';ctx.fillText('.',center,y);ctx.textAlign='left';ctx.fillText(fraction,center+pointWidth/2,y);}
+      ctx.restore();
     }
     function drawCardCanvas(){
       const card=$('infoCard'), scaler=$('previewScaler'), frame=$('previewFrame');
@@ -368,20 +420,21 @@
       [card.querySelector('.info-header strong'),card.querySelector('.info-header span'),$('eyebrowOutput')].forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
       card.querySelectorAll('.product-title span').forEach(element=>drawElementText(ctx,element,cardRect));
       drawElementText(ctx,$('descriptionOutput'),cardRect);
-      [card.querySelector('.section-title h2'),card.querySelector('.section-title small')].forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      drawElementText(ctx,card.querySelector('.section-title h2'),cardRect,undefined,true);
       card.querySelectorAll('.info-row dt').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
       drawElementText(ctx,$('priceOutput'),cardRect,undefined,true);
       const capacity=value('capacityInput'), capacityRect=relativeRect($('capacityOutput'),cardRect);
       if(capacity){
         const {style,size,font}=canvasFont($('capacityOutput'));ctx.save();ctx.font=font;ctx.fillStyle=style.color;ctx.textBaseline='top';ctx.fillText(capacity,capacityRect.x,capacityRect.y);const numberWidth=ctx.measureText(capacity).width;ctx.font=`400 12px ${style.fontFamily}`;ctx.fillText('ml',capacityRect.x+numberWidth+3,capacityRect.y+6);ctx.restore();
       }
-      card.querySelectorAll('.dimension span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
-      card.querySelectorAll('.dimension b').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
-      card.querySelectorAll('.parts span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
-      card.querySelectorAll('.parts b').forEach(element=>drawElementText(ctx,element,cardRect,undefined,true));
+      card.querySelectorAll('.dimension>span').forEach(element=>drawElementText(ctx,element,cardRect,element.firstChild.textContent,true));
+      drawDimensionValue(ctx,$('widthOutput'),cardRect,value('widthInput'));
+      drawDimensionValue(ctx,$('depthOutput'),cardRect,value('depthInput'));
+      drawDimensionValue(ctx,$('heightOutput'),cardRect,value('heightInput'));
+      drawElementText(ctx,$('materialOutput'),cardRect);
       drawElementText(ctx,care.querySelector('strong'),cardRect,undefined,true);drawElementText(ctx,$('careGuideOutput'),cardRect);
       drawElementText(ctx,disclosure.querySelector('h2'),cardRect,undefined,true);disclosure.querySelectorAll('dd').forEach(element=>drawElementText(ctx,element,cardRect));
-      const footnote=disclosure.querySelector('.footnote');drawElementText(ctx,footnote,cardRect,'규격·재질은 위 제품 규격란과 연동됩니다. 미확인 항목은 실물 라벨 대조 후 확정합니다.');drawElementText(ctx,$('sourceLine'),cardRect);
+      if(!$('sourceFootnote').hidden) drawElementText(ctx,$('sourceLine'),cardRect);
 
       scaler.style.transform=previousTransform;frame.style.height=previousHeight;fitPreview();
       return canvas;
@@ -398,22 +451,40 @@
         const objectUrl=URL.createObjectURL(blob), link=document.createElement('a');
         link.href=objectUrl; link.download=`${(value('productNameInput')||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-INFO.png`; link.click();
         setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
-        let stateSaved=true;
-        try{saveState();}catch(error){stateSaved=false;console.warn('이미지만들기 2 입력 저장 실패',error);}
-        $('status').textContent=`PNG 저장 완료 · ${canvas.width} × ${canvas.height}px · ${stateSaved?'입력 내용은 이 메뉴 전용으로 저장했습니다.':'입력 저장은 실패했지만 PNG는 정상 저장했습니다.'}`;
+        let stateSaved=false;
+        if($('rememberLastInput').checked){try{saveState();stateSaved=true;}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}}
+        $('status').textContent=`PNG 저장 완료 · ${canvas.width} × ${canvas.height}px${stateSaved?' · 마지막 입력값을 기억했습니다.':''}`;
       }catch(error){ console.error(error); $('status').textContent='PNG를 만들지 못했습니다. 브라우저 콘솔과 입력 이미지를 확인해 주세요.'; }
       finally{ button.disabled=false; }
     }
 
-    document.querySelectorAll('[data-preview]').forEach(field=>field.addEventListener('input',render));
+    document.querySelectorAll('[data-preview]').forEach(field=>field.addEventListener('input',()=>{render();try{saveStateIfEnabled();}catch(error){console.warn('이미지만들기 2 입력 저장 실패',error);}}));
+    document.querySelectorAll('[data-material-part]').forEach(button=>button.addEventListener('click',()=>insertAtCursor($('materialInput'),`${button.dataset.materialPart} : `,'\n')));
+    document.querySelectorAll('[data-material-value]').forEach(button=>button.addEventListener('click',()=>{
+      const field=$('materialInput'), start=field.selectionStart??field.value.length, before=field.value.slice(0,start), separator=before&&!/[\s,:]$/.test(before)?', ':'';
+      insertAtCursor(field,button.dataset.materialValue,separator);
+    }));
+    document.querySelectorAll('[data-notice-label]').forEach(button=>button.addEventListener('click',()=>insertAtCursor($('noticeInput'),`${button.dataset.noticeLabel} : `,'\n')));
+    $('rememberLastInput').addEventListener('change',()=>{
+      try{
+        if($('rememberLastInput').checked){localStorage.setItem(REMEMBER_KEY,'1');saveState();$('status').textContent='이제 마지막 입력값을 이 메뉴 전용으로 기억합니다.';}
+        else{localStorage.removeItem(REMEMBER_KEY);localStorage.removeItem(STATE_KEY);$('status').textContent='마지막 입력값 기억을 껐습니다.';}
+      }catch(error){
+        console.error(error);$('rememberLastInput').checked=false;
+        try{localStorage.removeItem(REMEMBER_KEY);localStorage.removeItem(STATE_KEY);}catch{}
+        $('status').textContent='브라우저 저장소를 사용할 수 없어 기억하기를 켜지 못했습니다.';
+      }
+    });
     $('productImageInput').addEventListener('change',event=>setProductImage(event.target.files[0]));
-    $('loadPrevious').addEventListener('click',()=>{ $('status').textContent=loadState()?'이 메뉴에서 마지막으로 PNG 저장한 입력을 불러왔습니다. 이미지는 다시 선택해 주세요.':'이 메뉴에 저장된 이전 입력이 없습니다.'; });
     $('resetForm').addEventListener('click',resetInputs);
     $('downloadPng').addEventListener('click',exportPng);
     ['dragenter','dragover'].forEach(type=>document.addEventListener(type,event=>event.preventDefault()));
     document.addEventListener('drop',event=>{ event.preventDefault(); const file=[...event.dataTransfer.files].find(item=>item.type.startsWith('image/')); if(file) setProductImage(file); });
     window.addEventListener('resize',fitPreview);
-    render();
+    try{
+      if(localStorage.getItem(REMEMBER_KEY)==='1'){$('rememberLastInput').checked=true;if(!loadState())render();}
+      else render();
+    }catch(error){console.error(error);render();}
   </script>
 </body>
 </html>
