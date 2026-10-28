@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-10-27T23:55:28+09:00",
+ "updatedAt": "2026-10-28T11:35:20+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-10-27T23:55:28+09:00",
-   "lastSuccessAt": "2026-10-27T23:55:28+09:00",
+   "checkedAt": "2026-10-28T11:35:20+09:00",
+   "lastSuccessAt": "2026-10-28T11:35:20+09:00",
    "scanned": 269,
    "discounted": 2,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-10-27T23:55:28+09:00",
-   "lastSuccessAt": "2026-10-27T23:55:28+09:00",
+   "checkedAt": "2026-10-28T11:35:20+09:00",
+   "lastSuccessAt": "2026-10-28T11:35:20+09:00",
    "scanned": 308,
    "discounted": 2,
    "error": ""
@@ -23,17 +23,17 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-10-27T23:55:28+09:00",
-   "lastSuccessAt": "2026-10-27T23:55:28+09:00",
+   "checkedAt": "2026-10-28T11:35:20+09:00",
+   "lastSuccessAt": "2026-10-28T11:35:20+09:00",
    "scanned": 286,
-   "discounted": 251,
+   "discounted": 261,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-10-27T23:55:28+09:00",
-   "lastSuccessAt": "2026-10-27T23:55:28+09:00",
+   "checkedAt": "2026-10-28T11:35:20+09:00",
+   "lastSuccessAt": "2026-10-28T11:35:20+09:00",
    "scanned": 93,
    "discounted": 0,
    "error": ""
@@ -1568,6 +1568,18 @@
   },
   {
    "store": "wconcept",
+   "id": "308993652",
+   "name": "디어유 고블렛 투명 & 그린 276ml 2P 세트",
+   "url": "https://www.wconcept.co.kr/Product/308993652",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/52/308993652_JG95268.jpg",
+   "price": 33250,
+   "originalPrice": 35000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
    "id": "308516726",
    "name": "디어유 그러데이션 글라스 세트 384ml (2P)",
    "url": "https://www.wconcept.co.kr/Product/308516726",
@@ -2132,6 +2144,90 @@
   },
   {
    "store": "wconcept",
+   "id": "308972329",
+   "name": "시그니처 사이렌 머그 그린 355ml 2P",
+   "url": "https://www.wconcept.co.kr/Product/308972329",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/29/308972329_BV61594.jpg",
+   "price": 36100,
+   "originalPrice": 38000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972318",
+   "name": "시그니처 사이렌 머그 브라운 355ml",
+   "url": "https://www.wconcept.co.kr/Product/308972318",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/18/308972318_QA41868.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972362",
+   "name": "시그니처 사이렌 머그 브라운 355ml 2P",
+   "url": "https://www.wconcept.co.kr/Product/308972362",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/62/308972362_IV65477.jpg",
+   "price": 36100,
+   "originalPrice": 38000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972229",
+   "name": "시그니처 사이렌 머그 블랙 355ml",
+   "url": "https://www.wconcept.co.kr/Product/308972229",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/29/308972229_UT74770.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972353",
+   "name": "시그니처 사이렌 머그 블랙 355ml 2P",
+   "url": "https://www.wconcept.co.kr/Product/308972353",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/53/308972353_IB15149.jpg",
+   "price": 36100,
+   "originalPrice": 38000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972298",
+   "name": "시그니처 사이렌 머그 핑크 355ml",
+   "url": "https://www.wconcept.co.kr/Product/308972298",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/98/308972298_XI62212.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308972356",
+   "name": "시그니처 사이렌 머그 핑크 355ml 2P",
+   "url": "https://www.wconcept.co.kr/Product/308972356",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/56/308972356_DP59539.jpg",
+   "price": 36100,
+   "originalPrice": 38000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
    "id": "307484706",
    "name": "시그니처 쉐이커 보틀 710ml",
    "url": "https://www.wconcept.co.kr/Product/307484706",
@@ -2621,6 +2717,30 @@
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308993647",
+   "name": "커피 데이백 오늘의 커피",
+   "url": "https://www.wconcept.co.kr/Product/308993647",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/47/308993647_SX61468.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308993648",
+   "name": "커피 데이백 카페라떼",
+   "url": "https://www.wconcept.co.kr/Product/308993648",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/48/308993648_OB27287.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-10-28T11:35:20+09:00"
   },
   {
    "store": "wconcept",
