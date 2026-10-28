@@ -45,6 +45,12 @@
 - 자동 검수: 최신 원격 기준에서 계산기 브라우저 PC/모바일 3/3, 계산기 수식 9/9, 기존 정적 3/3, 기존 거래처 lifecycle Chrome 2/2로 저장소 전체 테스트 17/17이 통과했다. `git diff --check`와 중복 id 0건도 유지한다.
 - 원격 main 확인: GitHub `main`은 로컬 기준 `248e746`보다 12커밋 앞선 `00087ef`였고, 사이 변경 파일은 `discounts.json` 하나뿐이었다. 로컬 계산기 변경을 stash로 안전하게 보관한 뒤 branch를 `00087ef`로 fast-forward하고 다시 적용했으며 충돌과 다른 파일 변경은 없었다.
 
+### 공개 배포 후 기록
+- 기능 commit/push: 관련 4파일(`calculate.html`, 계산기 수식·브라우저 테스트 2개, 본 WORKLOG)만 commit `144e65d709440ccc0207909c3bbd04fd1a857720` (`fix: apply quantity to calculator sales`)로 만들었다. push 직전 원격 `main`이 `00087ef`에서 변하지 않았고 ancestor 검사를 통과한 뒤 `HEAD:main`을 non-force fast-forward push했다.
+- Pages 결과: GitHub Pages 실행 `40705815150`은 head SHA `144e65d709440ccc0207909c3bbd04fd1a857720`으로 `completed/success` 완료했다. 공개 `https://runipokr-dotcom.github.io/STARBUCKS-HELPER/calculate.html`을 commit query로 새로 받아 로컬 commit 파일과 `cmp` exact 일치 및 SHA-256 `71e166214d19c30b7e156b8ffedf83cdc155ce6dae20e5a3225c930c1bbdaa49` 일치를 확인했다.
+- 공개 수치 READBACK 근거: 공개 파일이 실제 Chrome 검증 파일과 바이트 단위로 같으므로 정가 34,000원 × 2 = 68,000원, 개당 판매가 35,400원 × 2 = 총판매액 70,800원, C/쿠팡 정산액 62,304원, 순이익 5,490원, ROI 9.66% 계산이 공개본에도 동일하게 반영됐다. 계산기 내부 PIN은 변경하거나 우회하지 않았다.
+- 영향/복구: 쿠폰 JSON·인증·카탈로그·견적·Firebase·할인 데이터와 다른 기능 파일은 commit/push하지 않았다. 복구가 필요하면 기능 commit을 revert하되 수량 판매총액 버그와 모바일 표 overflow가 함께 원복된다. 남은 기능 문제는 없고 실제 iPhone/Android 실기기 조작은 미수행이며 Chrome 390px device metrics로 대체했다.
+
 ## 2026-10-22 — Codex (별도 메뉴 `이미지만들기 2` 로컬 구현)
 
 ### 작업 전 기록
