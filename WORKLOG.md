@@ -15,6 +15,31 @@
 
 # WORKLOG
 
+## 2026-10-29 — Codex (계산기 마지막 입력 자동 저장·쿠폰 금액 조절)
+
+### 작업 전 기록
+- 사용자 요청: 웹 HELPER와 macOS 미니 헬퍼 모두 마지막 계산 입력값을 다음 사용 시 복원하고, 현재 3,750원으로 고정된 쿠폰 금액을 직접 조절할 수 있게 한다.
+- 연동 기준: 공통 원본 `calculate.html`에 한 번만 구현해 웹과 미니 WKWebView가 같은 계산 로직과 UI를 쓰게 한다. 저장소는 각 브라우저/WKWebView 환경의 `localStorage`로 분리되며, 클라우드·Safari·Chrome 간 동기화로 표현하지 않는다.
+- 저장 대상: 개당 정가, 수량, 매입방식, 판매채널, A/B/C/D/옥션/네이버 매입률, 목표 ROI, 고객 배송료, 개당 현재 판매가, 쿠폰 적용 여부, 쿠폰 단가다. PIN, sessionStorage, 인증 상태, Firebase/Auth 정보는 절대 저장하지 않는다.
+- 호환/검증: 저장값이 없거나 localStorage가 실패하면 기존 기본값으로 정상 계산한다. 쿠폰 기본값 3,750원과 기존 공식/수량/배송비/채널 결과를 유지한다. 0원 쿠폰, 음수·NaN·빈 값, 수량 하한, 잘못된 enum/스키마 버전, 손상 JSON, storage read/write 실패, debounce input/change, A/C 배송 1회, 게시 소식 검사를 자동화한다.
+- 초기화 UX: 명시적 `저장값 초기화` 버튼을 제공하되 사용자가 누를 때만 현재 페이지 기본값으로 되돌린다. 자동·조용한 초기화는 하지 않는다.
+- 보존/금지: 상품 계산기 파일·직접 테스트·본 WORKLOG만 수정한다. 사용자가 현재 macOS 미니 앱을 쓰고 있으므로 앱 종료·새로고침·UI 포커스 탈취를 하지 않고 백그라운드 코드/테스트만 수행한다. commit·push·PR·GitHub Pages/운영 배포는 사용자 승인 전에 하지 않는다.
+
+### 작업 후 기록
+- 공통 구현: `calculate.html`에 개당 쿠폰 단가 입력을 추가하고 기본값은 기존과 같은 3,750원으로 유지했다. 쿠폰 단가는 A/B/C/옥션/네이버 매입의 기존 쿠폰 차감 위치에만 적용되며, 기존대로 쿠폰을 차감하지 않는 D 타입 공식과 A/D 주문당 배송비 보정 3,000원 1회는 바꾸지 않았다. 0원 쿠폰도 정상적인 사용자 값으로 처리한다.
+- 자동 저장·복원: 스키마 버전이 포함된 `starbucks-helper-calculator-settings-v1` 한 키에 정가·수량·매입방식·판매채널·6개 매입률·목표 ROI·고객 배송료·현재 판매가·쿠폰 단가·쿠폰 적용 여부만 저장한다. input/change 뒤 250ms debounce와 pagehide flush를 적용하고, 손상 JSON·지원하지 않는 버전·localStorage 읽기/쓰기 실패에는 계산을 막지 않고 기본값으로 안전하게 동작한다. PIN·sessionStorage·인증 상태·Firebase/Auth 정보는 읽거나 저장하지 않았다.
+- 초기화/입력 방어: `저장값 초기화`를 명시적으로 누른 경우에만 페이지 기본값으로 복원·저장한다. 수량은 1 이상 정수, 금액과 매입률은 허용 범위 안의 유한값만 복원하며 잘못된 enum·음수·NaN·빈 값은 해당 필드 기본값 또는 계산 안전값으로 처리한다. 기존 사용자 localStorage 키를 삭제하거나 다른 데이터를 초기화하지 않는다.
+- 웹·미니 연동 범위: macOS 미니 앱은 공개 `calculate.html`을 그대로 불러오므로 이 공통 파일이 배포되면 별도 계산식 복제 없이 같은 쿠폰 입력·저장 기능을 쓴다. 다만 Safari/Chrome/WKWebView의 localStorage는 서로 분리되어 각 환경의 마지막 값만 보존되며 클라우드 동기화는 아니다. 현재 실행 중인 미니 앱은 종료·새로고침·재실행·UI 조작하지 않았다.
+- 회귀 결과: 계산기 수식·저장·정적 테스트 21/21과 실제 격리 Chrome PC 1280px·모바일 390px 렌더/저장 후 재로딩 복원 3/3, 합계 24/24가 통과했다. C 32,000원·84%·쿠폰 3,750원은 수량 1 원가 21,706원/수량 2 원가 43,412원, 네이버 매입 실효 81%는 22,170원을 유지했다. 쿠폰 4,200원은 지원 5개 매입방식에 개당 반영되고, 쿠폰 0원·잘못된 값·storage 차단에서도 NaN/Infinity 없이 동작했다. PC 2열·모바일 1열, 문서 가로 overflow 0, 중복 id 0건, `git diff --check` 통과를 확인했다.
+- 실제 수정 파일: 기능 `calculate.html`, 회귀 확장 `tests/calculate.quantity.test.mjs`, 신규 저장 검증 `tests/calculate.persistence.test.mjs`, 실제 브라우저 검증 `tests/calculate.browser.test.mjs`, 기록 `WORKLOG.md`다. 다른 HELPER 기능·쿠폰 JSON·카탈로그·견적·Rules/Auth/Firebase/운영 데이터와 미니 앱 바이너리는 변경하지 않았다.
+- commit/배포/남은 범위: commit·push·PR·GitHub Pages 배포는 수행하지 않은 로컬 변경 상태다. 공개 웹과 현재 미니 앱에는 아직 새 기능이 나타나지 않는다. 사용자 승인 후 최신 원격 `main` 재확인, 위 5파일 최소 commit/non-force push, Pages 성공 및 공개 `calculate.html` hash·PC/모바일·미니 WKWebView의 별도 localStorage 저장/복원 READBACK이 필요하다. 인증 후 A/Naver 전환 등 기존 미니 GUI 회귀검수는 이번 백그라운드 소스 검증과 별도 남은 항목이다.
+
+### 공개 배포 승인 후 기록
+- 사용자 승인: 부모가 마지막 입력 자동 저장·복원, 쿠폰 단가 변경, 저장값 초기화 기능을 웹과 미니에 각각 별도 저장소로 반영할지 확인했고 사용자가 `ㅇㅇ`로 공개 HELPER 배포를 승인했다.
+- 배포 범위: 검증된 `calculate.html`, `tests/calculate.quantity.test.mjs`, `tests/calculate.persistence.test.mjs`, `tests/calculate.browser.test.mjs`, 본 `WORKLOG.md` 5파일만 최소 commit으로 만들어 최신 원격 `main`에 non-force push한다. 쿠폰 JSON·인증·카탈로그·견적·Rules/Auth/Firebase/운영 데이터와 미니 앱 바이너리는 변경하지 않는다.
+- 검증/중단 조건: push 전에 원격 `main` 변동과 대상 파일 충돌을 확인하고, 변동이 있으면 임의로 덮어쓰지 않는다. 테스트·diff allowlist를 재검증한 뒤 Pages가 exact commit으로 성공했는지, 공개 `calculate.html`이 commit 파일과 일치하는지, 공개 코드에 저장 키·쿠폰 입력·초기화 버튼이 있는지 확인한다.
+- 현재 미니 앱 보존: 사용자가 쓰는 미니 창은 자동 새로고침·종료·재실행·포커스 이동하지 않는다. 공개 배포 후에도 열린 WKWebView가 새 문서를 자동 로드한다고 가정하지 않으며, 실제 미니 저장·복원 GUI 검수는 사용자가 창 갱신을 허용하거나 다음 실행 시 별도 확인한다.
+
 ## 2026-10-28 — Codex (상품 계산기 수량별 판매총액 검산 수정)
 
 ### 작업 전 기록

@@ -24,12 +24,13 @@ const defaultInputs = {
   targetRoi: "11",
   shippingIncome: "0",
   salePrice: "21100",
+  couponAmount: "3750",
   couponEnabled: false
 };
 
 function runCalculator(overrides = {}) {
   const elements = new Map();
-  const inputs = { ...defaultInputs, ...overrides };
+  const inputs = { ...defaultInputs };
 
   function getElement(id) {
     if (!elements.has(id)) {
@@ -59,6 +60,12 @@ function runCalculator(overrides = {}) {
   });
 
   vm.runInContext(inlineScript, context, { filename: "calculate.html" });
+  for (const [id, raw] of Object.entries(overrides)) {
+    const element = getElement(id);
+    if (typeof raw === "boolean") element.checked = raw;
+    else element.value = String(raw ?? "");
+  }
+  context.update();
   return {
     text(id) {
       return getElement(id).textContent;
@@ -71,8 +78,8 @@ function runCalculator(overrides = {}) {
 
 const formatWon = (value) => `${Math.round(value).toLocaleString("ko-KR")}원`;
 
-function expectedUnitCost(type, listPrice, couponEnabled) {
-  const coupon = couponEnabled ? 3750 : 0;
+function expectedUnitCost(type, listPrice, couponEnabled, couponAmount = 3750) {
+  const coupon = couponEnabled ? couponAmount : 0;
   const variable = listPrice / 10000 * 445;
   const costs = {
     A: listPrice * 0.88 - coupon - variable,
@@ -134,6 +141,75 @@ test("A-type coupon is per item while both shipping amounts stay per order", () 
   assert.equal(view.text("totalSalePriceCell"), "106,200원");
   assert.equal(view.text("settlementCell"), "108,456원");
   assert.equal(view.text("profitCell"), "31,485원");
+});
+
+test("custom coupon amount applies per item to every coupon-supported purchase type", () => {
+  for (const purchaseType of ["A", "B", "C", "auction", "naverBuy"]) {
+    const view = runCalculator({
+      listPrice: "32000",
+      quantity: "2",
+      purchaseType,
+      couponEnabled: true,
+      couponAmount: "4200"
+    });
+    const unit = expectedUnitCost(purchaseType, 32000, true, 4200);
+    assert.equal(view.text("costCell"), formatWon(unit.cost * 2 + unit.orderShippingCredit));
+    assert.match(view.text("formulaCell"), /4,200원\(쿠폰\)/);
+  }
+});
+
+test("zero coupon amount is valid and invalid live coupon values stay finite", () => {
+  const zero = runCalculator({
+    listPrice: "32000",
+    purchaseType: "C",
+    couponEnabled: true,
+    couponAmount: "0"
+  });
+  assert.equal(zero.text("costCell"), "26,736원");
+  assert.match(zero.text("formulaCell"), /0원\(쿠폰\)/);
+
+  for (const couponAmount of ["", "NaN", "-1"]) {
+    const invalid = runCalculator({
+      listPrice: "32000",
+      purchaseType: "C",
+      couponEnabled: true,
+      couponAmount
+    });
+    assert.equal(invalid.text("costCell"), "22,986원");
+    assert.doesNotMatch(invalid.text("costCell"), /NaN|Infinity/);
+  }
+});
+
+test("documented C and Naver effective-rate examples remain unchanged", () => {
+  const cOne = runCalculator({
+    listPrice: "32000",
+    quantity: "1",
+    purchaseType: "C",
+    rateC: "84",
+    couponEnabled: true,
+    couponAmount: "3750"
+  });
+  assert.equal(cOne.text("costCell"), "21,706원");
+
+  const cTwo = runCalculator({
+    listPrice: "32000",
+    quantity: "2",
+    purchaseType: "C",
+    rateC: "84",
+    couponEnabled: true,
+    couponAmount: "3750"
+  });
+  assert.equal(cTwo.text("costCell"), "43,412원");
+
+  const naver = runCalculator({
+    listPrice: "32000",
+    quantity: "1",
+    purchaseType: "naverBuy",
+    rateNaverBuy: "81",
+    couponEnabled: true,
+    couponAmount: "3750"
+  });
+  assert.equal(naver.text("costCell"), "22,170원");
 });
 
 test("C-type excludes purchase shipping and customer shipping is added once", () => {
@@ -248,5 +324,8 @@ test("labels explain per-item price and per-order shipping semantics", () => {
   assert.match(html, /<label>정가 \(개당\)/);
   assert.match(html, /<label>고객 배송료 \(주문당 1회\)/);
   assert.match(html, /<label>현재 판매가 검산 \(개당\)/);
+  assert.match(html, /<label>쿠폰 단가 \(개당\)/);
+  assert.match(html, /id="couponAmount"[^>]*value="3750"/);
+  assert.match(html, /id="resetSettings"[^>]*>저장값 초기화<\/button>/);
   assert.match(html, /<th>총판매액<\/th>/);
 });

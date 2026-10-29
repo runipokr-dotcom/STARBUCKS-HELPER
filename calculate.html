@@ -262,6 +262,30 @@
       line-height: 1.5;
     }
 
+    .settings-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .reset-button {
+      flex: 0 0 auto;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 10px;
+      background: #fff;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .reset-button:hover { border-color: var(--accent); color: var(--accent); }
+    .settings-status { color: var(--muted); font-size: 11px; line-height: 1.4; text-align: right; }
+
     @media (max-width: 860px) {
       .layout, .summary { grid-template-columns: 1fr; }
       .row { grid-template-columns: 1fr; }
@@ -346,13 +370,21 @@
             <label>현재 판매가 검산 (개당)
               <input id="salePrice" type="number" min="0" step="1" value="21100">
             </label>
-            <label class="check">
-              <input id="couponEnabled" type="checkbox">
-              쿠폰 3,750원 적용
+            <label>쿠폰 단가 (개당)
+              <input id="couponAmount" type="number" min="0" step="1" value="3750">
             </label>
           </div>
+
+          <div class="settings-actions">
+            <label class="check">
+              <input id="couponEnabled" type="checkbox">
+              쿠폰 적용
+            </label>
+            <button id="resetSettings" class="reset-button" type="button">저장값 초기화</button>
+          </div>
+          <div id="settingsStatus" class="settings-status" role="status" aria-live="polite">입력값은 이 브라우저에 자동 저장됩니다.</div>
         </form>
-        <p class="hint">정가와 현재 판매가는 개당 금액입니다. 수량을 적용한 주문 총액으로 원가·정산액·순이익·ROI를 계산하며, 고객 배송료는 주문당 한 번만 더합니다.</p>
+        <p class="hint">정가·현재 판매가·쿠폰 단가는 개당 금액입니다. 수량을 적용한 주문 총액으로 원가·정산액·순이익·ROI를 계산하며, 고객 배송료는 주문당 한 번만 더합니다.</p>
       </div>
 
       <div class="stack">
@@ -472,6 +504,32 @@
     const pct = (n) => `${n.toFixed(2)}%`;
     const ceilWon = (n) => Math.ceil(n);
     const ceil100 = (n) => Math.ceil(n / 100) * 100;
+    const SETTINGS_KEY = "starbucks-helper-calculator-settings-v1";
+    const SETTINGS_VERSION = 1;
+    const PERSISTED_IDS = [
+      "listPrice", "quantity", "purchaseType", "channel",
+      "rateA", "rateB", "rateC", "rateD", "rateAuction", "rateNaverBuy",
+      "targetRoi", "shippingIncome", "salePrice", "couponAmount", "couponEnabled"
+    ];
+    const ENUM_VALUES = {
+      purchaseType: new Set(["A", "B", "C", "D", "auction", "naverBuy"]),
+      channel: new Set(["coupang", "naver"])
+    };
+    const NUMBER_LIMITS = {
+      listPrice: [0, 999999999],
+      quantity: [1, 999999],
+      rateA: [0, 100], rateB: [0, 100], rateC: [0, 100], rateD: [0, 100],
+      rateAuction: [0, 100], rateNaverBuy: [0, 100],
+      targetRoi: [0, 10000],
+      shippingIncome: [0, 999999999],
+      salePrice: [0, 999999999],
+      couponAmount: [0, 999999999]
+    };
+    const DEFAULT_SETTINGS = Object.fromEntries(PERSISTED_IDS.map((id) => [
+      id,
+      id === "couponEnabled" ? el(id).checked : el(id).value
+    ]));
+    let saveTimer = null;
 
     const typeLabels = {
       A: "A 타입",
@@ -482,14 +540,111 @@
       naverBuy: "네이버 매입"
     };
 
-    function inputRate(id, fallback) {
-      const value = Number(el(id).value);
-      return Number.isFinite(value) ? value / 100 : fallback;
+    function setSettingsStatus(message) {
+      const status = el("settingsStatus");
+      if (status) status.textContent = message;
     }
 
-    function calculateUnitCost(listPrice, type, coupon, rates) {
+    function normalizeSetting(id, value) {
+      if (id === "couponEnabled") return typeof value === "boolean" ? value : null;
+      if (ENUM_VALUES[id]) return typeof value === "string" && ENUM_VALUES[id].has(value) ? value : null;
+      const limits = NUMBER_LIMITS[id];
+      if (!limits) return null;
+      if (typeof value === "string" && value.trim() === "") return null;
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < limits[0] || number > limits[1]) return null;
+      return String(id === "quantity" ? Math.floor(number) : number);
+    }
+
+    function applySettings(values) {
+      for (const id of PERSISTED_IDS) {
+        const normalized = normalizeSetting(id, values?.[id]);
+        if (normalized === null) continue;
+        if (id === "couponEnabled") el(id).checked = normalized;
+        else el(id).value = normalized;
+      }
+    }
+
+    function readStoredSettings() {
+      try {
+        if (typeof localStorage === "undefined") return null;
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== SETTINGS_VERSION || !parsed.values || typeof parsed.values !== "object") return null;
+        return parsed.values;
+      } catch {
+        setSettingsStatus("저장값을 불러오지 못해 기본값을 사용합니다.");
+        return null;
+      }
+    }
+
+    function collectSettings() {
+      const values = {};
+      for (const id of PERSISTED_IDS) {
+        const node = el(id);
+        const raw = id === "couponEnabled" ? node.checked : node.value;
+        const normalized = normalizeSetting(id, raw);
+        values[id] = normalized === null ? DEFAULT_SETTINGS[id] : normalized;
+      }
+      return values;
+    }
+
+    function saveSettings() {
+      try {
+        if (typeof localStorage === "undefined") return false;
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+          version: SETTINGS_VERSION,
+          values: collectSettings()
+        }));
+        setSettingsStatus("마지막 입력값을 이 브라우저에 저장했습니다.");
+        return true;
+      } catch {
+        setSettingsStatus("이 환경에서는 입력값을 자동 저장할 수 없습니다.");
+        return false;
+      }
+    }
+
+    function scheduleSettingsSave() {
+      if (saveTimer !== null && typeof clearTimeout === "function") clearTimeout(saveTimer);
+      if (typeof setTimeout !== "function") {
+        saveSettings();
+        return;
+      }
+      saveTimer = setTimeout(() => {
+        saveTimer = null;
+        saveSettings();
+      }, 250);
+    }
+
+    function resetSettings() {
+      applySettings(DEFAULT_SETTINGS);
+      update();
+      saveSettings();
+      setSettingsStatus("기본값으로 초기화했습니다.");
+    }
+
+    const storedSettings = readStoredSettings();
+    if (storedSettings) {
+      applySettings(storedSettings);
+      setSettingsStatus("마지막 입력값을 불러왔습니다.");
+    }
+
+    function inputRate(id, fallback) {
+      const value = Number(el(id).value);
+      return Number.isFinite(value) && value >= 0 && value <= 100 ? value / 100 : fallback;
+    }
+
+    function nonNegativeNumber(id, fallback = 0) {
+      const raw = el(id).value;
+      if (typeof raw === "string" && raw.trim() === "") return fallback;
+      const value = Number(raw);
+      return Number.isFinite(value) && value >= 0 ? value : fallback;
+    }
+
+    function calculateUnitCost(listPrice, type, coupon, couponAmount, rates) {
       const variableFee = listPrice / 10000 * 445;
-      const couponFee = coupon ? 3750 : 0;
+      const couponFee = coupon ? couponAmount : 0;
       let cost = 0;
       let orderShippingCredit = 0;
       let formula = "";
@@ -520,13 +675,15 @@
     }
 
     function update() {
-      const listPrice = Number(el("listPrice").value || 0);
-      const salePrice = Number(el("salePrice").value || 0);
-      const quantity = Math.max(1, Number(el("quantity").value || 1));
-      const targetRoi = Number(el("targetRoi").value || 0) / 100;
-      const shippingIncome = Number(el("shippingIncome").value || 0);
-      const type = el("purchaseType").value;
-      const channel = el("channel").value;
+      const listPrice = nonNegativeNumber("listPrice");
+      const salePrice = nonNegativeNumber("salePrice");
+      const quantityValue = Number(el("quantity").value);
+      const quantity = Number.isFinite(quantityValue) && quantityValue >= 1 ? Math.floor(quantityValue) : 1;
+      const targetRoi = nonNegativeNumber("targetRoi") / 100;
+      const shippingIncome = nonNegativeNumber("shippingIncome");
+      const couponAmount = nonNegativeNumber("couponAmount", Number(DEFAULT_SETTINGS.couponAmount));
+      const type = ENUM_VALUES.purchaseType.has(el("purchaseType").value) ? el("purchaseType").value : DEFAULT_SETTINGS.purchaseType;
+      const channel = ENUM_VALUES.channel.has(el("channel").value) ? el("channel").value : DEFAULT_SETTINGS.channel;
       const coupon = el("couponEnabled").checked;
       const rates = {
         A: inputRate("rateA", 0.88),
@@ -539,7 +696,7 @@
 
       const rate = channel === "naver" ? 0.945 : 0.88;
       const channelLabel = channel === "naver" ? "네이버" : "쿠팡";
-      const unit = calculateUnitCost(listPrice, type, coupon, rates);
+      const unit = calculateUnitCost(listPrice, type, coupon, couponAmount, rates);
       const totalListPrice = listPrice * quantity;
       const cost = unit.cost * quantity + unit.orderShippingCredit;
       const totalSalePrice = salePrice * quantity;
@@ -604,9 +761,17 @@
     }
 
     document.querySelectorAll("input, select").forEach((node) => {
-      node.addEventListener("input", update);
-      node.addEventListener("change", update);
+      node.addEventListener("input", () => {
+        update();
+        scheduleSettingsSave();
+      });
+      node.addEventListener("change", () => {
+        update();
+        scheduleSettingsSave();
+      });
     });
+    el("resetSettings").addEventListener("click", resetSettings);
+    if (typeof window !== "undefined") window.addEventListener("pagehide", saveSettings);
 
     update();
   </script>

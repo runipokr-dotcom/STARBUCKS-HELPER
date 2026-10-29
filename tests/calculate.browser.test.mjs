@@ -162,7 +162,46 @@ async function runChrome(path, name, width, height, mobile) {
       fromSurface: true
     });
     await writeFile(screenshot, Buffer.from(captured.data, "base64"));
-    return { data: evaluated.result.value, screenshot };
+
+    const saved = await client.send("Runtime.evaluate", {
+      expression: `(async () => {
+        document.querySelector("#couponAmount").value = "4200";
+        document.querySelector("#couponEnabled").checked = true;
+        document.querySelector("#couponAmount").dispatchEvent(new Event("input", { bubbles: true }));
+        document.querySelector("#couponEnabled").dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        return {
+          payload: JSON.parse(localStorage.getItem("starbucks-helper-calculator-settings-v1")),
+          status: document.querySelector("#settingsStatus").textContent
+        };
+      })()`,
+      awaitPromise: true,
+      returnByValue: true
+    });
+    assert.equal(saved.exceptionDetails, undefined, "calculator settings save should not throw");
+
+    const reloaded = client.waitFor("Page.loadEventFired");
+    await client.send("Page.reload", { ignoreCache: true });
+    await reloaded;
+    const restored = await client.send("Runtime.evaluate", {
+      expression: `(() => ({
+        listPrice: document.querySelector("#listPrice").value,
+        quantity: document.querySelector("#quantity").value,
+        salePrice: document.querySelector("#salePrice").value,
+        couponAmount: document.querySelector("#couponAmount").value,
+        couponEnabled: document.querySelector("#couponEnabled").checked,
+        cost: document.querySelector("#costMetric").textContent,
+        status: document.querySelector("#settingsStatus").textContent
+      }))()`,
+      returnByValue: true
+    });
+    assert.equal(restored.exceptionDetails, undefined, "calculator settings restore should not throw");
+    return {
+      data: evaluated.result.value,
+      saved: saved.result.value,
+      restored: restored.result.value,
+      screenshot
+    };
   } finally {
     if (client) client.close();
     chrome.kill("SIGTERM");
@@ -200,6 +239,20 @@ test("real Chrome renders the quantity-two calculation on PC and mobile", async 
       assert.ok(rendered.data.labels.includes("정가 (개당)"));
       assert.ok(rendered.data.labels.includes("현재 판매가 검산 (개당)"));
       assert.ok(rendered.data.labels.includes("고객 배송료 (주문당 1회)"));
+      assert.ok(rendered.data.labels.includes("쿠폰 단가 (개당)"));
+      assert.equal(rendered.saved.payload.version, 1);
+      assert.equal(rendered.saved.payload.values.couponAmount, "4200");
+      assert.equal(rendered.saved.payload.values.couponEnabled, true);
+      assert.match(rendered.saved.status, /저장했습니다/);
+      assert.deepEqual(rendered.restored, {
+        listPrice: "34000",
+        quantity: "2",
+        salePrice: "35400",
+        couponAmount: "4200",
+        couponEnabled: true,
+        cost: "48,414원",
+        status: "마지막 입력값을 불러왔습니다."
+      });
       assert.equal(existsSync(rendered.screenshot), true);
     });
   }
