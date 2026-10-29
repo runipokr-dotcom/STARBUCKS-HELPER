@@ -40,6 +40,13 @@
 - 검증/중단 조건: push 전에 원격 `main` 변동과 대상 파일 충돌을 확인하고, 변동이 있으면 임의로 덮어쓰지 않는다. 테스트·diff allowlist를 재검증한 뒤 Pages가 exact commit으로 성공했는지, 공개 `calculate.html`이 commit 파일과 일치하는지, 공개 코드에 저장 키·쿠폰 입력·초기화 버튼이 있는지 확인한다.
 - 현재 미니 앱 보존: 사용자가 쓰는 미니 창은 자동 새로고침·종료·재실행·포커스 이동하지 않는다. 공개 배포 후에도 열린 WKWebView가 새 문서를 자동 로드한다고 가정하지 않으며, 실제 미니 저장·복원 GUI 검수는 사용자가 창 갱신을 허용하거나 다음 실행 시 별도 확인한다.
 
+### 공개 배포 후 기록
+- 원격/커밋: 배포 직전 `git fetch origin main`을 두 번 확인했고 원격은 준비 기준 `684ec2317c47e86e2d914d0e7a8f0de56c5e2163`에서 변하지 않았다. 승인된 5파일만 기능 commit `4ef221eb43117bc2b1156ea371091d848687e684` (`feat: persist calculator settings and coupon amount`)로 만들고 `HEAD:main`을 non-force fast-forward push했다.
+- 배포 성공: GitHub Pages 실행 `40845188308`이 기능 commit `4ef221eb43117bc2b1156ea371091d848687e684`를 head SHA로 `completed/success` 완료했다. 공개 `calculate.html`을 commit cache-busting query로 다시 받아 로컬 기능 commit과 `cmp` exact 일치, SHA-256 `ff1350f76a2f591078e23293d61b146d879eb91cd99b99a37540d2ff85b26015` 일치를 확인했다.
+- 공개 코드 READBACK: 공개 파일에서 `starbucks-helper-calculator-settings-v1`, 기본 3,750원의 `couponAmount`, `저장값 초기화` 버튼을 직접 재확인했다. 배포 직전 계산기 수식·저장·정적 21/21과 격리 Chrome PC/모바일 저장 후 재로딩 3/3, 합계 24/24를 다시 통과했다.
+- 영향/보존: 쿠폰 JSON·인증·카탈로그·견적·Rules/Auth/Firebase/운영 데이터와 미니 앱 바이너리는 변경하지 않았다. 사용자의 현재 미니 창도 새로고침·종료·재실행하지 않았다. 새 공개 문서는 다음 정상 탐색/재실행 시 미니에서도 로드되지만, WKWebView의 실제 저장·복원 GUI READBACK과 기존 A/Naver 전환 회귀는 사용자 화면을 건드릴 수 있어 별도 남은 검수로 유지한다.
+- 기록 동기화: 본 배포 결과는 기능 commit 이후 WORKLOG 전용 docs commit으로 `main`에 동기화한다. 이 기록 commit은 계산기 코드·테스트·운영 데이터를 다시 변경하지 않는다.
+
 ## 2026-10-28 — Codex (상품 계산기 수량별 판매총액 검산 수정)
 
 ### 작업 전 기록
