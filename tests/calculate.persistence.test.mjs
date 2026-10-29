@@ -13,7 +13,9 @@ assert.ok(inlineScript, "calculate.html persistence script should exist");
 const storageKey = "starbucks-helper-calculator-settings-v1";
 const defaults = {
   listPrice: "20000",
+  saleUnitMode: "single",
   quantity: "1",
+  setSize: "3",
   purchaseType: "C",
   channel: "coupang",
   rateA: "88",
@@ -134,7 +136,9 @@ function saved(values) {
 test("valid versioned settings restore every calculator input before the first result", () => {
   const values = {
     listPrice: "32000",
+    saleUnitMode: "set",
     quantity: "2",
+    setSize: "3",
     purchaseType: "C",
     channel: "naver",
     rateA: "87.5",
@@ -155,8 +159,27 @@ test("valid versioned settings restore every calculator input before the first r
     if (typeof value === "boolean") assert.equal(app.element(id).checked, value, id);
     else assert.equal(app.element(id).value, value, id);
   }
-  assert.equal(app.element("costMetric").textContent, "43,412원");
+  assert.equal(app.element("costMetric").textContent, "130,236원");
+  assert.equal(app.element("unitSummary").textContent, "3개 들이 × 2세트 · 총 구성 수량 6개");
   assert.equal(app.element("settingsStatus").textContent, "마지막 입력값을 불러왔습니다.");
+});
+
+test("legacy saved values without unit fields retain the original single-item meaning", () => {
+  const app = createHarness({
+    stored: saved({
+      listPrice: "32000",
+      quantity: "2",
+      purchaseType: "C",
+      rateC: "84",
+      couponAmount: "3750",
+      couponEnabled: true
+    })
+  });
+
+  assert.equal(app.element("saleUnitMode").value, "single");
+  assert.equal(app.element("setSize").value, "3");
+  assert.equal(app.element("costMetric").textContent, "43,412원");
+  assert.equal(app.element("unitSummary").textContent, "낱개 2개 판매 · 총 구성 수량 2개");
 });
 
 test("input and change events debounce one versioned save with only approved fields", () => {
@@ -175,6 +198,8 @@ test("input and change events debounce one versioned save with only approved fie
   assert.equal(payload.version, 1);
   assert.equal(payload.values.listPrice, "34000");
   assert.equal(payload.values.salePrice, "35400");
+  assert.equal(payload.values.saleUnitMode, "single");
+  assert.equal(payload.values.setSize, "3");
   assert.equal(payload.values.couponAmount, "3750");
   assert.deepEqual(Object.keys(payload.values).sort(), Object.keys(defaults).sort());
   assert.equal("pin" in payload.values, false);
@@ -186,7 +211,9 @@ test("zero coupon is persisted while negative, NaN, quantity zero, and invalid e
   const app = createHarness({
     stored: saved({
       listPrice: "-1",
+      saleUnitMode: "invalid",
       quantity: "0",
+      setSize: "0",
       purchaseType: "invalid",
       channel: "naver",
       rateC: "NaN",
@@ -197,7 +224,9 @@ test("zero coupon is persisted while negative, NaN, quantity zero, and invalid e
   });
 
   assert.equal(app.element("listPrice").value, defaults.listPrice);
+  assert.equal(app.element("saleUnitMode").value, defaults.saleUnitMode);
   assert.equal(app.element("quantity").value, defaults.quantity);
+  assert.equal(app.element("setSize").value, defaults.setSize);
   assert.equal(app.element("purchaseType").value, defaults.purchaseType);
   assert.equal(app.element("channel").value, "naver");
   assert.equal(app.element("rateC").value, defaults.rateC);
@@ -240,8 +269,12 @@ test("explicit reset button restores defaults and persists them without touching
 
 test("pagehide flushes the latest valid values without requiring a UI reload", () => {
   const app = createHarness();
+  app.element("saleUnitMode").value = "set";
+  app.element("setSize").value = "4";
   app.element("couponAmount").value = "4100";
   app.dispatchWindow("pagehide");
   const payload = JSON.parse(app.storage.get(storageKey));
+  assert.equal(payload.values.saleUnitMode, "set");
+  assert.equal(payload.values.setSize, "4");
   assert.equal(payload.values.couponAmount, "4100");
 });

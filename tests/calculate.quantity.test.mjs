@@ -12,7 +12,9 @@ assert.ok(inlineScript, "calculate.html inline calculator script should exist");
 
 const defaultInputs = {
   listPrice: "20000",
+  saleUnitMode: "single",
   quantity: "1",
+  setSize: "3",
   purchaseType: "C",
   channel: "coupang",
   rateA: "88",
@@ -101,6 +103,7 @@ test("quantity 1 keeps the existing C-type Coupang result", () => {
 
   assert.equal(view.text("costCell"), "16,710원");
   assert.equal(view.text("totalSalePriceCell"), "21,100원");
+  assert.equal(view.text("totalPaymentCell"), "21,100원");
   assert.equal(view.text("settlementCell"), "18,568원");
   assert.equal(view.text("profitCell"), "1,858원");
   assert.equal(view.text("roiCell"), "11.12%");
@@ -117,13 +120,60 @@ test("user example applies quantity 2 to the per-item sale price", () => {
   assert.equal(view.text("costCell"), "56,814원");
   assert.equal(view.text("salePriceCell"), "35,400원");
   assert.equal(view.text("totalSalePriceCell"), "70,800원");
+  assert.equal(view.text("totalPaymentCell"), "70,800원");
   assert.equal(view.text("settlementCell"), "62,304원");
   assert.equal(view.text("profitCell"), "5,490원");
   assert.equal(view.text("roiCell"), "9.66%");
   assert.equal(
     view.text("priceStructureText"),
-    "개당 정가 34,000원 × 2개 = 정가 총액 68,000원, 개당 판매가 35,400원 × 2개 = 총판매액 70,800원"
+    "개당 정가 34,000원 × 2개 = 정가 총액 68,000원, 개당 판매가 35,400원 × 2개 = 상품 매출 70,800원, 배송료 포함 총 결제액 70,800원"
   );
+});
+
+test("three-item sets use six actual items but two sale units and one order shipping amount", () => {
+  const view = runCalculator({
+    listPrice: "2900",
+    saleUnitMode: "set",
+    setSize: "3",
+    quantity: "2",
+    salePrice: "9200",
+    shippingIncome: "3000",
+    purchaseType: "C",
+    couponEnabled: false
+  });
+
+  assert.equal(view.text("unitSummary"), "3개 들이 × 2세트 · 총 구성 수량 6개");
+  assert.match(view.text("formulaCell"), /× 6개 \(3개 들이 × 2세트\)$/);
+  assert.equal(view.text("costCell"), "14,538원");
+  assert.equal(view.text("salePriceCell"), "9,200원");
+  assert.equal(view.text("totalSalePriceCell"), "18,400원");
+  assert.equal(view.text("totalPaymentCell"), "21,400원");
+  assert.equal(view.text("settlementCell"), "19,192원");
+  assert.equal(view.text("bepCell"), "13,112원");
+  assert.equal(view.text("targetPriceCell"), "14,929원");
+  assert.equal(view.text("recommendedCell"), "15,000원");
+  assert.match(view.html("targetRows"), /<td class="num">11%<\/td>[\s\S]*?<td class="num">14,929원<\/td>[\s\S]*?<td class="num">15,000원<\/td>/);
+  assert.equal(view.text("salePriceHeader"), "세트당 판매가");
+  assert.equal(view.text("quantityLabelText"), "판매 수량 (세트)");
+  assert.equal(view.text("salePriceLabelText"), "현재 판매가 검산 (세트당)");
+  assert.match(view.text("priceStructureText"), /상품 매출 18,400원, 배송료 포함 총 결제액 21,400원$/);
+});
+
+test("set mode applies item coupon once per actual item and A shipping credit once per order", () => {
+  const view = runCalculator({
+    listPrice: "32000",
+    saleUnitMode: "set",
+    setSize: "3",
+    quantity: "2",
+    purchaseType: "A",
+    rateA: "88",
+    couponEnabled: true,
+    couponAmount: "3750"
+  });
+
+  assert.equal(view.text("costCell"), "140,916원");
+  assert.match(view.text("formulaCell"), /× 6개 \(3개 들이 × 2세트\) \+ 3,000원\(배송비 보정 1회\)$/);
+  assert.equal((view.text("formulaCell").match(/3,750원\(쿠폰\)/g) || []).length, 1);
 });
 
 test("A-type coupon is per item while both shipping amounts stay per order", () => {
@@ -261,17 +311,22 @@ test("all purchase types, channels, coupon states, quantities, and shipping use 
   for (const purchaseType of types) {
     for (const [channel, channelRate] of Object.entries(channels)) {
       for (const couponEnabled of [false, true]) {
-        for (const quantity of [1, 2, 3]) {
-          for (const shippingIncome of [0, 3000]) {
+        for (const saleUnitMode of ["single", "set"]) {
+          for (const quantity of [1, 2, 3]) {
+            for (const shippingIncome of [0, 3000]) {
             const listPrice = 34000;
             const salePrice = 35400;
+            const setSize = 3;
+            const itemQuantity = quantity * (saleUnitMode === "set" ? setSize : 1);
             const unit = expectedUnitCost(purchaseType, listPrice, couponEnabled);
-            const cost = unit.cost * quantity + unit.orderShippingCredit;
+            const cost = unit.cost * itemQuantity + unit.orderShippingCredit;
             const totalSale = salePrice * quantity;
             const settlement = totalSale * channelRate + shippingIncome;
             const profit = settlement - cost;
             const view = runCalculator({
               listPrice: String(listPrice),
+              saleUnitMode,
+              setSize: String(setSize),
               quantity: String(quantity),
               salePrice: String(salePrice),
               purchaseType,
@@ -284,6 +339,8 @@ test("all purchase types, channels, coupon states, quantities, and shipping use 
             assert.equal(view.text("totalSalePriceCell"), formatWon(totalSale));
             assert.equal(view.text("settlementCell"), formatWon(settlement));
             assert.equal(view.text("profitCell"), formatWon(profit));
+            assert.equal(view.text("totalPaymentCell"), formatWon(totalSale + shippingIncome));
+            }
           }
         }
       }
@@ -318,14 +375,33 @@ test("blank and zero numeric inputs stay finite and quantity falls back to one",
     assert.equal(view.text("costCell"), "28,407원");
     assert.equal(view.text("totalSalePriceCell"), "35,400원");
   }
+
+  for (const setSize of ["", "0", "-1", "NaN"]) {
+    const view = runCalculator({
+      listPrice: "2900",
+      saleUnitMode: "set",
+      setSize,
+      quantity: "2",
+      salePrice: "9200",
+      shippingIncome: "3000"
+    });
+
+    assert.equal(view.text("unitSummary"), "1개 들이 × 2세트 · 총 구성 수량 2개");
+    assert.equal(view.text("totalSalePriceCell"), "18,400원");
+    assert.equal(view.text("totalPaymentCell"), "21,400원");
+    assert.doesNotMatch(view.html("targetRows"), /NaN|Infinity/);
+  }
 });
 
 test("labels explain per-item price and per-order shipping semantics", () => {
   assert.match(html, /<label>정가 \(개당\)/);
   assert.match(html, /<label>고객 배송료 \(주문당 1회\)/);
-  assert.match(html, /<label>현재 판매가 검산 \(개당\)/);
+  assert.match(html, /id="saleUnitMode"/);
+  assert.match(html, /id="setSize"[^>]*value="3"/);
+  assert.match(html, /id="salePriceLabelText">현재 판매가 검산 \(개당\)/);
   assert.match(html, /<label>쿠폰 단가 \(개당\)/);
   assert.match(html, /id="couponAmount"[^>]*value="3750"/);
   assert.match(html, /id="resetSettings"[^>]*>저장값 초기화<\/button>/);
-  assert.match(html, /<th>총판매액<\/th>/);
+  assert.match(html, /<th>상품 매출<\/th>/);
+  assert.match(html, /<th>총 결제액<\/th>/);
 });

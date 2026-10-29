@@ -41,10 +41,13 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 360px minmax(0, 1fr);
       gap: 16px;
       align-items: start;
     }
+
+    .layout > *, .stack { min-width: 0; }
+    .stack { width: 100%; }
 
     .panel {
       background: var(--panel);
@@ -142,7 +145,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 16px;
     }
@@ -156,6 +159,7 @@
 
     .stack {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 14px;
     }
 
@@ -195,6 +199,8 @@
     }
 
     .table-scroll {
+      width: 100%;
+      min-width: 0;
       max-width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -285,14 +291,26 @@
 
     .reset-button:hover { border-color: var(--accent); color: var(--accent); }
     .settings-status { color: var(--muted); font-size: 11px; line-height: 1.4; text-align: right; }
+    .unit-summary {
+      margin: -2px 0 2px;
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+    [hidden] { display: none !important; }
 
     @media (max-width: 860px) {
-      .layout, .summary { grid-template-columns: 1fr; }
+      .layout, .summary { grid-template-columns: minmax(0, 1fr); }
       .row { grid-template-columns: 1fr; }
       .rate-grid { grid-template-columns: 1fr; }
-      main { width: min(100% - 20px, 1120px); margin-top: 16px; }
+      main { width: calc(100% - 20px); max-width: calc(100vw - 20px); margin-top: 16px; }
       th, td { font-size: 13px; padding: 10px; }
-      .judgement { grid-template-columns: 130px 1fr; }
+      .judgement { grid-template-columns: 130px minmax(0, 1fr); }
+      .judgement > div { min-width: 0; overflow-wrap: anywhere; }
     }
   
 .homeBtn{position:fixed;right:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;background:#14211d;color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 6px 20px rgba(0,0,0,.18)}
@@ -309,10 +327,23 @@
             <label>정가 (개당)
               <input id="listPrice" type="number" min="0" step="1" value="20000">
             </label>
-            <label>수량
-              <input id="quantity" type="number" min="1" step="1" value="1">
+            <label>판매 단위
+              <select id="saleUnitMode">
+                <option value="single" selected>낱개 판매</option>
+                <option value="set">세트 판매</option>
+              </select>
             </label>
           </div>
+
+          <div class="row">
+            <label><span id="quantityLabelText">판매 수량 (개)</span>
+              <input id="quantity" type="number" min="1" step="1" value="1">
+            </label>
+            <label id="setSizeLabel" hidden>세트 구성 (개)
+              <input id="setSize" type="number" min="1" step="1" value="3">
+            </label>
+          </div>
+          <div id="unitSummary" class="unit-summary">낱개 1개 판매 · 총 구성 수량 1개</div>
 
           <div class="row">
             <label>매입방식
@@ -367,7 +398,7 @@
           </div>
 
           <div class="row">
-            <label>현재 판매가 검산 (개당)
+            <label><span id="salePriceLabelText">현재 판매가 검산 (개당)</span>
               <input id="salePrice" type="number" min="0" step="1" value="21100">
             </label>
             <label>쿠폰 단가 (개당)
@@ -384,7 +415,7 @@
           </div>
           <div id="settingsStatus" class="settings-status" role="status" aria-live="polite">입력값은 이 브라우저에 자동 저장됩니다.</div>
         </form>
-        <p class="hint">정가·현재 판매가·쿠폰 단가는 개당 금액입니다. 수량을 적용한 주문 총액으로 원가·정산액·순이익·ROI를 계산하며, 고객 배송료는 주문당 한 번만 더합니다.</p>
+        <p class="hint">정가·쿠폰 단가는 구성품 1개 기준입니다. 세트 판매가는 세트당 금액이며 원가는 실제 총 구성 수량으로 계산합니다. 고객 배송료는 주문당 한 번만 더합니다.</p>
       </div>
 
       <div class="stack">
@@ -453,8 +484,9 @@
           <table>
             <thead>
               <tr>
-                <th>개당 판매가</th>
-                <th>총판매액</th>
+                <th id="salePriceHeader">개당 판매가</th>
+                <th>상품 매출</th>
+                <th>총 결제액</th>
                 <th>정산액</th>
                 <th>순이익</th>
                 <th>ROI</th>
@@ -464,6 +496,7 @@
               <tr>
                 <td class="num" id="salePriceCell"></td>
                 <td class="num" id="totalSalePriceCell"></td>
+                <td class="num" id="totalPaymentCell"></td>
                 <td class="num" id="settlementCell"></td>
                 <td class="num" id="profitCell"></td>
                 <td class="num" id="roiCell"></td>
@@ -507,17 +540,19 @@
     const SETTINGS_KEY = "starbucks-helper-calculator-settings-v1";
     const SETTINGS_VERSION = 1;
     const PERSISTED_IDS = [
-      "listPrice", "quantity", "purchaseType", "channel",
+      "listPrice", "saleUnitMode", "quantity", "setSize", "purchaseType", "channel",
       "rateA", "rateB", "rateC", "rateD", "rateAuction", "rateNaverBuy",
       "targetRoi", "shippingIncome", "salePrice", "couponAmount", "couponEnabled"
     ];
     const ENUM_VALUES = {
+      saleUnitMode: new Set(["single", "set"]),
       purchaseType: new Set(["A", "B", "C", "D", "auction", "naverBuy"]),
       channel: new Set(["coupang", "naver"])
     };
     const NUMBER_LIMITS = {
       listPrice: [0, 999999999],
       quantity: [1, 999999],
+      setSize: [1, 999999],
       rateA: [0, 100], rateB: [0, 100], rateC: [0, 100], rateD: [0, 100],
       rateAuction: [0, 100], rateNaverBuy: [0, 100],
       targetRoi: [0, 10000],
@@ -553,7 +588,7 @@
       if (typeof value === "string" && value.trim() === "") return null;
       const number = Number(value);
       if (!Number.isFinite(number) || number < limits[0] || number > limits[1]) return null;
-      return String(id === "quantity" ? Math.floor(number) : number);
+      return String(id === "quantity" || id === "setSize" ? Math.floor(number) : number);
     }
 
     function applySettings(values) {
@@ -642,6 +677,11 @@
       return Number.isFinite(value) && value >= 0 ? value : fallback;
     }
 
+    function positiveInteger(id, fallback = 1) {
+      const value = Number(el(id).value);
+      return Number.isFinite(value) && value >= 1 ? Math.floor(value) : fallback;
+    }
+
     function calculateUnitCost(listPrice, type, coupon, couponAmount, rates) {
       const variableFee = listPrice / 10000 * 445;
       const couponFee = coupon ? couponAmount : 0;
@@ -677,8 +717,13 @@
     function update() {
       const listPrice = nonNegativeNumber("listPrice");
       const salePrice = nonNegativeNumber("salePrice");
-      const quantityValue = Number(el("quantity").value);
-      const quantity = Number.isFinite(quantityValue) && quantityValue >= 1 ? Math.floor(quantityValue) : 1;
+      const saleUnitMode = ENUM_VALUES.saleUnitMode.has(el("saleUnitMode").value)
+        ? el("saleUnitMode").value
+        : DEFAULT_SETTINGS.saleUnitMode;
+      const quantity = positiveInteger("quantity");
+      const setSize = positiveInteger("setSize");
+      const unitsPerSale = saleUnitMode === "set" ? setSize : 1;
+      const totalItemQuantity = quantity * unitsPerSale;
       const targetRoi = nonNegativeNumber("targetRoi") / 100;
       const shippingIncome = nonNegativeNumber("shippingIncome");
       const couponAmount = nonNegativeNumber("couponAmount", Number(DEFAULT_SETTINGS.couponAmount));
@@ -697,9 +742,10 @@
       const rate = channel === "naver" ? 0.945 : 0.88;
       const channelLabel = channel === "naver" ? "네이버" : "쿠팡";
       const unit = calculateUnitCost(listPrice, type, coupon, couponAmount, rates);
-      const totalListPrice = listPrice * quantity;
-      const cost = unit.cost * quantity + unit.orderShippingCredit;
+      const totalListPrice = listPrice * totalItemQuantity;
+      const cost = unit.cost * totalItemQuantity + unit.orderShippingCredit;
       const totalSalePrice = salePrice * quantity;
+      const totalPayment = totalSalePrice + shippingIncome;
       const settlement = totalSalePrice * rate + shippingIncome;
       const profit = settlement - cost;
       const roi = cost > 0 ? profit / cost * 100 : 0;
@@ -710,10 +756,11 @@
       const recommendedRoi = cost > 0 ? recommendedProfit / cost * 100 : 0;
 
       el("typeCell").textContent = `${typeLabels[type]} / ${channelLabel}`;
-      const quantityFormula = quantity > 1 ? `(${unit.formula}) × ${quantity}개` : unit.formula;
+      const quantityFormula = totalItemQuantity > 1 ? `(${unit.formula}) × ${totalItemQuantity}개` : unit.formula;
+      const setBreakdown = saleUnitMode === "set" ? ` (${setSize}개 들이 × ${quantity}세트)` : "";
       el("formulaCell").textContent = unit.orderShippingCredit
-        ? `${quantityFormula} + ${won(unit.orderShippingCredit)}(배송비 보정 1회)`
-        : quantityFormula;
+        ? `${quantityFormula}${setBreakdown} + ${won(unit.orderShippingCredit)}(배송비 보정 1회)`
+        : `${quantityFormula}${setBreakdown}`;
       el("costCell").textContent = won(cost);
       el("bepCell").textContent = won(ceilWon(bep));
       el("targetRoiCell").textContent = pct(targetRoi * 100);
@@ -722,6 +769,7 @@
 
       el("salePriceCell").textContent = won(salePrice);
       el("totalSalePriceCell").textContent = won(totalSalePrice);
+      el("totalPaymentCell").textContent = won(totalPayment);
       el("settlementCell").textContent = won(settlement);
       el("profitCell").textContent = won(profit);
       el("roiCell").textContent = pct(roi);
@@ -736,6 +784,14 @@
       el("profitMetric").parentElement.className = `metric ${profit >= 0 ? "good" : "bad"}`;
       el("roiMetric").parentElement.className = `metric ${roi >= targetRoi * 100 ? "good" : "bad"}`;
       el("recommendedProfitMetric").parentElement.className = "metric good";
+
+      el("setSizeLabel").hidden = saleUnitMode !== "set";
+      el("quantityLabelText").textContent = saleUnitMode === "set" ? "판매 수량 (세트)" : "판매 수량 (개)";
+      el("salePriceLabelText").textContent = saleUnitMode === "set" ? "현재 판매가 검산 (세트당)" : "현재 판매가 검산 (개당)";
+      el("salePriceHeader").textContent = saleUnitMode === "set" ? "세트당 판매가" : "개당 판매가";
+      el("unitSummary").textContent = saleUnitMode === "set"
+        ? `${setSize}개 들이 × ${quantity}세트 · 총 구성 수량 ${totalItemQuantity}개`
+        : `낱개 ${quantity}개 판매 · 총 구성 수량 ${totalItemQuantity}개`;
 
       const targetOptions = [5, 10, 11, 15, 20];
       el("targetRows").innerHTML = targetOptions.map((target) => {
@@ -755,7 +811,9 @@
       el("statusText").textContent = profit >= 0
         ? (roi >= targetRoi * 100 ? "목표 마진 충족" : "흑자지만 목표 마진 미달")
         : "손해 구간";
-      el("priceStructureText").textContent = `개당 정가 ${won(listPrice)} × ${quantity}개 = 정가 총액 ${won(totalListPrice)}, 개당 판매가 ${won(salePrice)} × ${quantity}개 = 총판매액 ${won(totalSalePrice)}`;
+      el("priceStructureText").textContent = saleUnitMode === "set"
+        ? `개당 정가 ${won(listPrice)} × 총 ${totalItemQuantity}개(${setSize}개 들이 × ${quantity}세트) = 정가 총액 ${won(totalListPrice)}, 세트당 판매가 ${won(salePrice)} × ${quantity}세트 = 상품 매출 ${won(totalSalePrice)}, 배송료 포함 총 결제액 ${won(totalPayment)}`
+        : `개당 정가 ${won(listPrice)} × ${quantity}개 = 정가 총액 ${won(totalListPrice)}, 개당 판매가 ${won(salePrice)} × ${quantity}개 = 상품 매출 ${won(totalSalePrice)}, 배송료 포함 총 결제액 ${won(totalPayment)}`;
       el("bepText").textContent = `${channelLabel} 주문 총판매액 기준 손익분기점 약 ${won(ceilWon(bep))}`;
       el("recommendText").textContent = `${pct(targetRoi * 100)} 목표 주문판매가는 최소 ${won(ceilWon(targetPrice))}, 권장 ${won(recommended)}`;
     }

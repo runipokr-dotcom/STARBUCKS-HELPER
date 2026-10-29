@@ -142,6 +142,7 @@ async function runChrome(path, name, width, height, mobile) {
           viewportWidth: innerWidth,
           documentWidth: document.documentElement.scrollWidth,
           totalSale: document.querySelector("#totalSalePriceCell").textContent,
+          totalPayment: document.querySelector("#totalPaymentCell").textContent,
           settlement: document.querySelector("#settlementCell").textContent,
           profit: document.querySelector("#profitCell").textContent,
           roi: document.querySelector("#roiCell").textContent,
@@ -165,10 +166,19 @@ async function runChrome(path, name, width, height, mobile) {
 
     const saved = await client.send("Runtime.evaluate", {
       expression: `(async () => {
-        document.querySelector("#couponAmount").value = "4200";
-        document.querySelector("#couponEnabled").checked = true;
-        document.querySelector("#couponAmount").dispatchEvent(new Event("input", { bubbles: true }));
-        document.querySelector("#couponEnabled").dispatchEvent(new Event("change", { bubbles: true }));
+        document.querySelector("#listPrice").value = "2900";
+        document.querySelector("#saleUnitMode").value = "set";
+        document.querySelector("#setSize").value = "3";
+        document.querySelector("#quantity").value = "2";
+        document.querySelector("#salePrice").value = "9200";
+        document.querySelector("#shippingIncome").value = "3000";
+        document.querySelector("#couponAmount").value = "3750";
+        document.querySelector("#couponEnabled").checked = false;
+        document.querySelector("#saleUnitMode").dispatchEvent(new Event("change", { bubbles: true }));
+        document.querySelector("#setSize").dispatchEvent(new Event("input", { bubbles: true }));
+        document.querySelector("#quantity").dispatchEvent(new Event("input", { bubbles: true }));
+        document.querySelector("#salePrice").dispatchEvent(new Event("input", { bubbles: true }));
+        document.querySelector("#shippingIncome").dispatchEvent(new Event("input", { bubbles: true }));
         await new Promise((resolve) => setTimeout(resolve, 350));
         return {
           payload: JSON.parse(localStorage.getItem("starbucks-helper-calculator-settings-v1")),
@@ -185,12 +195,21 @@ async function runChrome(path, name, width, height, mobile) {
     await reloaded;
     const restored = await client.send("Runtime.evaluate", {
       expression: `(() => ({
+        viewportWidth: innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
         listPrice: document.querySelector("#listPrice").value,
+        saleUnitMode: document.querySelector("#saleUnitMode").value,
         quantity: document.querySelector("#quantity").value,
+        setSize: document.querySelector("#setSize").value,
         salePrice: document.querySelector("#salePrice").value,
         couponAmount: document.querySelector("#couponAmount").value,
         couponEnabled: document.querySelector("#couponEnabled").checked,
         cost: document.querySelector("#costMetric").textContent,
+        totalSale: document.querySelector("#totalSalePriceCell").textContent,
+        totalPayment: document.querySelector("#totalPaymentCell").textContent,
+        unitSummary: document.querySelector("#unitSummary").textContent,
+        setSizeHidden: document.querySelector("#setSizeLabel").hidden,
+        salePriceLabel: document.querySelector("#salePriceLabelText").textContent,
         status: document.querySelector("#settingsStatus").textContent
       }))()`,
       returnByValue: true
@@ -228,12 +247,13 @@ test("real Chrome renders the quantity-two calculation on PC and mobile", async 
       assert.equal(rendered.data.viewportWidth, viewport.width);
       assert.ok(rendered.data.documentWidth <= rendered.data.viewportWidth, "page should not overflow horizontally");
       assert.equal(rendered.data.totalSale, "70,800원");
+      assert.equal(rendered.data.totalPayment, "70,800원");
       assert.equal(rendered.data.settlement, "62,304원");
       assert.equal(rendered.data.profit, "5,490원");
       assert.equal(rendered.data.roi, "9.66%");
       assert.match(rendered.data.structure, /정가 총액 68,000원/);
-      assert.match(rendered.data.structure, /총판매액 70,800원/);
-      assert.equal(rendered.data.saleTableColumns, 5);
+      assert.match(rendered.data.structure, /상품 매출 70,800원/);
+      assert.equal(rendered.data.saleTableColumns, 6);
       assert.equal(rendered.data.layoutColumns, viewport.columns);
       assert.equal(rendered.data.tableScrollContainers, 3);
       assert.ok(rendered.data.labels.includes("정가 (개당)"));
@@ -241,16 +261,27 @@ test("real Chrome renders the quantity-two calculation on PC and mobile", async 
       assert.ok(rendered.data.labels.includes("고객 배송료 (주문당 1회)"));
       assert.ok(rendered.data.labels.includes("쿠폰 단가 (개당)"));
       assert.equal(rendered.saved.payload.version, 1);
-      assert.equal(rendered.saved.payload.values.couponAmount, "4200");
-      assert.equal(rendered.saved.payload.values.couponEnabled, true);
+      assert.equal(rendered.saved.payload.values.saleUnitMode, "set");
+      assert.equal(rendered.saved.payload.values.setSize, "3");
+      assert.equal(rendered.saved.payload.values.couponAmount, "3750");
+      assert.equal(rendered.saved.payload.values.couponEnabled, false);
       assert.match(rendered.saved.status, /저장했습니다/);
       assert.deepEqual(rendered.restored, {
-        listPrice: "34000",
+        viewportWidth: viewport.width,
+        documentWidth: viewport.width,
+        listPrice: "2900",
+        saleUnitMode: "set",
         quantity: "2",
-        salePrice: "35400",
-        couponAmount: "4200",
-        couponEnabled: true,
-        cost: "48,414원",
+        setSize: "3",
+        salePrice: "9200",
+        couponAmount: "3750",
+        couponEnabled: false,
+        cost: "14,538원",
+        totalSale: "18,400원",
+        totalPayment: "21,400원",
+        unitSummary: "3개 들이 × 2세트 · 총 구성 수량 6개",
+        setSizeHidden: false,
+        salePriceLabel: "현재 판매가 검산 (세트당)",
         status: "마지막 입력값을 불러왔습니다."
       });
       assert.equal(existsSync(rendered.screenshot), true);
