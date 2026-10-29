@@ -41,6 +41,13 @@
 - 미니 설치 안전 조건: 검증된 로컬 dist와 바탕화면 설치본의 실행 여부·서명·번들 식별자를 먼저 읽기 전용으로 확인한다. 설치본이 실행 중이면 실행 번들의 리소스·서명 일관성을 깨뜨릴 수 있으므로 파일 교체를 보류하고 앱을 종료·재시작·새로고침하지 않는다. 종료 상태일 때만 기존 설치본을 복구 가능한 백업으로 보존한 뒤 dist를 교체·서명 검증하며 자동 실행하지 않는다.
 - 보존/금지: 인증/PIN/sessionStorage, 쿠폰 JSON, 카탈로그·견적·Rules/Auth/Firebase/운영 데이터와 다른 HELPER 기능은 변경하지 않는다. 현재 열린 미니 앱의 입력이나 화면을 조작하지 않으며 실제 미니 세트 UI는 자동 검수하지 않는다.
 
+### 공개 배포 후 기록
+- 기능 commit/push: 원격 `main`이 기준 `6c061a9b13a72710ac5a18f6d35f689b9aedf08f`에서 변하지 않은 것을 두 번 확인했다. 승인된 5파일만 commit `d05aeabd76b4f2f71b173a1955a0674fe69a42a3` (`feat: add set-based calculator inputs`)로 만들고 `HEAD:main`을 non-force fast-forward push했다.
+- 테스트/Pages: push 직전 계산·저장·정적 24/24와 격리 Chrome PC·모바일 3/3, 합계 27/27을 다시 통과했다. GitHub Pages 실행 `40860358115`는 기능 commit을 exact head SHA로 `completed/success` 완료했다.
+- 공개 READBACK: cache-busting query로 받은 공개 `calculate.html`은 로컬 기능 commit 파일과 `cmp` exact 일치했고 SHA-256은 `6c468bdd7de583c308f2d30455d3c58c90d16fe7c4a628c1e3396851c037d56b`였다. 공개본에서 `saleUnitMode`, `setSize`, 총 결제액 열, `totalItemQuantity` 기반 원가식을 직접 확인했다. 공개 파일이 사용자 예시와 새로고침 복원을 실행한 격리 Chrome 검증 파일과 바이트 단위로 같다.
+- 미니 설치 보류: 바탕화면 설치본의 실행 프로세스 PID 38283을 읽기 전용으로 확인했다. 실행 중인 signed app bundle을 교체하면 프로세스가 이후 읽는 resource와 디스크 서명이 섞일 수 있어, 사용자 지시의 안전 조건에 따라 바탕화면 앱 교체를 수행하지 않았다. 앱을 종료·재시작·새로고침하거나 입력을 변경하지 않았고, 검증된 새 후보는 `mini-helper/dist/STARBUCKS 미니 헬퍼.app`에 그대로 보존했다.
+- 영향/남은 항목: 인증·쿠폰 JSON·카탈로그·견적·Rules/Auth/Firebase/운영 데이터와 다른 기능은 변경하지 않았다. 본 배포 기록은 WORKLOG 전용 docs commit으로 동기화한다. 미니 설치본 교체와 실제 WKWebView 세트 UI 검수는 앱이 종료된 상태이거나 사용자가 명시적으로 종료를 허용한 다음 단계로 남는다.
+
 ## 2026-10-29 — Codex (계산기 마지막 입력 자동 저장·쿠폰 금액 조절)
 
 ### 작업 전 기록
