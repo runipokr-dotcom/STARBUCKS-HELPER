@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-01T11:35:22+09:00",
+ "updatedAt": "2026-11-02T00:28:17+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-01T11:35:22+09:00",
-   "lastSuccessAt": "2026-11-01T11:35:22+09:00",
-   "scanned": 266,
-   "discounted": 2,
+   "checkedAt": "2026-11-02T00:28:17+09:00",
+   "lastSuccessAt": "2026-11-02T00:28:17+09:00",
+   "scanned": 264,
+   "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-01T11:35:22+09:00",
-   "lastSuccessAt": "2026-11-01T11:35:22+09:00",
+   "checkedAt": "2026-11-02T00:28:17+09:00",
+   "lastSuccessAt": "2026-11-02T00:28:17+09:00",
    "scanned": 318,
    "discounted": 2,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-01T11:35:22+09:00",
-   "lastSuccessAt": "2026-11-01T11:35:22+09:00",
+   "checkedAt": "2026-11-02T00:28:17+09:00",
+   "lastSuccessAt": "2026-11-02T00:28:17+09:00",
    "scanned": 296,
    "discounted": 261,
    "error": ""
@@ -32,14 +32,74 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-01T11:35:22+09:00",
-   "lastSuccessAt": "2026-11-01T11:35:22+09:00",
+   "checkedAt": "2026-11-02T00:28:17+09:00",
+   "lastSuccessAt": "2026-11-02T00:28:17+09:00",
    "scanned": 90,
-   "discounted": 0,
+   "discounted": 5,
    "error": ""
   }
  },
  "items": [
+  {
+   "store": "kakao",
+   "id": "12406998",
+   "name": "\"감각적인 홈카페 아이템\" 스태카 홈카페 세트 3P",
+   "url": "https://gift.kakao.com/product/12406998",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260806093319_049e58edb31d408a88ac856d69693afb.png",
+   "price": 44200,
+   "originalPrice": 0,
+   "rate": 15,
+   "soldOut": false,
+   "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12406994",
+   "name": "\"감성 테이블 완성\" 스태카 브런치 세트 3P",
+   "url": "https://gift.kakao.com/product/12406994",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260806093134_0c184c4566b44e2fbc29bd8a9ce8df2b.png",
+   "price": 45050,
+   "originalPrice": 0,
+   "rate": 15,
+   "soldOut": false,
+   "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12408865",
+   "name": "\"러블리한 미피 일러스트\" 포에버 미피 글라스 세트 2P 207ml",
+   "url": "https://gift.kakao.com/product/12408865",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260806153254_2f0dfcd171fb48ff868189116152e8c5.png",
+   "price": 35100,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "13435280",
+   "name": "디어유 고블렛 투명 & 그린 276ml 2P 세트 (감사/결혼/집들이)",
+   "url": "https://gift.kakao.com/product/13435280",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261027111326_e2f864aff98c4fb7b884cb08f707c9f4.png",
+   "price": 31500,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "13434961",
+   "name": "디어유 그러데이션 글라스 세트 384ml (2P) (감사/결혼/집들이)",
+   "url": "https://gift.kakao.com/product/13434961",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260928165718_8162165a993549efa7facf90032207b3.png",
+   "price": 35100,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
   {
    "store": "wconcept",
    "id": "308296237",
@@ -73,7 +133,7 @@
    "price": 90250,
    "originalPrice": 95000,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "coupon": false,
    "firstSeen": "2026-10-15T10:51:44+09:00"
   },
@@ -89,18 +149,6 @@
    "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-10-15T10:51:44+09:00"
-  },
-  {
-   "store": "musinsa",
-   "id": "7486656",
-   "name": "베스트오브럭 도시락&텀블러 세트(그린) +텀블러음료쿠폰(카톡발송)",
-   "url": "https://www.musinsa.com/products/7486656",
-   "image": "https://image.msscdn.net/images/goods_img/20261011/7486656/7486656_17917902071919_500.jpg",
-   "price": 90250,
-   "originalPrice": 95000,
-   "rate": 5,
-   "soldOut": false,
-   "firstSeen": "2026-10-16T22:32:26+09:00"
   },
   {
    "store": "musinsa",
