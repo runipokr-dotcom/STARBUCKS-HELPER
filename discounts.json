@@ -1,41 +1,41 @@
 {
  "version": 1,
- "updatedAt": "2026-11-04T01:35:44+09:00",
+ "updatedAt": "2026-11-04T12:18:52+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-04T01:35:44+09:00",
-   "lastSuccessAt": "2026-11-04T01:35:44+09:00",
-   "scanned": 272,
+   "checkedAt": "2026-11-04T12:18:52+09:00",
+   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "scanned": 278,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-04T01:35:44+09:00",
-   "lastSuccessAt": "2026-11-04T01:35:44+09:00",
-   "scanned": 319,
+   "checkedAt": "2026-11-04T12:18:52+09:00",
+   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "scanned": 324,
    "discounted": 2,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-04T01:35:44+09:00",
-   "lastSuccessAt": "2026-11-04T01:35:44+09:00",
-   "scanned": 297,
+   "checkedAt": "2026-11-04T12:18:52+09:00",
+   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "scanned": 302,
    "discounted": 261,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-04T01:35:44+09:00",
-   "lastSuccessAt": "2026-11-04T01:35:44+09:00",
-   "scanned": 90,
-   "discounted": 5,
+   "checkedAt": "2026-11-04T12:18:52+09:00",
+   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "scanned": 159,
+   "discounted": 6,
    "error": ""
   }
  },
@@ -63,6 +63,18 @@
    "rate": 15,
    "soldOut": false,
    "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12051198",
+   "name": "\"대용량 텀블러\" SS 하트풀 오왈라 트래블 콜드컵 1185ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/12051198",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 54000,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-04T12:18:52+09:00"
   },
   {
    "store": "kakao",
@@ -1419,7 +1431,7 @@
    "price": 18905,
    "originalPrice": 19900,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
@@ -1431,7 +1443,7 @@
    "price": 7125,
    "originalPrice": 7500,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
