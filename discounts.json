@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-04T12:18:52+09:00",
+ "updatedAt": "2026-11-05T01:35:59+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-04T12:18:52+09:00",
-   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "checkedAt": "2026-11-05T01:35:59+09:00",
+   "lastSuccessAt": "2026-11-05T01:35:59+09:00",
    "scanned": 278,
    "discounted": 1,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-04T12:18:52+09:00",
-   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
+   "checkedAt": "2026-11-05T01:35:59+09:00",
+   "lastSuccessAt": "2026-11-05T01:35:59+09:00",
    "scanned": 324,
    "discounted": 2,
    "error": ""
@@ -23,23 +23,35 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-04T12:18:52+09:00",
-   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
-   "scanned": 302,
-   "discounted": 261,
+   "checkedAt": "2026-11-05T01:35:59+09:00",
+   "lastSuccessAt": "2026-11-05T01:35:59+09:00",
+   "scanned": 308,
+   "discounted": 267,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-04T12:18:52+09:00",
-   "lastSuccessAt": "2026-11-04T12:18:52+09:00",
-   "scanned": 159,
-   "discounted": 6,
+   "checkedAt": "2026-11-05T01:35:59+09:00",
+   "lastSuccessAt": "2026-11-05T01:35:59+09:00",
+   "scanned": 158,
+   "discounted": 11,
    "error": ""
   }
  },
  "items": [
+  {
+   "store": "kakao",
+   "id": "11754830",
+   "name": "\"사랑스러운 프리미엄 텀블러\" SS 하이드로 플라스크 핑크 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/11754830",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 39000,
+   "originalPrice": 0,
+   "rate": 25,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
   {
    "store": "kakao",
    "id": "12406998",
@@ -66,6 +78,30 @@
   },
   {
    "store": "kakao",
+   "id": "10586126",
+   "name": "\"특별한 각인 메시지\" [각인] JNL 워드마크 보온병 350ml (3종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/10586126",
+   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
+   "price": 35700,
+   "originalPrice": 0,
+   "rate": 15,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "7712218",
+   "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/7712218",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261026163712_dae013e5fb354e5ca7f764410bc6fb63.png",
+   "price": 28800,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "kakao",
    "id": "12051198",
    "name": "\"대용량 텀블러\" SS 하트풀 오왈라 트래블 콜드컵 1185ml +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/12051198",
@@ -87,6 +123,30 @@
    "rate": 10,
    "soldOut": false,
    "firstSeen": "2026-11-02T00:28:17+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12109009",
+   "name": "\"퍼스널컬러\" SS 단테 텀블러 710ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/12109009",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261026082657_7bd8b9d25b5a48488eb3de98445a11dc.png",
+   "price": 44100,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "9158489",
+   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (2종 택 1) +에코텀블러음료쿠폰 (카톡발송)",
+   "url": "https://gift.kakao.com/product/9158489",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261019165704_857716e77bec4b25a488442e8a93bef4.png",
+   "price": 31500,
+   "originalPrice": 0,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
   },
   {
    "store": "kakao",
@@ -836,6 +896,66 @@
   },
   {
    "store": "wconcept",
+   "id": "309165729",
+   "name": "SS 조이풀 다이온 콜드컵 591ml",
+   "url": "https://www.wconcept.co.kr/Product/309165729",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/29/309165729_YI28361.jpg",
+   "price": 40850,
+   "originalPrice": 43000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165728",
+   "name": "SS 조이풀 에셔 콜드컵 710ml",
+   "url": "https://www.wconcept.co.kr/Product/309165728",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/28/309165728_WD27286.jpg",
+   "price": 42750,
+   "originalPrice": 45000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165743",
+   "name": "SS 조이풀 월리 토비 텀블러 473ml",
+   "url": "https://www.wconcept.co.kr/Product/309165743",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/43/309165743_GG20718.jpg",
+   "price": 39900,
+   "originalPrice": 42000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165706",
+   "name": "SS 조이풀 월리 행크 텀블러 532ml",
+   "url": "https://www.wconcept.co.kr/Product/309165706",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/06/309165706_TD27264.jpg",
+   "price": 39900,
+   "originalPrice": 42000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165726",
+   "name": "SS 조이풀 투고 텀블러 591ml",
+   "url": "https://www.wconcept.co.kr/Product/309165726",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/26/309165726_BA23484.jpg",
+   "price": 39900,
+   "originalPrice": 42000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
    "id": "308587902",
    "name": "SS 코리아 라온 텀블러 355ml",
    "url": "https://www.wconcept.co.kr/Product/308587902",
@@ -1420,30 +1540,6 @@
    "originalPrice": 25000,
    "rate": 5,
    "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308152963",
-   "name": "돌체 & 베리 핑거 초콜릿 세트",
-   "url": "https://www.wconcept.co.kr/Product/308152963",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/63/308152963_OR62079.jpg",
-   "price": 18905,
-   "originalPrice": 19900,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308152966",
-   "name": "돌체 핑거 초콜릿 3개입 세트",
-   "url": "https://www.wconcept.co.kr/Product/308152966",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/66/308152966_NJ60794.jpg",
-   "price": 7125,
-   "originalPrice": 7500,
-   "rate": 5,
-   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
@@ -2729,6 +2825,42 @@
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165696",
+   "name": "조이풀 월리 베어리스타 인형",
+   "url": "https://www.wconcept.co.kr/Product/309165696",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/96/309165696_RK36608.jpg",
+   "price": 33250,
+   "originalPrice": 35000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165697",
+   "name": "조이풀 월리 커트러리 세트",
+   "url": "https://www.wconcept.co.kr/Product/309165697",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/97/309165697_UR31102.jpg",
+   "price": 30400,
+   "originalPrice": 32000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "309165695",
+   "name": "조이풀 월리 피규어 키링 세트(2P)",
+   "url": "https://www.wconcept.co.kr/Product/309165695",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/95/309165695_RJ62721.jpg",
+   "price": 18050,
+   "originalPrice": 19000,
+   "rate": 5,
+   "soldOut": false,
+   "firstSeen": "2026-11-05T01:35:59+09:00"
   },
   {
    "store": "wconcept",
