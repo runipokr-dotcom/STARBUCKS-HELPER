@@ -71,6 +71,13 @@
 - 현재 상태: 실제 최초 스냅샷은 로컬에 생성했지만 아직 commit·push·Actions 실행·Pages 배포는 하지 않았다. 최신 원격과 기존 4개 판매처 데이터를 다시 확인하고 전체 테스트를 통과한 뒤 이번에 승인된 1회 배포만 진행한다.
 - 배포 전 보존 검증: `git fetch origin main` 결과 로컬/원격이 모두 `226c00c2a4a5e51c20f56a3e7114ac5af930fda4`로 일치해 새 봇 commit이나 충돌이 없다. 현재 `discounts.json`의 기존 281개(무신사 1, 29CM 2, W컨셉 267, 카카오 11)를 복제한 임시 출력에서 실제 `naver-discounts.json`을 합성해 총 340개와 네이버 59개·조회 131개·품절 3개·Work 시각/출처가 일치하고, 기존 4개 판매처 수가 그대로임을 확인했다. Python 14/14 테스트, Python compile, 할인 화면 인라인 JavaScript 구문, JSON 공식 URL·고유 ID·HTTPS 이미지 검증, `git diff --check`가 통과했다.
 
+### 첫 Work 스냅샷 공개 배포 결과
+- 기능/스냅샷 commit: 승인된 7파일을 `705798e93f206de1c18567f22d8d09581d0c4bec` (`feat: add Work Naver discount snapshots`)으로 만들었다. push 직전 원격이 기준 SHA `226c00c2a4a5e51c20f56a3e7114ac5af930fda4` 그대로이고 ancestor 관계임을 다시 확인한 뒤 `HEAD:main`을 non-force push했다.
+- 실제 Actions 합성: push로 시작된 할인 레이더 실행 `41969833046`, job `127055229242`는 completed/success다. 로그에서 무신사 278/할인 1, 29CM 324/할인 2, W컨셉 308/할인 267, 카카오 160/할인 11, 네이버 131/할인 59가 모두 `[ok]`로 확인됐다. 봇이 `discounts.json`만 데이터 commit `44add3fa6da23f6d7ec81f0474aa37a65885d2df`로 push했고, 네이버 접속 재시도나 기존 판매처 덮어쓰기 충돌은 없다.
+- Pages/공개 파일 READBACK: 데이터 commit의 Pages 실행 `41969885304`는 completed/success다. 캐시 우회한 공개 `discounts.json`과 `discount.html`은 각각 저장소 파일과 byte-for-byte 일치했다. 공개 JSON은 총 340개(무신사 1, 29CM 2, W컨셉 267, 카카오 11, 네이버 59), 네이버 `ok=true`, `source=work-browser`, Work 시각 `2026-11-05T13:41:54+09:00`, 조회 131개, 품절 3개다.
+- 실제 화면 READBACK: 공개 `discount.html`을 브라우저로 렌더링해 네이버 공식스토어 카드 `59개`, `Work 11. 5. 오후 01:41 기준 · 131개 중`을 확인했다. 네이버 판매처 필터를 실제로 눌러 제목이 `할인 상품 59개`로 바뀌고 공식 `brand.naver.com/starbucks/products/<id>` 링크 59개만 남으며, 품절 표시는 `SS 데비 텀블러 473ml, 조이풀 월리`, `클로버 틴 초콜릿 5EA 세트`, `인절미 찰떡파이 5EA 세트` 3개에 나타나는 것을 확인했다.
+- 운영 경계: 기존 08:47/17:47 KST Actions는 4개 판매처를 계속 자동 수집하고 네이버는 저장된 Work 스냅샷만 합친다. Work 스냅샷이 18시간을 넘으면 네이버를 실패 상태로 표시하면서 마지막 성공 상품·시각을 보존한다. 다음 Work 재확인 결과의 snapshot push·공개 배포는 이번 승인에 포함되지 않으며 별도 승인을 받아야 한다.
+
 ## 2026-11-05 — Codex (쿠팡용 이미지 저장 크기·도구 명칭 정리)
 
 ### 작업 전 기록
