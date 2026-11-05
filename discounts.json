@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-05T12:44:50+09:00",
+ "updatedAt": "2026-11-05T13:03:22+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-05T12:44:50+09:00",
-   "lastSuccessAt": "2026-11-05T12:44:50+09:00",
+   "checkedAt": "2026-11-05T13:03:22+09:00",
+   "lastSuccessAt": "2026-11-05T13:03:22+09:00",
    "scanned": 278,
    "discounted": 1,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-05T12:44:50+09:00",
-   "lastSuccessAt": "2026-11-05T12:44:50+09:00",
+   "checkedAt": "2026-11-05T13:03:22+09:00",
+   "lastSuccessAt": "2026-11-05T13:03:22+09:00",
    "scanned": 324,
    "discounted": 2,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-05T12:44:50+09:00",
-   "lastSuccessAt": "2026-11-05T12:44:50+09:00",
+   "checkedAt": "2026-11-05T13:03:22+09:00",
+   "lastSuccessAt": "2026-11-05T13:03:22+09:00",
    "scanned": 308,
    "discounted": 267,
    "error": ""
@@ -32,11 +32,20 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-05T12:44:50+09:00",
-   "lastSuccessAt": "2026-11-05T12:44:50+09:00",
+   "checkedAt": "2026-11-05T13:03:22+09:00",
+   "lastSuccessAt": "2026-11-05T13:03:22+09:00",
    "scanned": 160,
    "discounted": 11,
    "error": ""
+  },
+  "naver": {
+   "name": "네이버 공식스토어",
+   "ok": false,
+   "checkedAt": "2026-11-05T13:03:22+09:00",
+   "lastSuccessAt": "",
+   "scanned": 0,
+   "discounted": 0,
+   "error": "Page.wait_for_selector: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator(\"a[href*=\\\"/starbucks/products/\\\"]\") to be visible\n"
   }
  },
  "items": [
