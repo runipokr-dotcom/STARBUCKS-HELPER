@@ -1,10 +1,10 @@
 <!--
 STARBUCKS HELPER
 File : discount.html
-Version : 1.0
-Updated : 2026-09-30
+Version : 1.1
+Updated : 2026-11-05
 Data : discounts.json (GitHub Actions .github/workflows/discounts.yml 가 하루 2회 갱신)
-Stores : 무신사 / 29CM / W컨셉 / 카카오 선물하기(공식스토어)
+Stores : 무신사 / 29CM / W컨셉 / 카카오 선물하기 / 네이버 공식스토어
 -->
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><script src="auth-gate.js?v=20260925-1"></script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#063c2d"><title>할인 레이더 | STARBUCKS HELPER</title><style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;--g:#00754a;--deep:#063c2d;--bg:#f3f5f3;--line:#dce4df;--text:#18201c;--muted:#68756d;--red:#c8322b;--soft:#edf8f2}*{box-sizing:border-box}html{background:var(--bg);-webkit-tap-highlight-color:transparent}body{margin:0;min-width:320px;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}button,input,select{font:inherit}
@@ -25,7 +25,7 @@ main{margin-top:-20px;padding:0 12px calc(30px + env(safe-area-inset-bottom))}.c
 <script>
 (()=>{
 const $=id=>document.getElementById(id),PREF='starbucks-helper-discount-radar-v1',NEW_HOURS=72;
-const ORDER=['musinsa','29cm','wconcept','kakao'];
+const ORDER=['musinsa','29cm','wconcept','kakao','naver'];
 let data=null,store='all',sort='rate',newOnly=false,q='';
 try{const p=JSON.parse(localStorage.getItem(PREF)||'{}');store=p.store||store;sort=p.sort||sort;newOnly=!!p.newOnly}catch{}
 function savePref(){try{localStorage.setItem(PREF,JSON.stringify({store,sort,newOnly}))}catch{}}

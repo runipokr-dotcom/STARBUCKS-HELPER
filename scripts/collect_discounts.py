@@ -2,14 +2,15 @@
 """
 STARBUCKS HELPER - 할인 레이더 수집기
 File    : scripts/collect_discounts.py
-Version : 1.0
-Updated : 2026-09-30
+Version : 1.1
+Updated : 2026-11-05
 Run by  : .github/workflows/discounts.yml (하루 2회, 09:00 / 18:00 KST 무렵)
 
 판매처별 스타벅스 브랜드관에서 "지금 할인 중인 상품"만 모아 discounts.json 으로 저장한다.
-- 표준 라이브러리만 사용 (pip 설치 없음)
+- 정적 판매처는 표준 라이브러리, 동적 판매처는 Playwright/Chromium 사용
 - 판매처별로 따로 실행: 한 곳이 실패해도 나머지는 갱신되고, 실패한 곳은 직전 데이터를 유지한다.
 - firstSeen(처음 할인 발견 시각)은 이전 discounts.json 에서 이어받는다.
+- 네이버는 공개 고정 할인가만 수집하고 계정별 쿠폰 최대가는 제외한다.
 """
 import html
 import json
@@ -27,7 +28,14 @@ OUT = os.path.join(ROOT, "discounts.json")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
 
-STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉", "kakao": "카카오 선물하기"}
+STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉",
+               "kakao": "카카오 선물하기", "naver": "네이버 공식스토어"}
+
+NAVER_HOME = "https://brand.naver.com/starbucks"
+NAVER_PRODUCT_RE = re.compile(r"^https://brand\.naver\.com/starbucks/products/(\d+)(?:[/?#]|$)")
+NAVER_FIXED_DISCOUNT_RE = re.compile(
+    r"(?P<original>[\d,]+)원\s+(?P<rate>\d{1,2})%\s*할인\s+(?P<price>[\d,]+)원"
+)
 
 # W컨셉 웹사이트 프런트가 공개적으로 사용하는 조회용 키 (사이트 JS에 포함된 값, 개인 인증정보 아님)
 WCONCEPT_KEY = "VWmkUPgs6g2fviPZ5JQFQ3pERP4tIXv/J2jppLqSRBk="
@@ -81,6 +89,56 @@ def item(store, id_, name, url, image, price, original, rate, sold_out=False, ex
     if extra:
         d.update(extra)
     return d
+
+
+def parse_naver_card(card):
+    """공식 상품 카드의 공개 고정 할인가만 표준 item 형식으로 바꾼다."""
+    url = str(card.get("url") or "").split("?", 1)[0]
+    product_match = NAVER_PRODUCT_RE.match(url)
+    if not product_match:
+        return None
+
+    text = re.sub(r"\s+", " ", str(card.get("text") or "")).strip()
+    discount_match = NAVER_FIXED_DISCOUNT_RE.search(text)
+    if not discount_match:
+        # "최대할인가"만 있는 계정별 쿠폰 상품은 이 경로로 제외된다.
+        return None
+
+    original = to_int(discount_match.group("original"))
+    price = to_int(discount_match.group("price"))
+    rate = to_int(discount_match.group("rate"))
+    if not (original > price > 0 and 0 < rate < 100):
+        return None
+    calculated_rate = round((original - price) * 100 / original)
+    if abs(calculated_rate - rate) > 1:
+        return None
+
+    name = html.unescape(str(card.get("name") or "")).strip()
+    name = re.sub(r"^\[스타벅스\]\s*", "", name)
+    if not name:
+        return None
+    image = str(card.get("image") or "")
+    if image and not image.startswith("https://"):
+        image = ""
+    return item("naver", product_match.group(1), name, url, image, price, original, rate,
+                "품절" in text)
+
+
+def merge_naver_row(rows_by_id, conflicts, parsed):
+    """같은 상품의 동일 가격은 합치고, 서로 다른 가격은 오표시 방지를 위해 제외한다."""
+    old = rows_by_id.get(parsed["id"])
+    signature = (parsed["originalPrice"], parsed["price"], parsed["rate"])
+    old_signature = ((old or {}).get("originalPrice"), (old or {}).get("price"), (old or {}).get("rate"))
+    if old and signature != old_signature:
+        conflicts.add(parsed["id"])
+        rows_by_id.pop(parsed["id"], None)
+        return
+    if parsed["id"] in conflicts:
+        return
+    if old:
+        parsed["soldOut"] = old["soldOut"] or parsed["soldOut"]
+        parsed["image"] = parsed["image"] or old["image"]
+    rows_by_id[parsed["id"]] = parsed
 
 
 # ---------------------------------------------------------------- 무신사
@@ -205,8 +263,113 @@ def collect_kakao():
     return official, len(seen)
 
 
+# ---------------------------------------------------------------- 네이버 공식 브랜드스토어
+def collect_naver():
+    from playwright.sync_api import sync_playwright
+
+    raw_cards = []
+    story_urls = []
+    story_pages_with_cards = 0
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(user_agent=UA, locale="ko-KR")
+        page.goto(NAVER_HOME, wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_selector('a[href*="/starbucks/products/"]', timeout=60000)
+
+        description = page.locator('meta[name="description"]').get_attribute("content") or ""
+        if "스타벅스" not in description or "공식 브랜드 스토어" not in description:
+            browser.close()
+            raise RuntimeError("네이버 스타벅스 공식 브랜드스토어 확인 실패")
+
+        story_urls = page.locator('a[href*="/starbucks/shoppingstory/detail"]').evaluate_all(r"""els => {
+          const urls = [];
+          for (const a of els) {
+            try {
+              const parsed = new URL(a.href);
+              const id = parsed.searchParams.get('id');
+              if (parsed.origin === 'https://brand.naver.com' && parsed.pathname === '/starbucks/shoppingstory/detail'
+                  && /^\d+$/.test(id || '')) {
+                urls.push(`https://brand.naver.com/starbucks/shoppingstory/detail?id=${id}`);
+              }
+            } catch (_) {}
+          }
+          return [...new Set(urls)];
+        }""")
+        if not story_urls:
+            browser.close()
+            raise RuntimeError("현재 쇼핑스토리 링크를 읽지 못함 — 사이트 구조 변경 또는 차단 의심")
+        if len(story_urls) > 20:
+            browser.close()
+            raise RuntimeError(f"쇼핑스토리 링크가 비정상적으로 많음: {len(story_urls)}")
+
+        def read_cards():
+            return page.locator('a[href*="/starbucks/products/"]').evaluate_all(r"""els => {
+              const cards = new Map();
+              for (const a of els) {
+                const url = (a.href || '').split('?')[0];
+                if (!/^https:\/\/brand\.naver\.com\/starbucks\/products\/\d+$/.test(url) || cards.has(url)) continue;
+                const root = a.parentElement?.parentElement;
+                const meta = {};
+                try {
+                  for (const entry of JSON.parse(root?.getAttribute('data-shp-contents-dtl') || '[]')) {
+                    meta[entry.key] = entry.value;
+                  }
+                } catch (_) {}
+                const image = root?.querySelector('img');
+                cards.set(url, {
+                  url,
+                  name: meta.chnl_prod_nm || image?.alt || '',
+                  image: image?.src || '',
+                  text: (root?.innerText || '').replace(/\s+/g, ' ').trim()
+                });
+              }
+              return [...cards.values()];
+            }""")
+
+        raw_cards.extend(read_cards())
+        for story_url in story_urls:
+            page.goto(story_url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_selector("body", timeout=30000)
+            try:
+                page.wait_for_selector('a[href*="/starbucks/products/"]', timeout=15000)
+            except Exception:  # 행사 설명만 있고 상품 카드가 없는 쇼핑스토리도 허용
+                continue
+            story_pages_with_cards += 1
+            raw_cards.extend(read_cards())
+
+            section_hrefs = page.locator('a[href*="-shopping-story-detail"]').evaluate_all(
+                "els => [...new Set(els.map(a => a.getAttribute('href')).filter(Boolean))]"
+            )
+            for section_href in section_hrefs:
+                page.locator(f'a[href="{section_href}"]').first.click()
+                page.wait_for_timeout(350)
+                raw_cards.extend(read_cards())
+        browser.close()
+
+    if not story_pages_with_cards:
+        raise RuntimeError("쇼핑스토리 상품 카드를 읽지 못함 — 사이트 구조 변경 또는 차단 의심")
+    scanned_ids = set()
+    rows_by_id = {}
+    conflicts = set()
+    for card in raw_cards:
+        product_match = NAVER_PRODUCT_RE.match(str(card.get("url") or ""))
+        if product_match:
+            scanned_ids.add(product_match.group(1))
+        parsed = parse_naver_card(card)
+        if not parsed:
+            continue
+        merge_naver_row(rows_by_id, conflicts, parsed)
+
+    if not scanned_ids:
+        raise RuntimeError("공식 상품 카드를 0건 읽음 — 사이트 구조 변경 또는 차단 의심")
+    if conflicts:
+        print(f"[warn] naver: conflicting prices excluded={len(conflicts)}", file=sys.stderr)
+    return list(rows_by_id.values()), len(scanned_ids)
+
+
 COLLECTORS = {"musinsa": collect_musinsa, "29cm": collect_29cm,
-              "wconcept": collect_wconcept, "kakao": collect_kakao}
+              "wconcept": collect_wconcept, "kakao": collect_kakao,
+              "naver": collect_naver}
 
 
 def load_previous():
