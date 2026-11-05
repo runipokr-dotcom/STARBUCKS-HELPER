@@ -44,6 +44,33 @@
 - 공개 READBACK: 최종 봇 commit의 Pages 실행 `41965520567`이 completed/success였다. 공개 `discount.html`과 `discounts.json`을 cache-busting query로 받아 로컬 최종 파일과 각각 `cmp` exact 일치, HTTP 200을 확인했다. 공개 JSON stores는 무신사·29CM·W컨셉·카카오·네이버 5곳이며 네이버는 실패 상태와 timeout 원인을 표시하고 상품 0개, 전체 상품은 기존 281개다.
 - 결론/대안: GitHub 서버 자동수집은 네이버만 차단되어 현재 아침·저녁 스케줄에서 실패 상태를 갱신할 뿐 네이버 상품을 채우지 못한다. 반면 로그인 없는 Work 비가시 브라우저에서는 같은 공식 홈·7개 행사·24개 구역에서 고정 할인 63개를 읽었다. 다음 단계는 별도 사용자 승인 아래 Work가 공개 화면을 읽어 최초 네이버 스냅샷을 안전하게 `discounts.json`에 병합·commit하고, 이후 GitHub Actions 실패 시 그 직전 네이버 데이터가 유지되게 하는 방식이다. 완전 자동 아침·저녁 Work 갱신은 Work 실행 환경·GitHub 쓰기 권한·Mac 온라인 조건을 별도 확정해야 하며 이번 배포에서 임의 생성하지 않는다.
 
+### 추가 작업 전 기록 — Work 네이버 스냅샷 분리·보존
+- 사용자 목표: Work 브라우저에서 읽을 수 있는 네이버 공식 고정 할인가를 할인 레이더에 넣고 아침·저녁 갱신하되, GitHub Actions의 기존 4개 판매처 수집과 경쟁하거나 네이버 자료를 덮어쓰지 않게 한다. Mac이 꺼져 있거나 Work 실행이 누락된 때에도 마지막 정상 자료와 상태를 안전하게 표시해야 한다.
+- 설계 방향: Work가 갱신하는 네이버 전용 `naver-discounts.json`을 기존 자동 생성 `discounts.json`과 분리한다. Work 입력은 공식 상품 카드의 URL·이름·이미지·표시 텍스트만 받고 기존 고정 할인 파서로 재검증한 뒤 공식 URL, 가격·할인율 일치, 중복·가격충돌, 품절을 검증해 원자적으로 스냅샷을 만든다. GitHub Actions는 네이버 사이트에 다시 접근하거나 차단을 우회하지 않고 이 스냅샷만 읽어 기존 4곳과 합친다.
+- 충돌/신선도 기준: `discounts.json`은 계속 Actions 봇만 쓰고 Work는 네이버 스냅샷 한 파일만 쓴다. 스냅샷 push가 자동 수집을 시작하도록 workflow path를 추가하면 기존 concurrency와 봇 rebase 재시도를 그대로 이용할 수 있다. 스냅샷 갱신 시각은 Actions 실행 시각과 분리해 화면에 표시하고, 아침·저녁 주기를 한 번 놓칠 수 있는 18시간을 넘으면 실패 상태로 바꾸되 기존 네이버 상품은 삭제하지 않는다. 미래 시각·빈 상품·잘못된 공식 URL·가격충돌 스냅샷은 거부한다.
+- Mac 오프라인 처리: Mac/Work가 오프라인이면 새 스냅샷 push가 발생하지 않는다. 기존 GitHub 정기 Actions는 4개 판매처만 정상 갱신하고 마지막 네이버 상품을 유지한다. 마지막 Work 성공 후 18시간 전에는 기준 시각을 표시하고, 18시간 초과 시 `수집 실패/마지막 성공`으로 경고하되 상품을 보존한다. Work가 다시 정상 실행해 새 스냅샷을 push하면 자동으로 정상 상태로 복귀한다.
+- 범위/금지: 로컬 구현·격리 fixture·테스트까지만 진행한다. `scripts/collect_discounts.py`, Work 입력→스냅샷 변환 스크립트, `discount.html`, `.github/workflows/discounts.yml`, 테스트, 본 WORKLOG가 대상이다. 실제 `naver-discounts.json` 생성·운영 데이터 병합, 자동화 생성, commit·push·Pages 배포, GitHub 지속 쓰기 권한 생성은 별도 승인 전 수행하지 않는다. 네이버 로그인·쿠키·CAPTCHA·접근 차단 우회는 사용하지 않는다.
+
+### 추가 작업 후 기록 — Work 수동 스냅샷 경로 준비
+- 수집 역할 분리: `collect_naver()`에서 GitHub 서버의 네이버 Playwright 접속 시도를 제거하고 `naver-discounts.json` Work 스냅샷만 읽게 바꿨다. 무신사·29CM·W컨셉 표준 수집과 카카오 Playwright 수집은 그대로 유지한다. `.github/workflows/discounts.yml`은 기존 두 cron·수동 실행·concurrency·권한·봇 commit 방식을 유지하며, 향후 승인된 스냅샷 push가 들어오면 합성 작업을 시작하도록 해당 파일 path만 준비했다.
+- 안전한 Work 입력 경로: 신규 `scripts/update_naver_snapshot.py`는 Work가 읽은 `source/observedAt/scanned/cards` 입력만 받아 기존 공개 고정 할인 파서로 다시 검증한다. 공식 `brand.naver.com/starbucks/products/<id>` URL, 상품번호, 정가>할인가, 표시 할인율 재계산, HTTPS 이미지, boolean 품절을 확인하고 계정 쿠폰 `최대할인가`만 있는 카드는 제외한다. 동일 상품·동일 가격은 합치고 가격충돌은 전체 저장을 거부하며, 성공 시 임시 파일 후 `os.replace`로 원자 저장한다.
+- 신선도/화면: 스냅샷에는 `source=work-browser`, Work 확인 시각, 조회 수, 표준 네이버 상품만 저장한다. Actions 합성 시 Work 시각을 `lastSuccessAt/snapshotAt`으로 유지하고 `discount.html` 판매처 카드에 `Work <시각> 기준`을 표시한다. 미래 시각, 빈 상품, 손상 스키마, 중복, 18시간 초과 스냅샷은 정상 자료로 받아들이지 않는다.
+- Mac 오프라인·실패 처리 검증: Work 확인 실패나 Mac 오프라인으로 스냅샷이 18시간을 넘으면 네이버 store를 `ok=false`로 만들고 기존 `discounts.json`의 네이버 상품·최초 발견 시각·마지막 Work 성공 시각·source/snapshotAt을 그대로 유지한다. 기존 4개 판매처는 계속 정상 갱신된다. Work가 새 스냅샷을 수동 push하면 workflow path가 자동 합성을 시작하고 정상 상태로 복귀하도록 준비했다.
+- 테스트: 고정 할인/쿠폰 제외/비공식 URL/가격 불일치/품절/이미지/중복·충돌 8건에 Work 입력 변환, 원자 저장, 17시간 정상, 19시간 거부, 미래 시각, 스냅샷 중복, Work 실패 시 기존 네이버 유지 검사를 추가해 Python 14/14가 통과했다. Python `-Wall` compile, 할인 화면 JS 구문, 네이버 live 접속 제거·스냅샷 path·기존 두 cron·Work 시각 표시 정적 assertion 5/5, `git diff --check`가 통과했다.
+- 현재 데이터/배포 상태: 실제 검증된 63개 네이버 목록을 운영 `naver-discounts.json`으로 만들거나 `discounts.json`에 넣지는 않았다. 자동화·지속 접근 권한도 생성하지 않았다. 수정은 수집기·신규 변환 스크립트·workflow·할인 화면·테스트·본 WORKLOG의 로컬 변경이며 commit·push·Pages 배포 전이다. 다음 승인 시 Work에서 현재 공개 화면을 다시 읽어 시점을 갱신한 원시 카드 입력을 만들고, 변환 결과 건수·품절·충돌을 검수한 뒤 스냅샷 한 파일과 코드만 non-force push해야 한다. 이후 Actions 봇 commit과 공개 `Work <시각> 기준` 표시를 READBACK한다.
+
+### 첫 Work 스냅샷 생성·배포 승인 후 작업 전 기록
+- 사용자 승인: 부모가 연결된 Mac의 Work에서 네이버 공식 스토어를 다시 확인해 최초 목록을 만들고, 준비된 수동 스냅샷 방식과 목록을 HELPER에 배포할지 확인했으며 사용자가 승인했다. 이번 승인은 현재 공개 화면의 최초 스냅샷 생성, 관련 코드·데이터의 1회 commit/push, 뒤따르는 할인 합성 Actions와 Pages 공개 검증까지만 포함한다. 이후 아침·저녁 Work 점검 결과의 반복 push·배포는 별도 승인 대상이다.
+- 실행 기준: 연결된 Mac의 시스템 Chrome을 로그인·쿠키 없이 headless로 열어 `brand.naver.com/starbucks` 공식 홈에서 현재 쇼핑스토리와 행사 구역을 다시 발견한다. 공개 카드의 공식 상품 URL·상품명·이미지·표시 텍스트만 읽어 기존 검증기에서 정가·고정 할인율·할인가 일치, 품절, 중복·가격 충돌을 재검사한다. 계정별 쿠폰 `최대할인가`, 비공식 URL, 손상 이미지는 넣지 않고 접근 차단을 우회하지 않는다.
+- 보존/배포 절차: 최초 `naver-discounts.json`은 Work 확인 시각과 조회 수를 포함해 별도 파일로 원자 저장한다. push 전 최신 원격과 기존 무신사·29CM·W컨셉·카카오 데이터를 재확인하고 승인 파일만 non-force push한다. snapshot path로 시작된 기존 workflow가 네이버 스냅샷을 합성하면서 기존 4개 판매처를 정상 갱신하는지, 실패 시 기존 데이터를 보존하는지, Pages에서 네이버 상품 수·품절·`Work <시각> 기준`·공식 출처가 실제 표시되는지 READBACK한다.
+
+### 첫 Work 스냅샷 생성 결과 — 배포 전
+- 접속 경로 판정: 임시 설치한 Playwright와 연결된 Mac의 시스템 Chrome을 로그인·쿠키 없이 실행했으나 공식 홈의 상품 링크가 60초 내 나타나지 않아 중단했다. GitHub-hosted runner와 같은 증상이며 재시도 확대·로그인·쿠키·CAPTCHA·차단 우회는 하지 않았다. 반면 Work 인앱 브라우저의 공개 세션에서는 공식 메타와 상품 카드가 정상 표시되어, 기존에 검증한 같은 DOM 필드와 가격 판별 규칙으로 읽었다.
+- 최신 전수 확인: Work에서 공식 홈이 현재 연결한 쇼핑스토리 7개와 그 안의 24개 행사 구역을 직접 경로로 모두 열었다. 공식 상품번호 131개를 확인했고 공개 `정가 + 할인율 + 할인가` 검증을 통과한 59개, 품절 3개, 동일 상품 가격 충돌 0개다. 할인율 분포는 5% 4개, 9% 2개, 10% 3개, 15% 23개, 20% 10개, 30% 13개, 40% 4개다. 이전 검수의 16% 4개는 현재 행사에서 빠져 직전 63개가 아니라 최신 59개가 됐다.
+- 스냅샷 생성: Work가 읽은 공식 URL·상품명·HTTPS 이미지·표시 텍스트만 `scripts/update_naver_snapshot.py`에 전달해 기존 파서로 다시 검증했다. 결과 `naver-discounts.json`은 `source=work-browser`, Work 확인 시각 `2026-11-05T13:41:54+09:00`, 조회 131개, 할인 59개, 품절 3개를 담는다. 계정별 쿠폰 `최대할인가`와 비공식 URL은 포함하지 않았고, 원자 저장 후 JSON 재읽기와 집계 일치를 확인했다.
+- 현재 상태: 실제 최초 스냅샷은 로컬에 생성했지만 아직 commit·push·Actions 실행·Pages 배포는 하지 않았다. 최신 원격과 기존 4개 판매처 데이터를 다시 확인하고 전체 테스트를 통과한 뒤 이번에 승인된 1회 배포만 진행한다.
+- 배포 전 보존 검증: `git fetch origin main` 결과 로컬/원격이 모두 `226c00c2a4a5e51c20f56a3e7114ac5af930fda4`로 일치해 새 봇 commit이나 충돌이 없다. 현재 `discounts.json`의 기존 281개(무신사 1, 29CM 2, W컨셉 267, 카카오 11)를 복제한 임시 출력에서 실제 `naver-discounts.json`을 합성해 총 340개와 네이버 59개·조회 131개·품절 3개·Work 시각/출처가 일치하고, 기존 4개 판매처 수가 그대로임을 확인했다. Python 14/14 테스트, Python compile, 할인 화면 인라인 JavaScript 구문, JSON 공식 URL·고유 ID·HTTPS 이미지 검증, `git diff --check`가 통과했다.
+
 ## 2026-11-05 — Codex (쿠팡용 이미지 저장 크기·도구 명칭 정리)
 
 ### 작업 전 기록

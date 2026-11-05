@@ -10,7 +10,7 @@ Run by  : .github/workflows/discounts.yml (하루 2회, 09:00 / 18:00 KST 무렵
 - 정적 판매처는 표준 라이브러리, 동적 판매처는 Playwright/Chromium 사용
 - 판매처별로 따로 실행: 한 곳이 실패해도 나머지는 갱신되고, 실패한 곳은 직전 데이터를 유지한다.
 - firstSeen(처음 할인 발견 시각)은 이전 discounts.json 에서 이어받는다.
-- 네이버는 공개 고정 할인가만 수집하고 계정별 쿠폰 최대가는 제외한다.
+- 네이버는 Work가 검증한 공개 고정 할인가 스냅샷만 합치고 계정별 쿠폰 최대가는 제외한다.
 """
 import html
 import json
@@ -24,6 +24,9 @@ from datetime import datetime, timedelta, timezone
 KST = timezone(timedelta(hours=9))
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "discounts.json")
+NAVER_SNAPSHOT = os.path.join(ROOT, "naver-discounts.json")
+NAVER_SNAPSHOT_MAX_AGE = timedelta(hours=18)
+NAVER_SNAPSHOT_FUTURE_TOLERANCE = timedelta(minutes=5)
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
@@ -31,7 +34,6 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
 STORE_NAMES = {"musinsa": "무신사", "29cm": "29CM", "wconcept": "W컨셉",
                "kakao": "카카오 선물하기", "naver": "네이버 공식스토어"}
 
-NAVER_HOME = "https://brand.naver.com/starbucks"
 NAVER_PRODUCT_RE = re.compile(r"^https://brand\.naver\.com/starbucks/products/(\d+)(?:[/?#]|$)")
 NAVER_FIXED_DISCOUNT_RE = re.compile(
     r"(?P<original>[\d,]+)원\s+(?P<rate>\d{1,2})%\s*할인\s+(?P<price>[\d,]+)원"
@@ -139,6 +141,79 @@ def merge_naver_row(rows_by_id, conflicts, parsed):
         parsed["soldOut"] = old["soldOut"] or parsed["soldOut"]
         parsed["image"] = parsed["image"] or old["image"]
     rows_by_id[parsed["id"]] = parsed
+
+
+def parse_snapshot_time(value):
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError as e:
+        raise RuntimeError("네이버 Work 스냅샷 updatedAt 형식 오류") from e
+    if parsed.tzinfo is None:
+        raise RuntimeError("네이버 Work 스냅샷 updatedAt에 시간대가 없음")
+    return parsed.astimezone(KST)
+
+
+def validate_naver_snapshot_item(raw):
+    url = str(raw.get("url") or "").split("?", 1)[0]
+    product_match = NAVER_PRODUCT_RE.match(url)
+    if not product_match or str(raw.get("id") or "") != product_match.group(1):
+        raise RuntimeError("네이버 Work 스냅샷에 비공식 URL 또는 상품번호 불일치가 있음")
+    name = str(raw.get("name") or "").strip()
+    image = str(raw.get("image") or "")
+    price = to_int(raw.get("price"))
+    original = to_int(raw.get("originalPrice"))
+    rate = to_int(raw.get("rate"))
+    if not name or not (original > price > 0 and 0 < rate < 100):
+        raise RuntimeError("네이버 Work 스냅샷 상품의 이름 또는 가격이 잘못됨")
+    calculated_rate = round((original - price) * 100 / original)
+    if abs(calculated_rate - rate) > 1:
+        raise RuntimeError("네이버 Work 스냅샷 상품의 표시 할인율과 가격이 맞지 않음")
+    if image and not image.startswith("https://"):
+        raise RuntimeError("네이버 Work 스냅샷 상품 이미지가 HTTPS가 아님")
+    if not isinstance(raw.get("soldOut"), bool):
+        raise RuntimeError("네이버 Work 스냅샷 상품의 품절 값이 boolean이 아님")
+    return item("naver", product_match.group(1), name, url, image, price, original, rate,
+                raw["soldOut"])
+
+
+def load_naver_snapshot(path=NAVER_SNAPSHOT, now=None):
+    try:
+        with open(path, encoding="utf-8") as f:
+            snapshot = json.load(f)
+    except FileNotFoundError as e:
+        raise RuntimeError("네이버 Work 스냅샷이 아직 없음") from e
+    except (OSError, json.JSONDecodeError) as e:
+        raise RuntimeError("네이버 Work 스냅샷을 읽을 수 없음") from e
+
+    if snapshot.get("version") != 1 or snapshot.get("source") != "work-browser":
+        raise RuntimeError("네이버 Work 스냅샷 버전 또는 source가 잘못됨")
+    updated_at = parse_snapshot_time(snapshot.get("updatedAt"))
+    current = (now or datetime.now(KST)).astimezone(KST)
+    age = current - updated_at
+    if age < -NAVER_SNAPSHOT_FUTURE_TOLERANCE:
+        raise RuntimeError("네이버 Work 스냅샷 시각이 미래임")
+    if age > NAVER_SNAPSHOT_MAX_AGE:
+        raise RuntimeError(f"네이버 Work 스냅샷이 {int(age.total_seconds() // 3600)}시간 전 자료임")
+
+    raw_items = snapshot.get("items")
+    if not isinstance(raw_items, list) or not raw_items:
+        raise RuntimeError("네이버 Work 스냅샷 상품이 비어 있음")
+    scanned = snapshot.get("scanned")
+    if not isinstance(scanned, int) or isinstance(scanned, bool) or scanned < len(raw_items):
+        raise RuntimeError("네이버 Work 스냅샷 scanned 값이 잘못됨")
+
+    rows, ids = [], set()
+    for raw in raw_items:
+        if not isinstance(raw, dict):
+            raise RuntimeError("네이버 Work 스냅샷 상품 형식이 잘못됨")
+        row = validate_naver_snapshot_item(raw)
+        if row["id"] in ids:
+            raise RuntimeError("네이버 Work 스냅샷에 중복 상품번호가 있음")
+        ids.add(row["id"])
+        rows.append(row)
+    stamp = updated_at.replace(microsecond=0).isoformat()
+    return rows, scanned, {"source": "work-browser", "snapshotAt": stamp,
+                           "lastSuccessAt": stamp}
 
 
 # ---------------------------------------------------------------- 무신사
@@ -263,108 +338,9 @@ def collect_kakao():
     return official, len(seen)
 
 
-# ---------------------------------------------------------------- 네이버 공식 브랜드스토어
+# ---------------------------------------------------------------- 네이버 공식 브랜드스토어 (Work 스냅샷)
 def collect_naver():
-    from playwright.sync_api import sync_playwright
-
-    raw_cards = []
-    story_urls = []
-    story_pages_with_cards = 0
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(user_agent=UA, locale="ko-KR")
-        page.goto(NAVER_HOME, wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_selector('a[href*="/starbucks/products/"]', timeout=60000)
-
-        description = page.locator('meta[name="description"]').get_attribute("content") or ""
-        if "스타벅스" not in description or "공식 브랜드 스토어" not in description:
-            browser.close()
-            raise RuntimeError("네이버 스타벅스 공식 브랜드스토어 확인 실패")
-
-        story_urls = page.locator('a[href*="/starbucks/shoppingstory/detail"]').evaluate_all(r"""els => {
-          const urls = [];
-          for (const a of els) {
-            try {
-              const parsed = new URL(a.href);
-              const id = parsed.searchParams.get('id');
-              if (parsed.origin === 'https://brand.naver.com' && parsed.pathname === '/starbucks/shoppingstory/detail'
-                  && /^\d+$/.test(id || '')) {
-                urls.push(`https://brand.naver.com/starbucks/shoppingstory/detail?id=${id}`);
-              }
-            } catch (_) {}
-          }
-          return [...new Set(urls)];
-        }""")
-        if not story_urls:
-            browser.close()
-            raise RuntimeError("현재 쇼핑스토리 링크를 읽지 못함 — 사이트 구조 변경 또는 차단 의심")
-        if len(story_urls) > 20:
-            browser.close()
-            raise RuntimeError(f"쇼핑스토리 링크가 비정상적으로 많음: {len(story_urls)}")
-
-        def read_cards():
-            return page.locator('a[href*="/starbucks/products/"]').evaluate_all(r"""els => {
-              const cards = new Map();
-              for (const a of els) {
-                const url = (a.href || '').split('?')[0];
-                if (!/^https:\/\/brand\.naver\.com\/starbucks\/products\/\d+$/.test(url) || cards.has(url)) continue;
-                const root = a.parentElement?.parentElement;
-                const meta = {};
-                try {
-                  for (const entry of JSON.parse(root?.getAttribute('data-shp-contents-dtl') || '[]')) {
-                    meta[entry.key] = entry.value;
-                  }
-                } catch (_) {}
-                const image = root?.querySelector('img');
-                cards.set(url, {
-                  url,
-                  name: meta.chnl_prod_nm || image?.alt || '',
-                  image: image?.src || '',
-                  text: (root?.innerText || '').replace(/\s+/g, ' ').trim()
-                });
-              }
-              return [...cards.values()];
-            }""")
-
-        raw_cards.extend(read_cards())
-        for story_url in story_urls:
-            page.goto(story_url, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_selector("body", timeout=30000)
-            try:
-                page.wait_for_selector('a[href*="/starbucks/products/"]', timeout=15000)
-            except Exception:  # 행사 설명만 있고 상품 카드가 없는 쇼핑스토리도 허용
-                continue
-            story_pages_with_cards += 1
-            raw_cards.extend(read_cards())
-
-            section_hrefs = page.locator('a[href*="-shopping-story-detail"]').evaluate_all(
-                "els => [...new Set(els.map(a => a.getAttribute('href')).filter(Boolean))]"
-            )
-            for section_href in section_hrefs:
-                page.locator(f'a[href="{section_href}"]').first.click()
-                page.wait_for_timeout(350)
-                raw_cards.extend(read_cards())
-        browser.close()
-
-    if not story_pages_with_cards:
-        raise RuntimeError("쇼핑스토리 상품 카드를 읽지 못함 — 사이트 구조 변경 또는 차단 의심")
-    scanned_ids = set()
-    rows_by_id = {}
-    conflicts = set()
-    for card in raw_cards:
-        product_match = NAVER_PRODUCT_RE.match(str(card.get("url") or ""))
-        if product_match:
-            scanned_ids.add(product_match.group(1))
-        parsed = parse_naver_card(card)
-        if not parsed:
-            continue
-        merge_naver_row(rows_by_id, conflicts, parsed)
-
-    if not scanned_ids:
-        raise RuntimeError("공식 상품 카드를 0건 읽음 — 사이트 구조 변경 또는 차단 의심")
-    if conflicts:
-        print(f"[warn] naver: conflicting prices excluded={len(conflicts)}", file=sys.stderr)
-    return list(rows_by_id.values()), len(scanned_ids)
+    return load_naver_snapshot()
 
 
 COLLECTORS = {"musinsa": collect_musinsa, "29cm": collect_29cm,
@@ -390,22 +366,34 @@ def main():
     items, stores = [], {}
     for key, fn in COLLECTORS.items():
         try:
-            rows, total = fn()
+            collected = fn()
+            if len(collected) == 3:
+                rows, total, meta = collected
+            else:
+                rows, total = collected
+                meta = {}
             if not total:
                 raise RuntimeError("상품 목록을 0건 읽음 — 사이트 구조 변경 또는 차단 의심")
             for r in rows:
                 r["firstSeen"] = prev_first.get(f"{key}:{r['id']}") or stamp
             items.extend(rows)
+            success_at = meta.pop("lastSuccessAt", stamp)
             stores[key] = {"name": STORE_NAMES[key], "ok": True, "checkedAt": stamp,
-                           "lastSuccessAt": stamp, "scanned": total, "discounted": len(rows), "error": ""}
+                           "lastSuccessAt": success_at, "scanned": total, "discounted": len(rows),
+                           "error": "", **meta}
             print(f"[ok] {key}: scanned={total} discounted={len(rows)}")
         except Exception as e:  # noqa: BLE001
             kept = [i for i in prev_items if i.get("store") == key]
             items.extend(kept)
             old = prev_stores.get(key) or {}
-            stores[key] = {"name": STORE_NAMES[key], "ok": False, "checkedAt": stamp,
-                           "lastSuccessAt": old.get("lastSuccessAt", ""), "scanned": old.get("scanned", 0),
-                           "discounted": len(kept), "error": str(e)[:300]}
+            failed_store = {"name": STORE_NAMES[key], "ok": False, "checkedAt": stamp,
+                            "lastSuccessAt": old.get("lastSuccessAt", ""),
+                            "scanned": old.get("scanned", 0), "discounted": len(kept),
+                            "error": str(e)[:300]}
+            for field in ("source", "snapshotAt"):
+                if old.get(field):
+                    failed_store[field] = old[field]
+            stores[key] = failed_store
             print(f"[fail] {key}: {e}", file=sys.stderr)
 
     items.sort(key=lambda i: (-i["rate"], i["store"], i["name"]))

@@ -38,7 +38,7 @@ function renderStores(){
   const s=data.stores||{},total=(data.items||[]).length;
   const cards=[`<button class="store${store==='all'?' active':''}" data-store="all"><span class="store-name">전체</span><div class="store-count">${total}<small>개</small></div><div class="store-note">모든 판매처</div></button>`];
   for(const k of ORDER){const st=s[k];if(!st)continue;const fail=!st.ok;
-    const note=fail?`수집 실패 · 마지막 성공 ${when(st.lastSuccessAt)}`:`${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`;
+    const note=fail?`수집 실패 · 마지막 성공 ${when(st.lastSuccessAt)}`:st.source==='work-browser'?`Work ${when(st.snapshotAt)} 기준 · ${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`:`${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`;
     cards.push(`<button class="store${store===k?' active':''}${fail?' fail':''}" data-store="${k}" title="${esc(fail?st.error:'')}"><span class="store-name"><span class="dot${fail?' fail':''}"></span>${esc(st.name)}</span><div class="store-count">${Number(st.discounted||0)}<small>개</small></div><div class="store-note">${esc(note)}</div></button>`)}
   $('stores').innerHTML=cards.join('');
   $('stores').querySelectorAll('[data-store]').forEach(b=>b.onclick=()=>{store=b.dataset.store;savePref();renderStores();renderList()});
