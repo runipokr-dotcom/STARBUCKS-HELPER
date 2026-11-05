@@ -37,6 +37,13 @@
 - 원격 재확인: 승인 후 `git fetch origin main`에서 자동 수집 봇의 `discounts.json` 전용 commit `7f1478198d68d2e3d40bfb036ddbf48b263db859` 한 건을 확인했다. 로컬 변경 파일과 겹치지 않아 dirty 변경을 보존한 채 main을 해당 commit으로 fast-forward했고 충돌·유실이 없다. 최신 데이터의 기존 stores는 무신사·29CM·W컨셉·카카오 4곳이며 네이버는 아직 없다.
 - 배포/판정 방식: 승인된 5파일만 최소 기능 commit으로 만들고 push 직전 원격 변동과 ancestor를 다시 확인해 `HEAD:main`을 non-force push한다. 수집기/워크플로 push로 시작되는 실제 `할인 레이더 수집` 실행에서 네이버 성공·실패, 기존 4곳 보존, `discounts.json` 봇 commit을 확인한다. 성공 시 Pages가 최종 데이터 commit까지 배포됐는지 공개 JSON과 `discount.html`에서 확인한다. 실패하면 로그인·쿠키·차단 우회 없이 `stores.naver.ok=false/error/lastSuccessAt`과 기존 네이버 데이터 보존 여부를 확인하고 Work 기반 대안을 별도 보고한다.
 
+### 공개 배포·자동 수집 시험 결과
+- 기능 배포: 최신 데이터 commit `7f1478198d68d2e3d40bfb036ddbf48b263db859` 위에 승인된 5파일만 기능 commit `052bcea37d35836a917a9ecd30c8c6b071deca5b` (`feat: add Naver official discounts`)으로 만들고 `HEAD:main`을 non-force push했다. 기능 commit의 Pages 실행 `41965346197`은 completed/success다.
+- 실제 Actions 결과: push로 시작된 할인 레이더 실행 `41965346898`과 job `127040964252`는 전체 completed/success였다. 무신사 278/할인 1, 29CM 324/할인 2, W컨셉 308/할인 267, 카카오 160/할인 11은 모두 `ok=true`로 갱신됐다. 네이버는 GitHub-hosted Ubuntu/Azure runner에서 공식 홈의 `a[href*="/starbucks/products/"]`가 60초 안에 나타나지 않아 timeout으로 `ok=false` 처리됐다. 로그인·쿠키 사용, CAPTCHA/접근 제한 우회, 재시도 확대는 하지 않았다.
+- 실패 보존/데이터 commit: 수집기는 한 판매처 실패로 전체 실행을 실패시키지 않고 기존 4곳 281개 상품을 유지·갱신했으며 봇 commit `e399703db64f18f90dc0f971154cd9ad0f296a7c`을 main에 push했다. 네이버는 첫 운영 실행이라 직전 성공 데이터가 없어 `lastSuccessAt=""`, scanned/discounted 0, 네이버 상품 0개다. 따라서 실패 시 직전 네이버 상품 유지 코드는 적용돼 있으나, 운영상 보존할 최초 네이버 스냅샷은 아직 없다.
+- 공개 READBACK: 최종 봇 commit의 Pages 실행 `41965520567`이 completed/success였다. 공개 `discount.html`과 `discounts.json`을 cache-busting query로 받아 로컬 최종 파일과 각각 `cmp` exact 일치, HTTP 200을 확인했다. 공개 JSON stores는 무신사·29CM·W컨셉·카카오·네이버 5곳이며 네이버는 실패 상태와 timeout 원인을 표시하고 상품 0개, 전체 상품은 기존 281개다.
+- 결론/대안: GitHub 서버 자동수집은 네이버만 차단되어 현재 아침·저녁 스케줄에서 실패 상태를 갱신할 뿐 네이버 상품을 채우지 못한다. 반면 로그인 없는 Work 비가시 브라우저에서는 같은 공식 홈·7개 행사·24개 구역에서 고정 할인 63개를 읽었다. 다음 단계는 별도 사용자 승인 아래 Work가 공개 화면을 읽어 최초 네이버 스냅샷을 안전하게 `discounts.json`에 병합·commit하고, 이후 GitHub Actions 실패 시 그 직전 네이버 데이터가 유지되게 하는 방식이다. 완전 자동 아침·저녁 Work 갱신은 Work 실행 환경·GitHub 쓰기 권한·Mac 온라인 조건을 별도 확정해야 하며 이번 배포에서 임의 생성하지 않는다.
+
 ## 2026-11-05 — Codex (쿠팡용 이미지 저장 크기·도구 명칭 정리)
 
 ### 작업 전 기록
