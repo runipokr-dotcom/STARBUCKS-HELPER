@@ -3,7 +3,7 @@
 <head><script src="auth-gate.js?v=20260925-1"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>상품정보 이미지 메이커</title>
+  <title>이미지 만들기 1 | STARBUCKS HELPER</title>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root { --ink:#171717; --muted:#74716c; --line:#e5e1da; --paper:#fff; --bg:#f3f1ed; --accent:#1f513f; }
@@ -75,7 +75,7 @@
   </style>
 </head>
 <body>
-  <header><h1>상품정보 이미지 메이커</h1><span>사진 + 내용 입력 → 1000×1000 완성</span></header>
+  <header><h1>이미지 만들기 1</h1><span>사진 + 내용 입력 → 크기 선택 저장</span></header>
   <main>
     <section class="panel form">
       <div class="section">
@@ -136,6 +136,7 @@
       <div class="section">
         <h2>3. 디자인 설정</h2>
         <div class="row"><div><label for="layout">사진 위치</label><select id="layout"><option value="right">오른쪽</option><option value="left">왼쪽</option></select></div><div><label for="format">저장 형식</label><select id="format"><option value="png">PNG</option><option value="jpeg">JPG</option></select></div></div>
+        <label for="exportSize">저장 크기</label><select id="exportSize"><option value="1000" selected>1000 × 1000 — 대표 이미지 권장</option><option value="780">780 × 780 — 축소 저장</option></select>
         <p class="hint">미리보기의 가로 나눔선을 위아래로 드래그하면 아래 항목도 함께 이동합니다.</p>
         <div class="quick-actions"><button type="button" id="resetDividers">나눔선 자동 위치로</button></div>
         <label class="check-row"><input id="copyrightEnabled" type="checkbox" checked>우측 하단 제작 표시 사용</label>
@@ -145,7 +146,7 @@
       </div>
     </section>
     <section class="panel preview-wrap">
-      <div class="preview-title"><b>미리보기</b><span>1000 × 1000 px</span></div>
+      <div class="preview-title"><b>미리보기</b><span id="exportSizeLabel">저장 1000 × 1000 px</span></div>
       <canvas id="canvas" width="1000" height="1000"></canvas>
       <p class="hint">내용을 바꾸면 미리보기가 바로 갱신됩니다.</p>
     </section>
@@ -320,13 +321,27 @@
     $('allCareOff').addEventListener('click',()=>applyCareState({오븐:'불가',전자레인지:'불가',식기세척기:'불가'}));
     $('loadPreviousCare').addEventListener('click',()=>{ try{const saved=JSON.parse(localStorage.getItem('productInfoCare'));if(saved)applyCareState(saved);}catch{} });
     $('contentSettingsToggle').addEventListener('click',()=>{ const panel=$('contentSettings'), open=panel.hidden; panel.hidden=!open; $('contentSettingsToggle').textContent=`설정 ${open?'접기 ▴':'펼치기 ▾'}`; $('contentSettingsToggle').setAttribute('aria-expanded',String(open)); });
+    function makeExportCanvas(size){
+      if(size===1000)return canvas;
+      const output=document.createElement('canvas'), outputCtx=output.getContext('2d');
+      output.width=size; output.height=size;
+      outputCtx.fillStyle='#fff'; outputCtx.fillRect(0,0,output.width,output.height);
+      outputCtx.imageSmoothingEnabled=true; outputCtx.imageSmoothingQuality='high';
+      outputCtx.drawImage(canvas,0,0,output.width,output.height);
+      return output;
+    }
+    function syncExportSize(){
+      const size=Number($('exportSize').value)===780?780:1000;
+      $('exportSizeLabel').textContent=`저장 ${size} × ${size} px`;
+    }
+    $('exportSize').addEventListener('change',syncExportSize);
     $('download').addEventListener('click',async()=>{
       await document.fonts.ready;
       render();
-      const fmt=$('format').value;
+      const fmt=$('format').value, size=Number($('exportSize').value)===780?780:1000, output=makeExportCanvas(size);
       const a=document.createElement('a');
-      a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-1000x1000.${fmt==='jpeg'?'jpg':'png'}`;
-      a.href=canvas.toDataURL(`image/${fmt}`,fmt==='jpeg'?1:undefined);
+      a.download=`${($('title').value||'상품정보').replace(/[\\/:*?"<>|]/g,'-')}-${size}x${size}.${fmt==='jpeg'?'jpg':'png'}`;
+      a.href=output.toDataURL(`image/${fmt}`,fmt==='jpeg'?1:undefined);
       a.click();
       localStorage.setItem('productInfoCare',JSON.stringify(careState));
     });
@@ -334,6 +349,7 @@
     ['dragenter','dragover'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
     document.addEventListener('drop',e=>{e.preventDefault();const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).slice(0,4);if(!files.length)return;const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));$('imageInput').files=dt.files;$('imageInput').dispatchEvent(new Event('change'));});
     syncFontSlider();
+    syncExportSize();
     document.fonts.ready.then(render);
   </script>
 </body>

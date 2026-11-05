@@ -190,7 +190,7 @@
     </section>
 
     <section class="preview-panel" aria-label="INFO 미리보기">
-      <div class="preview-heading"><b>미리보기</b><span>780px 원본 · PNG는 2배율</span></div>
+      <div class="preview-heading"><b>미리보기</b><span>780px 원본 · PNG도 가로 780px</span></div>
       <div class="preview-frame" id="previewFrame">
         <div class="preview-scaler" id="previewScaler">
           <article id="infoCard" aria-label="상품 INFO 카드">
@@ -510,7 +510,7 @@
       const card=$('infoCard'), scaler=$('previewScaler'), frame=$('previewFrame');
       const previousTransform=scaler.style.transform, previousHeight=frame.style.height;
       scaler.style.transform='none'; frame.style.height='auto';
-      const cardRect=card.getBoundingClientRect(), width=780, height=Math.ceil(card.offsetHeight), scale=2;
+      const cardRect=card.getBoundingClientRect(), width=780, height=Math.ceil(card.offsetHeight), scale=1;
       const canvas=document.createElement('canvas'); canvas.width=width*scale; canvas.height=height*scale;
       const ctx=canvas.getContext('2d'); ctx.scale(scale,scale); ctx.fillStyle='#fff'; ctx.fillRect(0,0,width,height);
 
