@@ -77,6 +77,15 @@
 - 배포 범위/방식: 위 5파일만 최소 기능 commit으로 만들고 원격이 기준 SHA에서 변하지 않았음을 push 직전 다시 확인한 뒤 `HEAD:main`을 non-force fast-forward push한다. 쿠폰3 파일/JSON·Firebase·Rules·인증·카탈로그·주문·다른 기능은 포함하지 않는다.
 - 배포 검증: push 전 정적·실제 Chrome 검증을 다시 통과시키고, GitHub Pages가 승인 commit exact SHA로 성공했는지 확인한다. 공개 홈에서 이미지 만들기 1 명칭·쿠폰3 세 진입점 숨김·일본 공식 링크, 공개 1번의 1000 기본/780 선택 PNG·JPG, 공개 2번과 상세 PNG 가로 780을 cache-busting URL과 실제 브라우저로 READBACK한다. 불일치나 충돌이 있으면 우회하지 않고 중단한다.
 
+### 공개 배포 후 기록
+- 기능 commit/push: push 직전 원격 `main`이 기준 `08c0b2cff473a3b59328b967a5fd795053f040c3`에서 변하지 않은 것을 다시 확인했다. 승인된 5파일만 commit `40cb7e4cd6525041a1e330c73da2ff898d0c6a10` (`feat: update image exports and helper links`)으로 만들고 `HEAD:main`을 non-force fast-forward push했다.
+- Pages 성공: GitHub Pages 실행 `41954735430`이 기능 commit exact head SHA `40cb7e4cd6525041a1e330c73da2ff898d0c6a10`으로 `completed/success` 완료했다.
+- 공개 파일 READBACK: cache-busting query로 받은 공개 `index.html`, `image-maker.html`, `image-maker-2.html`, `image-detail.html`, `WORKLOG.md`가 기능 commit의 로컬 파일과 `cmp` exact 일치했다. SHA-256은 순서대로 `ee0de9c92a75b6266fbb99cceb1514da32c9172f61eb08a0be4595eb63bcac9d`, `1d1e00853de7bb74174101b1be1648e8bcc8f2e8db9b0cde844395f500287ce5`, `ad61f2cfc34889b85ebac4b055c8538ca1b826cde57976729f6a7ebb9fcd3510`, `14d46cba9d9619130fa16ec91299bf5074c0696c7cdff06930275f703e8935bb`, `0f4e65427dce8f915ae435a05a46b2d4411912f613fcd19b2565b783963788c5`였다.
+- 공개 1번 실제 Chrome: 배포 파일에서 기본 저장 크기 1000, 작업 canvas 1000×1000을 확인했다. 실제 저장 버튼 PNG는 `검증-1000x1000.png`·`image/png`·1000×1000, 780 선택 JPG는 `검증-780x780.jpg`·`image/jpeg`·780×780으로 디코딩됐다.
+- 공개 2번/상세 실제 Chrome: INFO 카드 논리폭·canvas·PNG는 가로 780이고 미리보기 `frame.clientWidth/780`을 유지했다. 상세 시험 PNG는 780×1560으로 원본 비율 높이와 일치했고, 기존 저장 간격 55는 런타임/localStorage 모두 43으로 바뀌었다.
+- 공개 홈 실제 Chrome: 과거 3서버 표시 설정 `[1,2,3]` 상태에서도 쿠폰3 설정 버튼·현황 카드·빠른 실행 카드의 computed display가 모두 `none`이고 hidden도 유지됐다. 숨긴 직접 링크는 DOM에 남았고 일본 공식 링크는 새 창·보안 rel·총 8개 판매처 카드로 확인됐다. 공개 `coupon3.html` 직접 URL은 HTTP 200이며 SHA-256 `5f309edea5af9a156c836dc398064e6644fa1e3cae31af9141d17b649da0b159`로 기존 로컬 파일과 exact 일치했다.
+- 영향/남은 문제: 쿠폰3 파일·JSON·Rules/Auth/Firebase/운영 데이터, 다른 HELPER 기능은 변경하지 않았다. 기능 배포와 공개 검증에 실패·충돌·승인 차단은 없으며 기능상 남은 문제도 없다. 본 배포 결과만 후속 WORKLOG 문서 commit으로 동기화하고 UI 파일은 다시 변경하지 않는다.
+
 ## 2026-10-29 — Codex (낱개·세트 판매 단위 입력)
 
 ### 작업 전 기록
