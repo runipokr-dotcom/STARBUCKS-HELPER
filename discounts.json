@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-07T12:13:32+09:00",
+ "updatedAt": "2026-11-08T00:09:47+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-07T12:13:32+09:00",
-   "lastSuccessAt": "2026-11-07T12:13:32+09:00",
+   "checkedAt": "2026-11-08T00:09:47+09:00",
+   "lastSuccessAt": "2026-11-08T00:09:47+09:00",
    "scanned": 270,
    "discounted": 1,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-07T12:13:32+09:00",
-   "lastSuccessAt": "2026-11-07T12:13:32+09:00",
+   "checkedAt": "2026-11-08T00:09:47+09:00",
+   "lastSuccessAt": "2026-11-08T00:09:47+09:00",
    "scanned": 324,
    "discounted": 183,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-07T12:13:32+09:00",
-   "lastSuccessAt": "2026-11-07T12:13:32+09:00",
+   "checkedAt": "2026-11-08T00:09:47+09:00",
+   "lastSuccessAt": "2026-11-08T00:09:47+09:00",
    "scanned": 303,
    "discounted": 262,
    "error": ""
@@ -32,8 +32,8 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-07T12:13:32+09:00",
-   "lastSuccessAt": "2026-11-07T12:13:32+09:00",
+   "checkedAt": "2026-11-08T00:09:47+09:00",
+   "lastSuccessAt": "2026-11-08T00:09:47+09:00",
    "scanned": 161,
    "discounted": 11,
    "error": ""
@@ -41,11 +41,11 @@
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-07T12:13:32+09:00",
+   "checkedAt": "2026-11-08T00:09:47+09:00",
    "lastSuccessAt": "2026-11-05T13:41:54+09:00",
    "scanned": 131,
    "discounted": 59,
-   "error": "네이버 Work 스냅샷이 46시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 58시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-05T13:41:54+09:00"
   }
