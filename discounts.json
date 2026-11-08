@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-08T11:43:11+09:00",
+ "updatedAt": "2026-11-09T00:36:03+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-08T11:43:11+09:00",
-   "lastSuccessAt": "2026-11-08T11:43:11+09:00",
-   "scanned": 270,
+   "checkedAt": "2026-11-09T00:36:03+09:00",
+   "lastSuccessAt": "2026-11-09T00:36:03+09:00",
+   "scanned": 269,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-08T11:43:11+09:00",
-   "lastSuccessAt": "2026-11-08T11:43:11+09:00",
+   "checkedAt": "2026-11-09T00:36:03+09:00",
+   "lastSuccessAt": "2026-11-09T00:36:03+09:00",
    "scanned": 324,
    "discounted": 183,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-08T11:43:11+09:00",
-   "lastSuccessAt": "2026-11-08T11:43:11+09:00",
+   "checkedAt": "2026-11-09T00:36:03+09:00",
+   "lastSuccessAt": "2026-11-09T00:36:03+09:00",
    "scanned": 303,
    "discounted": 262,
    "error": ""
@@ -32,20 +32,20 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-08T11:43:11+09:00",
-   "lastSuccessAt": "2026-11-08T11:43:11+09:00",
-   "scanned": 162,
-   "discounted": 11,
+   "checkedAt": "2026-11-09T00:36:03+09:00",
+   "lastSuccessAt": "2026-11-09T00:36:03+09:00",
+   "scanned": 88,
+   "discounted": 3,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-08T11:43:11+09:00",
+   "checkedAt": "2026-11-09T00:36:03+09:00",
    "lastSuccessAt": "2026-11-05T13:41:54+09:00",
    "scanned": 131,
    "discounted": 59,
-   "error": "네이버 Work 스냅샷이 70시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 82시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-05T13:41:54+09:00"
   }
@@ -1673,18 +1673,6 @@
    "firstSeen": "2026-11-05T13:46:21+09:00"
   },
   {
-   "store": "kakao",
-   "id": "11754830",
-   "name": "\"사랑스러운 프리미엄 텀블러\" SS 하이드로 플라스크 핑크 텀블러 591ml +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/11754830",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 39000,
-   "originalPrice": 0,
-   "rate": 25,
-   "soldOut": false,
-   "firstSeen": "2026-11-05T01:35:59+09:00"
-  },
-  {
    "store": "29cm",
    "id": "3746272",
    "name": "SS 하이드로 플라스크 세이지 콜드컵 946ml",
@@ -1880,18 +1868,6 @@
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
   {
-   "store": "kakao",
-   "id": "12051198",
-   "name": "\"대용량 텀블러\" SS 하트풀 오왈라 트래블 콜드컵 1185ml +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/12051198",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 48000,
-   "originalPrice": 0,
-   "rate": 20,
-   "soldOut": false,
-   "firstSeen": "2026-11-04T12:18:52+09:00"
-  },
-  {
    "store": "naver",
    "id": "12584335311",
    "name": "SS 데비 텀블러 473ml, 조이풀 월리",
@@ -2010,42 +1986,6 @@
    "rate": 20,
    "soldOut": false,
    "firstSeen": "2026-11-05T13:46:21+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "12406998",
-   "name": "\"감각적인 홈카페 아이템\" 스태카 홈카페 세트 3P",
-   "url": "https://gift.kakao.com/product/12406998",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105193756_8d37965857034bf2a0c24b95810c9b96.png",
-   "price": 44200,
-   "originalPrice": 0,
-   "rate": 15,
-   "soldOut": false,
-   "firstSeen": "2026-11-02T00:28:17+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "12406994",
-   "name": "\"감성 테이블 완성\" 스태카 브런치 세트 3P",
-   "url": "https://gift.kakao.com/product/12406994",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105193718_e78c4b83bb264f028a122a0f53f89ebf.png",
-   "price": 45050,
-   "originalPrice": 0,
-   "rate": 15,
-   "soldOut": false,
-   "firstSeen": "2026-11-02T00:28:17+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "10586126",
-   "name": "\"특별한 각인 메시지\" [각인] JNL 워드마크 보온병 350ml (3종 택 1) +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/10586126",
-   "image": "https://st.kakaocdn.net/commerce_ui/static/common_module/default_fallback_thumbnail.png",
-   "price": 35700,
-   "originalPrice": 0,
-   "rate": 15,
-   "soldOut": false,
-   "firstSeen": "2026-11-05T01:35:59+09:00"
   },
   {
    "store": "naver",
@@ -3078,18 +3018,6 @@
   },
   {
    "store": "kakao",
-   "id": "12408865",
-   "name": "\"러블리한 미피 일러스트\" 포에버 미피 글라스 세트 2P 207ml",
-   "url": "https://gift.kakao.com/product/12408865",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105193421_4b68fe240cdb4ead97214bace8852f15.png",
-   "price": 35100,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-02T00:28:17+09:00"
-  },
-  {
-   "store": "kakao",
    "id": "12109009",
    "name": "\"텀블러 부츠 증정\" SS 단테 텀블러 710ml (4종 택 1) +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/12109009",
@@ -3111,30 +3039,6 @@
    "rate": 10,
    "soldOut": false,
    "firstSeen": "2026-11-05T01:35:59+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "13435280",
-   "name": "디어유 고블렛 투명 & 그린 276ml 2P 세트 (감사/결혼/집들이)",
-   "url": "https://gift.kakao.com/product/13435280",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105193649_1dcb60db385b426cbe6bdc02f8e72af5.png",
-   "price": 31500,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-02T00:28:17+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "13434961",
-   "name": "디어유 그러데이션 글라스 세트 384ml (2P) (감사/결혼/집들이)",
-   "url": "https://gift.kakao.com/product/13434961",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105193624_e728cd4e5d2f4820945ad1f7c5a3106b.png",
-   "price": 35100,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-02T00:28:17+09:00"
   },
   {
    "store": "naver",
