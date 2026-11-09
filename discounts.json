@@ -1,51 +1,51 @@
 {
  "version": 1,
- "updatedAt": "2026-11-09T11:59:00+09:00",
+ "updatedAt": "2026-11-10T04:09:52+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-09T11:59:00+09:00",
-   "lastSuccessAt": "2026-11-09T11:59:00+09:00",
-   "scanned": 269,
+   "checkedAt": "2026-11-10T04:09:52+09:00",
+   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "scanned": 274,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-09T11:59:00+09:00",
-   "lastSuccessAt": "2026-11-09T11:59:00+09:00",
-   "scanned": 328,
+   "checkedAt": "2026-11-10T04:09:52+09:00",
+   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "scanned": 319,
    "discounted": 183,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-09T11:59:00+09:00",
-   "lastSuccessAt": "2026-11-09T11:59:00+09:00",
-   "scanned": 303,
-   "discounted": 262,
+   "checkedAt": "2026-11-10T04:09:52+09:00",
+   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "scanned": 296,
+   "discounted": 251,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-09T11:59:00+09:00",
-   "lastSuccessAt": "2026-11-09T11:59:00+09:00",
-   "scanned": 88,
+   "checkedAt": "2026-11-10T04:09:52+09:00",
+   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "scanned": 102,
    "discounted": 3,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-09T11:59:00+09:00",
+   "checkedAt": "2026-11-10T04:09:52+09:00",
    "lastSuccessAt": "2026-11-05T13:41:54+09:00",
    "scanned": 131,
    "discounted": 59,
-   "error": "네이버 Work 스냅샷이 94시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 110시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-05T13:41:54+09:00"
   }
@@ -3465,7 +3465,7 @@
    "id": "7712218",
    "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
    "url": "https://gift.kakao.com/product/7712218",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261026163712_dae013e5fb354e5ca7f764410bc6fb63.png",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109141004_5ceef602fdb04105b7a6eecdeb8d4fef.png",
    "price": 28800,
    "originalPrice": 0,
    "rate": 10,
@@ -3487,9 +3487,9 @@
   {
    "store": "kakao",
    "id": "9158489",
-   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (2종 택 1) +에코텀블러음료쿠폰 (카톡발송)",
+   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (2종 택 1) +에코텀블러음료쿠폰 2장(카톡발송)",
    "url": "https://gift.kakao.com/product/9158489",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261019165704_857716e77bec4b25a488442e8a93bef4.png",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109081933_720c41296a684a5188d15b91959bc99a.png",
    "price": 31500,
    "originalPrice": 0,
    "rate": 10,
@@ -3740,78 +3740,6 @@
   },
   {
    "store": "wconcept",
-   "id": "308670157",
-   "name": "SS 서머 다이온 콜드컵 591ml",
-   "url": "https://www.wconcept.co.kr/Product/308670157",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/57/308670157_YC50118.jpg",
-   "price": 40850,
-   "originalPrice": 43000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308670159",
-   "name": "SS 서머 단테 텀블러 710ml",
-   "url": "https://www.wconcept.co.kr/Product/308670159",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/59/308670159_WL64122.jpg",
-   "price": 47500,
-   "originalPrice": 50000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308670167",
-   "name": "SS 서머 랠리 텀블러 532ml",
-   "url": "https://www.wconcept.co.kr/Product/308670167",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/67/308670167_AJ53902.jpg",
-   "price": 37050,
-   "originalPrice": 39000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308670161",
-   "name": "SS 서머 모카 텀블러 355ml",
-   "url": "https://www.wconcept.co.kr/Product/308670161",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/61/308670161_UO81841.jpg",
-   "price": 33250,
-   "originalPrice": 35000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308670152",
-   "name": "SS 서머 스탠리 퀵고 텀블러 473ml",
-   "url": "https://www.wconcept.co.kr/Product/308670152",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/52/308670152_NN59538.jpg",
-   "price": 41800,
-   "originalPrice": 44000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308670168",
-   "name": "SS 서머 스탠리 플로우 콜드컵 887ml",
-   "url": "https://www.wconcept.co.kr/Product/308670168",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/68/308670168_RR89136.jpg",
-   "price": 56050,
-   "originalPrice": 59000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
    "id": "308670164",
    "name": "SS 서머 알로 텀블러 473ml",
    "url": "https://www.wconcept.co.kr/Product/308670164",
@@ -3856,18 +3784,6 @@
    "originalPrice": 33000,
    "rate": 5,
    "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "307488938",
-   "name": "SS 스탠리 그레이 켄처 텀블러 1183ml",
-   "url": "https://www.wconcept.co.kr/Product/307488938",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/38/307488938_BY29799.jpg",
-   "price": 64600,
-   "originalPrice": 68000,
-   "rate": 5,
-   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
@@ -5432,18 +5348,6 @@
   },
   {
    "store": "wconcept",
-   "id": "308437859",
-   "name": "액티브 피크닉 매트",
-   "url": "https://www.wconcept.co.kr/Product/308437859",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/59/308437859_SE60629.jpg",
-   "price": 36100,
-   "originalPrice": 38000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
    "id": "307615150",
    "name": "야나칸 머메이드 카페 세트(3p)",
    "url": "https://www.wconcept.co.kr/Product/307615150",
@@ -5600,18 +5504,6 @@
   },
   {
    "store": "wconcept",
-   "id": "308804300",
-   "name": "유어 서머 베어리스타 콜드컵 591ml",
-   "url": "https://www.wconcept.co.kr/Product/308804300",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/00/308804300_PJ10302.jpg",
-   "price": 46550,
-   "originalPrice": 49000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
    "id": "308803782",
    "name": "유어 서머 보스턴백",
    "url": "https://www.wconcept.co.kr/Product/308803782",
@@ -5681,18 +5573,6 @@
    "rate": 5,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308803788",
-   "name": "유어 서머 하네스&미니 백팩 세트",
-   "url": "https://www.wconcept.co.kr/Product/308803788",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/88/308803788_KD69313.jpg",
-   "price": 23750,
-   "originalPrice": 25000,
-   "rate": 5,
-   "soldOut": true,
-   "firstSeen": "2026-10-01T11:26:53+09:00"
   },
   {
    "store": "wconcept",
@@ -5872,18 +5752,6 @@
    "originalPrice": 66000,
    "rate": 5,
    "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "307541567",
-   "name": "클로버 JNL 보온병 750ml",
-   "url": "https://www.wconcept.co.kr/Product/307541567",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/67/307541567_PC32080.jpg",
-   "price": 52250,
-   "originalPrice": 55000,
-   "rate": 5,
-   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
