@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-10T04:09:52+09:00",
+ "updatedAt": "2026-11-10T13:47:46+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-10T04:09:52+09:00",
-   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
-   "scanned": 274,
+   "checkedAt": "2026-11-10T13:47:46+09:00",
+   "lastSuccessAt": "2026-11-10T13:47:46+09:00",
+   "scanned": 273,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-10T04:09:52+09:00",
-   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "checkedAt": "2026-11-10T13:47:46+09:00",
+   "lastSuccessAt": "2026-11-10T13:47:46+09:00",
    "scanned": 319,
    "discounted": 183,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-10T04:09:52+09:00",
-   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "checkedAt": "2026-11-10T13:47:46+09:00",
+   "lastSuccessAt": "2026-11-10T13:47:46+09:00",
    "scanned": 296,
    "discounted": 251,
    "error": ""
@@ -32,8 +32,8 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-10T04:09:52+09:00",
-   "lastSuccessAt": "2026-11-10T04:09:52+09:00",
+   "checkedAt": "2026-11-10T13:47:46+09:00",
+   "lastSuccessAt": "2026-11-10T13:47:46+09:00",
    "scanned": 102,
    "discounted": 3,
    "error": ""
@@ -41,11 +41,11 @@
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-10T04:09:52+09:00",
+   "checkedAt": "2026-11-10T13:47:46+09:00",
    "lastSuccessAt": "2026-11-05T13:41:54+09:00",
    "scanned": 131,
    "discounted": 59,
-   "error": "네이버 Work 스냅샷이 110시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 120시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-05T13:41:54+09:00"
   }
@@ -3222,7 +3222,7 @@
    "price": 33750,
    "originalPrice": 37500,
    "rate": 10,
-   "soldOut": false,
+   "soldOut": true,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
@@ -6183,7 +6183,7 @@
    "price": 71250,
    "originalPrice": 75000,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "firstSeen": "2026-10-05T11:24:56+09:00"
   },
   {
