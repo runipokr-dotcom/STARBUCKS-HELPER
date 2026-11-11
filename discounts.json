@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-11T01:37:13+09:00",
+ "updatedAt": "2026-11-11T12:02:16+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-11T01:37:13+09:00",
-   "lastSuccessAt": "2026-11-11T01:37:13+09:00",
-   "scanned": 273,
+   "checkedAt": "2026-11-11T12:02:16+09:00",
+   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
+   "scanned": 272,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-11T01:37:13+09:00",
-   "lastSuccessAt": "2026-11-11T01:37:13+09:00",
+   "checkedAt": "2026-11-11T12:02:16+09:00",
+   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
    "scanned": 319,
    "discounted": 183,
    "error": ""
@@ -23,7 +23,7 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": false,
-   "checkedAt": "2026-11-11T01:37:13+09:00",
+   "checkedAt": "2026-11-11T12:02:16+09:00",
    "lastSuccessAt": "2026-11-10T19:32:46+09:00",
    "scanned": 296,
    "discounted": 251,
@@ -32,8 +32,8 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-11T01:37:13+09:00",
-   "lastSuccessAt": "2026-11-11T01:37:13+09:00",
+   "checkedAt": "2026-11-11T12:02:16+09:00",
+   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
    "scanned": 102,
    "discounted": 3,
    "error": ""
@@ -41,7 +41,7 @@
   "naver": {
    "name": "네이버 공식스토어",
    "ok": true,
-   "checkedAt": "2026-11-11T01:37:13+09:00",
+   "checkedAt": "2026-11-11T12:02:16+09:00",
    "lastSuccessAt": "2026-11-10T19:10:35+09:00",
    "scanned": 338,
    "discounted": 25,
@@ -505,7 +505,7 @@
    "price": 29400,
    "originalPrice": 42000,
    "rate": 30,
-   "soldOut": true,
+   "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
@@ -518,7 +518,7 @@
    "price": 29400,
    "originalPrice": 42000,
    "rate": 30,
-   "soldOut": true,
+   "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
