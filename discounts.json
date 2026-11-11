@@ -1,51 +1,51 @@
 {
  "version": 1,
- "updatedAt": "2026-11-11T12:02:16+09:00",
+ "updatedAt": "2026-11-12T01:37:25+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-11T12:02:16+09:00",
-   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
-   "scanned": 272,
+   "checkedAt": "2026-11-12T01:37:25+09:00",
+   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
+   "scanned": 273,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-11T12:02:16+09:00",
-   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
+   "checkedAt": "2026-11-12T01:37:25+09:00",
+   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
    "scanned": 319,
    "discounted": 183,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
-   "ok": false,
-   "checkedAt": "2026-11-11T12:02:16+09:00",
-   "lastSuccessAt": "2026-11-10T19:32:46+09:00",
+   "ok": true,
+   "checkedAt": "2026-11-12T01:37:25+09:00",
+   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
    "scanned": 296,
    "discounted": 251,
-   "error": "https://gw-front.wconcept.co.kr/display/api/brand/v1/products/116134 -> HTTP Error 403: Forbidden"
+   "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-11T12:02:16+09:00",
-   "lastSuccessAt": "2026-11-11T12:02:16+09:00",
+   "checkedAt": "2026-11-12T01:37:25+09:00",
+   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
    "scanned": 102,
-   "discounted": 3,
+   "discounted": 1,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
-   "ok": true,
-   "checkedAt": "2026-11-11T12:02:16+09:00",
+   "ok": false,
+   "checkedAt": "2026-11-12T01:37:25+09:00",
    "lastSuccessAt": "2026-11-10T19:10:35+09:00",
    "scanned": 338,
    "discounted": 25,
-   "error": "",
+   "error": "네이버 Work 스냅샷이 30시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-10T19:10:35+09:00"
   }
@@ -765,7 +765,7 @@
    "price": 24500,
    "originalPrice": 35000,
    "rate": 30,
-   "soldOut": false,
+   "soldOut": true,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
@@ -3099,30 +3099,6 @@
    "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "7712218",
-   "name": "\"가방에 쏙 편리해요\" [단독] 팬시 or 나수 하우스 텀블러 355ml (5종 택 1) +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/7712218",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109141004_5ceef602fdb04105b7a6eecdeb8d4fef.png",
-   "price": 28800,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-05T01:35:59+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "12109009",
-   "name": "\"텀블러 부츠 증정\" SS 단테 텀블러 710ml (4종 택 1) +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/12109009",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261105083226_2ad3b0f63150475f9ad43d4aec4bbe76.png",
-   "price": 44100,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-05T01:35:59+09:00"
   },
   {
    "store": "kakao",
