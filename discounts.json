@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-12T13:17:39+09:00",
+ "updatedAt": "2026-11-13T02:05:46+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-12T13:17:39+09:00",
-   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
-   "scanned": 273,
+   "checkedAt": "2026-11-13T02:05:46+09:00",
+   "lastSuccessAt": "2026-11-13T02:05:46+09:00",
+   "scanned": 274,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-12T13:17:39+09:00",
-   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "checkedAt": "2026-11-13T02:05:46+09:00",
+   "lastSuccessAt": "2026-11-13T02:05:46+09:00",
    "scanned": 320,
    "discounted": 183,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-12T13:17:39+09:00",
-   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "checkedAt": "2026-11-13T02:05:46+09:00",
+   "lastSuccessAt": "2026-11-13T02:05:46+09:00",
    "scanned": 297,
    "discounted": 251,
    "error": ""
@@ -32,20 +32,20 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-12T13:17:39+09:00",
-   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "checkedAt": "2026-11-13T02:05:46+09:00",
+   "lastSuccessAt": "2026-11-13T02:05:46+09:00",
    "scanned": 95,
-   "discounted": 3,
+   "discounted": 4,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-12T13:17:39+09:00",
+   "checkedAt": "2026-11-13T02:05:46+09:00",
    "lastSuccessAt": "2026-11-10T19:10:35+09:00",
    "scanned": 338,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 42시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 54시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-10T19:10:35+09:00"
   }
@@ -74,6 +74,18 @@
    "rate": 50,
    "soldOut": false,
    "firstSeen": "2026-11-10T19:32:46+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12329788",
+   "name": "\"행운을 빌어요!\" 클로버 위시 베어리스타 키체인 (응원 선물 행운 키링)",
+   "url": "https://gift.kakao.com/product/12329788",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260805173306_a8d374e0ed7e48adbcf5154ab494768a.png",
+   "price": 18850,
+   "originalPrice": 0,
+   "rate": 35,
+   "soldOut": false,
+   "firstSeen": "2026-11-13T02:05:46+09:00"
   },
   {
    "store": "naver",
