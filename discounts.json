@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-12T01:37:25+09:00",
+ "updatedAt": "2026-11-12T13:17:39+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-12T01:37:25+09:00",
-   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
+   "checkedAt": "2026-11-12T13:17:39+09:00",
+   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
    "scanned": 273,
    "discounted": 1,
    "error": ""
@@ -14,38 +14,38 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-12T01:37:25+09:00",
-   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
-   "scanned": 319,
+   "checkedAt": "2026-11-12T13:17:39+09:00",
+   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "scanned": 320,
    "discounted": 183,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-12T01:37:25+09:00",
-   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
-   "scanned": 296,
+   "checkedAt": "2026-11-12T13:17:39+09:00",
+   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "scanned": 297,
    "discounted": 251,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-12T01:37:25+09:00",
-   "lastSuccessAt": "2026-11-12T01:37:25+09:00",
-   "scanned": 102,
-   "discounted": 1,
+   "checkedAt": "2026-11-12T13:17:39+09:00",
+   "lastSuccessAt": "2026-11-12T13:17:39+09:00",
+   "scanned": 95,
+   "discounted": 3,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-12T01:37:25+09:00",
+   "checkedAt": "2026-11-12T13:17:39+09:00",
    "lastSuccessAt": "2026-11-10T19:10:35+09:00",
    "scanned": 338,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 30시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 42시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-10T19:10:35+09:00"
   }
@@ -765,7 +765,7 @@
    "price": 24500,
    "originalPrice": 35000,
    "rate": 30,
-   "soldOut": true,
+   "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
@@ -2000,6 +2000,18 @@
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
   {
+   "store": "kakao",
+   "id": "13435591",
+   "name": "\"에코텀블러 음료쿠폰 증정\" [각인] 스타벅스 하우스 그린 장우산",
+   "url": "https://gift.kakao.com/product/13435591",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109082359_6d5d54e84a32459ea827a1ff5346ac2c.png",
+   "price": 22400,
+   "originalPrice": 0,
+   "rate": 20,
+   "soldOut": false,
+   "firstSeen": "2026-11-12T13:17:39+09:00"
+  },
+  {
    "store": "naver",
    "id": "13485938168",
    "name": "[4+1] SS 데비 머그 414ml 그린",
@@ -2118,6 +2130,18 @@
    "rate": 16,
    "soldOut": false,
    "firstSeen": "2026-11-10T19:32:46+09:00"
+  },
+  {
+   "store": "kakao",
+   "id": "12799926",
+   "name": "\"에코텀블러 음료쿠폰 2장 증정\" [각인] SS 블랙 매트 엘마 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
+   "url": "https://gift.kakao.com/product/12799926",
+   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109082305_d1568ebd79694133bad8169565ef9267.png",
+   "price": 32300,
+   "originalPrice": 0,
+   "rate": 15,
+   "soldOut": false,
+   "firstSeen": "2026-11-12T13:17:39+09:00"
   },
   {
    "store": "wconcept",
