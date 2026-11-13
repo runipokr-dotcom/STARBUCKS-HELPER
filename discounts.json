@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-13T12:36:15+09:00",
+ "updatedAt": "2026-11-14T01:44:32+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-13T12:36:15+09:00",
-   "lastSuccessAt": "2026-11-13T12:36:15+09:00",
+   "checkedAt": "2026-11-14T01:44:32+09:00",
+   "lastSuccessAt": "2026-11-14T01:44:32+09:00",
    "scanned": 274,
    "discounted": 1,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-13T12:36:15+09:00",
-   "lastSuccessAt": "2026-11-13T12:36:15+09:00",
+   "checkedAt": "2026-11-14T01:44:32+09:00",
+   "lastSuccessAt": "2026-11-14T01:44:32+09:00",
    "scanned": 320,
    "discounted": 183,
    "error": ""
@@ -23,8 +23,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-13T12:36:15+09:00",
-   "lastSuccessAt": "2026-11-13T12:36:15+09:00",
+   "checkedAt": "2026-11-14T01:44:32+09:00",
+   "lastSuccessAt": "2026-11-14T01:44:32+09:00",
    "scanned": 297,
    "discounted": 251,
    "error": ""
@@ -32,8 +32,8 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-13T12:36:15+09:00",
-   "lastSuccessAt": "2026-11-13T12:36:15+09:00",
+   "checkedAt": "2026-11-14T01:44:32+09:00",
+   "lastSuccessAt": "2026-11-14T01:44:32+09:00",
    "scanned": 95,
    "discounted": 4,
    "error": ""
@@ -41,11 +41,11 @@
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-13T12:36:15+09:00",
+   "checkedAt": "2026-11-14T01:44:32+09:00",
    "lastSuccessAt": "2026-11-10T19:10:35+09:00",
    "scanned": 338,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 65시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 78시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-10T19:10:35+09:00"
   }
@@ -777,7 +777,7 @@
    "price": 24500,
    "originalPrice": 35000,
    "rate": 30,
-   "soldOut": true,
+   "soldOut": false,
    "coupon": false,
    "firstSeen": "2026-11-06T12:40:03+09:00"
   },
@@ -2217,6 +2217,18 @@
   },
   {
    "store": "wconcept",
+   "id": "308570378",
+   "name": "SS 배꽃 퀸텐 텀블러 237ml",
+   "url": "https://www.wconcept.co.kr/Product/308570378",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/78/308570378_MH75369.jpg",
+   "price": 34200,
+   "originalPrice": 40000,
+   "rate": 14,
+   "soldOut": false,
+   "firstSeen": "2026-10-05T11:24:56+09:00"
+  },
+  {
+   "store": "wconcept",
    "id": "308773052",
    "name": "SS 베이비블루 단테 텀블러 710ml",
    "url": "https://www.wconcept.co.kr/Product/308773052",
@@ -2247,18 +2259,6 @@
    "image": "https://product-image.wconcept.co.kr/productimg/image/img9/44/308437944_CN65009.jpg",
    "price": 27360,
    "originalPrice": 32000,
-   "rate": 14,
-   "soldOut": false,
-   "firstSeen": "2026-10-05T11:24:56+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308570378",
-   "name": "[배꽃 코스터 증정] SS 배꽃 퀸텐 텀블러 237ml",
-   "url": "https://www.wconcept.co.kr/Product/308570378",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/78/308570378_FK60801.jpg",
-   "price": 34200,
-   "originalPrice": 40000,
    "rate": 14,
    "soldOut": false,
    "firstSeen": "2026-10-05T11:24:56+09:00"
@@ -2634,7 +2634,7 @@
    "id": "3976744",
    "name": "SS 배꽃 퀸텐 텀블러 237ml",
    "url": "https://www.29cm.co.kr/products/3976744",
-   "image": "https://img.29cm.co.kr/item/202610/11f1be2cd3919d5b8aaef360f8caf9c0.png",
+   "image": "https://img.29cm.co.kr/item/202611/11f1df3887355d6097a85325cfa13701.png",
    "price": 36000,
    "originalPrice": 40000,
    "rate": 10,
