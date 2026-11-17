@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updatedAt": "2026-11-17T14:14:49+09:00",
+ "updatedAt": "2026-11-17T16:41:30+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
@@ -8,7 +8,7 @@
    "checkedAt": "2026-11-17T14:14:49+09:00",
    "lastSuccessAt": "2026-11-17T14:14:49+09:00",
    "scanned": 270,
-   "discounted": 0,
+   "discounted": 1,
    "error": ""
   },
   "29cm": {
@@ -18,7 +18,11 @@
    "lastSuccessAt": "2026-11-17T14:14:49+09:00",
    "scanned": 320,
    "discounted": 183,
-   "error": ""
+   "error": "",
+   "manualVerifiedAt": "2026-11-17T16:41:30+09:00",
+   "manualVerifiedIds": ["4006813", "4015925", "3912749", "4089218", "3673381", "3673960"],
+   "manualOfferType": "fixed",
+   "manualOfferNote": "이구위크 표시가 · 조건부 무료배송"
   },
   "wconcept": {
    "name": "W컨셉",
@@ -27,7 +31,11 @@
    "lastSuccessAt": "2026-11-17T14:14:49+09:00",
    "scanned": 297,
    "discounted": 251,
-   "error": ""
+   "error": "",
+   "manualVerifiedAt": "2026-11-17T16:41:30+09:00",
+   "manualVerifiedIds": ["309165726", "307671963", "307546753", "308516983"],
+   "manualOfferType": "coupon",
+   "manualOfferNote": "더블유위크 쿠폰 표시가 · 발급과 개인별 적용 조건 미확인"
   },
   "kakao": {
    "name": "카카오 선물하기",
@@ -40,17 +48,38 @@
   },
   "naver": {
    "name": "네이버 공식스토어",
-   "ok": false,
-   "checkedAt": "2026-11-17T14:14:49+09:00",
-   "lastSuccessAt": "2026-11-10T19:10:35+09:00",
-   "scanned": 338,
+   "ok": true,
+   "checkedAt": "2026-11-17T16:41:30+09:00",
+   "lastSuccessAt": "2026-11-17T10:01:26+09:00",
+   "scanned": 25,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 163시간 전 자료임",
+   "error": "",
    "source": "work-browser",
-   "snapshotAt": "2026-11-10T19:10:35+09:00"
+   "snapshotAt": "2026-11-17T10:01:26+09:00",
+   "offerType": "fixed",
+   "verificationStatus": "verified",
+   "pointsNote": "네이버플러스 10% 적립 · 한도와 전 상품 적용 범위 미확인"
   }
  },
  "items": [
+  {
+   "store": "musinsa",
+   "id": "6347243",
+   "name": "SS 시그니처 포포 텀블러 296ml",
+   "url": "https://www.musinsa.com/products/6347243",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/83/308516983_OG94899.jpg",
+   "price": 26970,
+   "originalPrice": 29000,
+   "rate": 7,
+   "soldOut": false,
+   "firstSeen": "2026-11-17T14:45:00+09:00",
+   "offerType": "member",
+   "offerNote": "로그인 개인화가 · 카카오톡 음료쿠폰 포함 · 동일 상품 교차판매처 이미지",
+   "verifiedAt": "2026-11-17T14:45:00+09:00",
+   "verificationStatus": "verified",
+   "manualExpiresAt": "2026-11-18T08:45:00+09:00",
+   "manualPinned": true
+  },
   {
    "store": "naver",
    "id": "6196966116",
@@ -3219,7 +3248,7 @@
    "price": 90250,
    "originalPrice": 95000,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "firstSeen": "2026-11-05T13:46:21+09:00"
   },
   {
@@ -3232,7 +3261,12 @@
    "originalPrice": 79500,
    "rate": 5,
    "soldOut": false,
-   "firstSeen": "2026-11-05T13:46:21+09:00"
+   "firstSeen": "2026-11-05T13:46:21+09:00",
+   "offerType": "fixed+coupon",
+   "conditionalPrice": 67210,
+   "offerNote": "기본 할인가 75,520원 · 알림받기 11% 쿠폰 적용 최대 67,210원",
+   "verifiedAt": "2026-11-17T16:41:30+09:00",
+   "verificationStatus": "verified"
   },
   {
    "store": "wconcept",

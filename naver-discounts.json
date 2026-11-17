@@ -1,8 +1,8 @@
 {
  "version": 1,
  "source": "work-browser",
- "updatedAt": "2026-11-10T19:10:35+09:00",
- "scanned": 338,
+ "updatedAt": "2026-11-17T10:01:26+09:00",
+ "scanned": 25,
  "items": [
   {
    "store": "naver",
@@ -266,7 +266,7 @@
    "price": 90250,
    "originalPrice": 95000,
    "rate": 5,
-   "soldOut": false
+   "soldOut": true
   },
   {
    "store": "naver",
@@ -277,7 +277,12 @@
    "price": 75520,
    "originalPrice": 79500,
    "rate": 5,
-   "soldOut": false
+   "soldOut": false,
+   "offerType": "fixed+coupon",
+   "conditionalPrice": 67210,
+   "offerNote": "기본 할인가 75,520원 · 알림받기 11% 쿠폰 적용 최대 67,210원",
+   "verifiedAt": "2026-11-17T16:41:30+09:00",
+   "verificationStatus": "verified"
   }
  ]
 }
