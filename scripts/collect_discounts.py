@@ -2,15 +2,16 @@
 """
 STARBUCKS HELPER - 할인 레이더 수집기
 File    : scripts/collect_discounts.py
-Version : 1.1
-Updated : 2026-11-05
+Version : 1.2
+Updated : 2026-11-17
 Run by  : .github/workflows/discounts.yml (하루 2회, 09:00 / 18:00 KST 무렵)
 
 판매처별 스타벅스 브랜드관에서 "지금 할인 중인 상품"만 모아 discounts.json 으로 저장한다.
 - 정적 판매처는 표준 라이브러리, 동적 판매처는 Playwright/Chromium 사용
 - 판매처별로 따로 실행: 한 곳이 실패해도 나머지는 갱신되고, 실패한 곳은 직전 데이터를 유지한다.
 - firstSeen(처음 할인 발견 시각)은 이전 discounts.json 에서 이어받는다.
-- 네이버는 Work가 검증한 공개 고정 할인가 스냅샷만 합치고 계정별 쿠폰 최대가는 제외한다.
+- 네이버는 Work가 검증한 공개 고정 할인가 스냅샷만 합치고 계정별 쿠폰 최대가는 기본 판매가에서 제외한다.
+- 자동 수집이 만들지 않는 조건부 혜택·검증 메타데이터와 명시적 수동 카드만 제한적으로 보존한다.
 """
 import html
 import json
@@ -27,6 +28,16 @@ OUT = os.path.join(ROOT, "discounts.json")
 NAVER_SNAPSHOT = os.path.join(ROOT, "naver-discounts.json")
 NAVER_SNAPSHOT_MAX_AGE = timedelta(hours=18)
 NAVER_SNAPSHOT_FUTURE_TOLERANCE = timedelta(minutes=5)
+STABLE_ITEM_META_FIELDS = (
+    "offerType", "offerNote", "conditionalPrice", "conditionalLabel",
+    "verifiedAt", "verificationStatus", "pointsNote",
+)
+ALWAYS_ITEM_META_FIELDS = ("manualExpiresAt", "manualPinned")
+MANAGED_STATE_FIELDS = ("price", "originalPrice", "rate", "soldOut")
+STABLE_STORE_META_FIELDS = ("offerType", "pointsNote")
+MANUAL_STORE_META_FIELDS = (
+    "manualVerifiedAt", "manualVerifiedIds", "manualOfferType", "manualOfferNote",
+)
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
@@ -91,6 +102,38 @@ def item(store, id_, name, url, image, price, original, rate, sold_out=False, ex
     if extra:
         d.update(extra)
     return d
+
+
+def same_managed_state(current, previous):
+    """가격·할인·품절이 같을 때만 이전 검증 메타데이터가 현재 행에도 유효하다."""
+    return all(current.get(field) == previous.get(field) for field in MANAGED_STATE_FIELDS)
+
+
+def preserve_item_metadata(current, previous):
+    """수집 결과의 핵심 필드는 덮지 않고 수집기 비관리 메타데이터만 합친다."""
+    for field in ALWAYS_ITEM_META_FIELDS:
+        if field not in current and field in previous:
+            current[field] = previous[field]
+    stable = same_managed_state(current, previous)
+    if stable:
+        for field in STABLE_ITEM_META_FIELDS:
+            if field not in current and field in previous:
+                current[field] = previous[field]
+    return stable
+
+
+def manual_card_is_expired(row, now=None):
+    value = row.get("manualExpiresAt")
+    if not value:
+        return True
+    try:
+        expires_at = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    if expires_at.tzinfo is None:
+        return True
+    current = (now or datetime.now(KST)).astimezone(KST)
+    return expires_at.astimezone(KST) <= current
 
 
 def parse_naver_card(card):
@@ -172,8 +215,23 @@ def validate_naver_snapshot_item(raw):
         raise RuntimeError("네이버 Work 스냅샷 상품 이미지가 HTTPS가 아님")
     if not isinstance(raw.get("soldOut"), bool):
         raise RuntimeError("네이버 Work 스냅샷 상품의 품절 값이 boolean이 아님")
+    extra = {key: raw[key] for key in (*STABLE_ITEM_META_FIELDS, *ALWAYS_ITEM_META_FIELDS)
+             if key in raw}
+    if "conditionalPrice" in extra:
+        conditional = to_int(extra["conditionalPrice"])
+        if not (0 < conditional <= price):
+            raise RuntimeError("네이버 Work 스냅샷 조건부 혜택가가 기본 할인가보다 큼")
+        extra["conditionalPrice"] = conditional
+    if extra.get("conditionalLabel") and not str(extra["conditionalLabel"]).strip():
+        raise RuntimeError("네이버 Work 스냅샷 조건부 혜택 이름이 비어 있음")
+    if extra.get("verifiedAt"):
+        parse_snapshot_time(extra["verifiedAt"])
+    if extra.get("manualExpiresAt"):
+        parse_snapshot_time(extra["manualExpiresAt"])
+    if extra.get("verificationStatus") not in (None, "verified", "unverified"):
+        raise RuntimeError("네이버 Work 스냅샷 검증 상태가 잘못됨")
     return item("naver", product_match.group(1), name, url, image, price, original, rate,
-                raw["soldOut"])
+                raw["soldOut"], extra=extra)
 
 
 def load_naver_snapshot(path=NAVER_SNAPSHOT, now=None):
@@ -360,6 +418,7 @@ def main():
     prev = load_previous()
     prev_items = prev.get("items") or []
     prev_first = {f"{i.get('store')}:{i.get('id')}": i.get("firstSeen") for i in prev_items}
+    prev_by_key = {f"{i.get('store')}:{i.get('id')}": i for i in prev_items}
     prev_stores = prev.get("stores") or {}
     stamp = now_iso()
 
@@ -374,13 +433,29 @@ def main():
                 meta = {}
             if not total:
                 raise RuntimeError("상품 목록을 0건 읽음 — 사이트 구조 변경 또는 차단 의심")
+            stable_ids = set()
             for r in rows:
-                r["firstSeen"] = prev_first.get(f"{key}:{r['id']}") or stamp
+                row_key = f"{key}:{r['id']}"
+                old = prev_by_key.get(row_key) or {}
+                r["firstSeen"] = prev_first.get(row_key) or stamp
+                if old and preserve_item_metadata(r, old):
+                    stable_ids.add(str(r["id"]))
             items.extend(rows)
             success_at = meta.pop("lastSuccessAt", stamp)
             stores[key] = {"name": STORE_NAMES[key], "ok": True, "checkedAt": stamp,
                            "lastSuccessAt": success_at, "scanned": total, "discounted": len(rows),
                            "error": "", **meta}
+            old_store = prev_stores.get(key) or {}
+            for field in STABLE_STORE_META_FIELDS:
+                if field not in stores[key] and field in old_store:
+                    stores[key][field] = old_store[field]
+            stable_manual_ids = [str(item_id) for item_id in old_store.get("manualVerifiedIds", [])
+                                 if str(item_id) in stable_ids]
+            if stable_manual_ids:
+                stores[key]["manualVerifiedIds"] = stable_manual_ids
+                for field in MANUAL_STORE_META_FIELDS:
+                    if field != "manualVerifiedIds" and field in old_store:
+                        stores[key][field] = old_store[field]
             print(f"[ok] {key}: scanned={total} discounted={len(rows)}")
         except Exception as e:  # noqa: BLE001
             kept = [i for i in prev_items if i.get("store") == key]
@@ -390,11 +465,25 @@ def main():
                             "lastSuccessAt": old.get("lastSuccessAt", ""),
                             "scanned": old.get("scanned", 0), "discounted": len(kept),
                             "error": str(e)[:300]}
-            for field in ("source", "snapshotAt"):
+            for field in ("source", "snapshotAt", *STABLE_STORE_META_FIELDS,
+                          *MANUAL_STORE_META_FIELDS):
                 if old.get(field):
                     failed_store[field] = old[field]
             stores[key] = failed_store
             print(f"[fail] {key}: {e}", file=sys.stderr)
+
+    current_keys = {f"{row.get('store')}:{row.get('id')}" for row in items}
+    for old in prev_items:
+        old_key = f"{old.get('store')}:{old.get('id')}"
+        store_key = old.get("store")
+        if old.get("manualPinned") is not True or old_key in current_keys or store_key not in stores:
+            continue
+        kept = dict(old)
+        if manual_card_is_expired(kept):
+            kept["verificationStatus"] = "unverified"
+        items.append(kept)
+        stores[store_key]["discounted"] += 1
+        current_keys.add(old_key)
 
     items.sort(key=lambda i: (-i["rate"], i["store"], i["name"]))
     result = {"version": 1, "updatedAt": stamp, "stores": stores, "items": items}

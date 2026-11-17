@@ -150,6 +150,26 @@ class NaverWorkSnapshotTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "중복 상품번호"):
                 COLLECTOR.load_naver_snapshot(path, now=self.observed + timedelta(hours=1))
 
+    def test_snapshot_preserves_verified_conditional_benefit_metadata(self):
+        snapshot = UPDATER.build_snapshot(self.payload(), now=self.observed + timedelta(minutes=5))
+        snapshot["items"][0].update({
+            "offerType": "fixed+coupon",
+            "conditionalPrice": 40000,
+            "conditionalLabel": "알림받기 쿠폰",
+            "offerNote": "직접 확인한 조건부 혜택",
+            "verifiedAt": self.observed.isoformat(),
+            "verificationStatus": "verified",
+        })
+        with tempfile.TemporaryDirectory() as td:
+            path = pathlib.Path(td) / "naver-discounts.json"
+            path.write_text(json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
+            rows, _, _ = COLLECTOR.load_naver_snapshot(
+                path, now=self.observed + timedelta(hours=1)
+            )
+            self.assertEqual(rows[0]["conditionalPrice"], 40000)
+            self.assertEqual(rows[0]["conditionalLabel"], "알림받기 쿠폰")
+            self.assertEqual(rows[0]["verificationStatus"], "verified")
+
     def test_main_preserves_previous_naver_items_when_work_check_fails(self):
         previous_item = UPDATER.build_snapshot(
             self.payload(), now=self.observed + timedelta(minutes=5)
