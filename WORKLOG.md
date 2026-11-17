@@ -38,6 +38,10 @@
 - 사용자 승인: 사용자가 `ㅇㅇ`로 자동 수집의 포포 수동 카드·검증 메타데이터 보존과 포포 대표 공개가 29,000원/계정별 조건부 26,970원 분리를 이번 1회 기존 GitHub Pages 흐름에 반영하도록 승인했다.
 - 배포 범위: 런타임 `scripts/collect_discounts.py`, `discount.html`, `discounts.json`, 관련 회귀 테스트 2개와 필수 작업 로그만 반영한다. `.github/workflows/discounts.yml`, SSG·G마켓, 카탈로그·쿠폰·주문·계정·비공개 데이터는 변경하지 않는다.
 - 사전 대조: `git fetch origin main` 결과 원격은 기준 SHA `692031d5546005b497d1b0ccdbf2695fb8b06b55` 그대로이며 같은 수정이나 진행 중인 Actions 실행이 없다. push 직전 테스트·변경 파일 allowlist를 다시 확인하고, non-force push 후 기존 경로로 시작되는 할인 수집이 수동 카드와 비관리 메타데이터를 실제 보존하는지, 봇 데이터 commit·Pages exact SHA·공개 카드/가격을 READBACK한다.
+- 기능 배포: 승인된 6파일을 commit `d4e71048619afca76eb76150380ba49b86403ea1` (`fix: 할인 레이더 수동 메타데이터 보존`)으로 만들었다. push 직전 원격 `main`이 기준 `692031d5546005b497d1b0ccdbf2695fb8b06b55` 그대로이고 작업트리가 깨끗함을 재확인한 뒤 `HEAD:main`을 non-force fast-forward push했다. workflow 파일, SSG·G마켓, `naver-discounts.json`, 카탈로그·쿠폰·주문·계정·비공개 데이터는 commit에 없다.
+- 실제 자동 수집: push의 기존 경로 필터로 자동 시작된 할인 수집 run `44069284799`는 completed/success이며 수동 dispatch는 하지 않았다. 수집기가 만든 데이터 commit은 `da5f6fba74b08df21ed6505b5bbf125963bc7e4e`다. 최종 JSON은 `2026-11-17T19:55:49+09:00`, 총 464개(무신사 1·29CM 183·W컨셉 251·카카오 4·네이버 25)로 수집 전 수량을 모두 유지했다. 포포 `6347243`은 `manualPinned=true`로 남았고 기본가 29,000원·0%·조건부 26,970원·`로그인 회원 혜택`·공개 표시가/계정별 적용 미확인 메모가 보존됐다. 29CM 수동 검증 ID 6개, W컨셉 4개, 네이버 조건부 가격/적립 메타데이터도 유지됐다.
+- Pages/공개 READBACK: 기능 commit의 첫 Pages run `44069284693`은 더 최신 데이터 commit이 생겨 cancelled됐고, 데이터 commit의 최종 Pages run `44069369188`은 completed/success다. 캐시 우회 공개 `discounts.json`은 원격과 같은 464개·동일 갱신 시각·동일 포포 메타데이터를 반환했다. 별도 임시 프로필의 헤드리스 Chrome으로 공개 `discount.html`을 실제 렌더링해 전체 464개와 판매처별 1/183/251/4/25, 포포 카드의 `무신사 / 표시가 / 29,000원 / 로그인 회원 혜택 26,970원`, 0% 미표시, 이미지 로딩 성공을 확인했다.
+- 운영 결론: 새 로직이 실제 GitHub Actions 자동 수집에서 수집기 관리 가격·품절 갱신을 막지 않으면서 수집기 비관리 메타데이터와 명시적 수동 포포 카드를 보존했다. 이번 승인 범위 외 workflow 변경·수동 강제 실행·SSG·G마켓 추가·운영 데이터/계정 작업은 수행하지 않았다.
 
 ## 2026-11-10 — Codex (승인된 네이버 할인 스냅샷 갱신)
 
