@@ -1,12 +1,12 @@
 {
  "version": 1,
- "updatedAt": "2026-11-18T02:53:55+09:00",
+ "updatedAt": "2026-11-18T13:43:27+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-18T02:53:55+09:00",
-   "lastSuccessAt": "2026-11-18T02:53:55+09:00",
+   "checkedAt": "2026-11-18T13:43:27+09:00",
+   "lastSuccessAt": "2026-11-18T13:43:27+09:00",
    "scanned": 269,
    "discounted": 1,
    "error": ""
@@ -14,8 +14,8 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-18T02:53:55+09:00",
-   "lastSuccessAt": "2026-11-18T02:53:55+09:00",
+   "checkedAt": "2026-11-18T13:43:27+09:00",
+   "lastSuccessAt": "2026-11-18T13:43:27+09:00",
    "scanned": 320,
    "discounted": 183,
    "error": "",
@@ -34,8 +34,8 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-18T02:53:55+09:00",
-   "lastSuccessAt": "2026-11-18T02:53:55+09:00",
+   "checkedAt": "2026-11-18T13:43:27+09:00",
+   "lastSuccessAt": "2026-11-18T13:43:27+09:00",
    "scanned": 297,
    "discounted": 251,
    "error": "",
@@ -52,20 +52,20 @@
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-18T02:53:55+09:00",
-   "lastSuccessAt": "2026-11-18T02:53:55+09:00",
+   "checkedAt": "2026-11-18T13:43:27+09:00",
+   "lastSuccessAt": "2026-11-18T13:43:27+09:00",
    "scanned": 92,
    "discounted": 4,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
-   "ok": true,
-   "checkedAt": "2026-11-18T02:53:55+09:00",
+   "ok": false,
+   "checkedAt": "2026-11-18T13:43:27+09:00",
    "lastSuccessAt": "2026-11-17T10:01:26+09:00",
    "scanned": 25,
    "discounted": 25,
-   "error": "",
+   "error": "네이버 Work 스냅샷이 27시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-17T10:01:26+09:00",
    "offerType": "fixed",
@@ -5334,7 +5334,7 @@
    "price": 18050,
    "originalPrice": 19000,
    "rate": 5,
-   "soldOut": false,
+   "soldOut": true,
    "firstSeen": "2026-10-28T11:35:20+09:00"
   },
   {
@@ -5833,7 +5833,7 @@
    "conditionalLabel": "로그인 회원 혜택",
    "offerNote": "공개 표시가 29,000원 · 로그인 회원 혜택 26,970원(계정별 적용 여부 미확인) · 카카오톡 음료쿠폰 포함 · 동일 상품 교차판매처 이미지",
    "verifiedAt": "2026-11-17T14:45:00+09:00",
-   "verificationStatus": "verified",
+   "verificationStatus": "unverified",
    "manualExpiresAt": "2026-11-18T08:45:00+09:00",
    "manualPinned": true
   }
