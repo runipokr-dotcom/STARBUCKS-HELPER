@@ -1,21 +1,21 @@
 {
  "version": 1,
- "updatedAt": "2026-11-20T02:39:43+09:00",
+ "updatedAt": "2026-11-20T13:18:38+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": true,
-   "checkedAt": "2026-11-20T02:39:43+09:00",
-   "lastSuccessAt": "2026-11-20T02:39:43+09:00",
-   "scanned": 275,
+   "checkedAt": "2026-11-20T13:18:38+09:00",
+   "lastSuccessAt": "2026-11-20T13:18:38+09:00",
+   "scanned": 270,
    "discounted": 1,
    "error": ""
   },
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-20T02:39:43+09:00",
-   "lastSuccessAt": "2026-11-20T02:39:43+09:00",
+   "checkedAt": "2026-11-20T13:18:38+09:00",
+   "lastSuccessAt": "2026-11-20T13:18:38+09:00",
    "scanned": 326,
    "discounted": 0,
    "error": ""
@@ -23,29 +23,29 @@
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-20T02:39:43+09:00",
-   "lastSuccessAt": "2026-11-20T02:39:43+09:00",
+   "checkedAt": "2026-11-20T13:18:38+09:00",
+   "lastSuccessAt": "2026-11-20T13:18:38+09:00",
    "scanned": 298,
    "discounted": 2,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
-   "ok": false,
-   "checkedAt": "2026-11-20T02:39:43+09:00",
-   "lastSuccessAt": "2026-11-19T13:31:04+09:00",
-   "scanned": 99,
-   "discounted": 4,
-   "error": "Page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://gift.kakao.com/brand/11297\", waiting until \"domcontentloaded\"\n"
+   "ok": true,
+   "checkedAt": "2026-11-20T13:18:38+09:00",
+   "lastSuccessAt": "2026-11-20T13:18:38+09:00",
+   "scanned": 94,
+   "discounted": 0,
+   "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-20T02:39:43+09:00",
+   "checkedAt": "2026-11-20T13:18:38+09:00",
    "lastSuccessAt": "2026-11-17T10:01:26+09:00",
    "scanned": 25,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 64시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 75시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-17T10:01:26+09:00",
    "offerType": "fixed",
@@ -76,18 +76,6 @@
    "rate": 50,
    "soldOut": false,
    "firstSeen": "2026-11-10T19:32:46+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "12329788",
-   "name": "\"행운을 빌어요!\" 클로버 위시 베어리스타 키체인 (응원 선물 행운 키링)",
-   "url": "https://gift.kakao.com/product/12329788",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20260805173306_a8d374e0ed7e48adbcf5154ab494768a.png",
-   "price": 18850,
-   "originalPrice": 0,
-   "rate": 35,
-   "soldOut": false,
-   "firstSeen": "2026-11-13T02:05:46+09:00"
   },
   {
    "store": "naver",
@@ -184,18 +172,6 @@
    "rate": 25,
    "soldOut": false,
    "firstSeen": "2026-11-10T19:32:46+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "13435591",
-   "name": "\"에코텀블러 음료쿠폰 증정\" [각인] 스타벅스 하우스 그린 장우산",
-   "url": "https://gift.kakao.com/product/13435591",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109082359_6d5d54e84a32459ea827a1ff5346ac2c.png",
-   "price": 22400,
-   "originalPrice": 0,
-   "rate": 20,
-   "soldOut": false,
-   "firstSeen": "2026-11-12T13:17:39+09:00"
   },
   {
    "store": "naver",
@@ -318,18 +294,6 @@
    "firstSeen": "2026-11-10T19:32:46+09:00"
   },
   {
-   "store": "kakao",
-   "id": "12799926",
-   "name": "\"에코텀블러 음료쿠폰 2장 증정\" [각인] SS 블랙 매트 엘마 텀블러 473ml +에코텀블러음료쿠폰(카톡발송)",
-   "url": "https://gift.kakao.com/product/12799926",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109082305_d1568ebd79694133bad8169565ef9267.png",
-   "price": 32300,
-   "originalPrice": 0,
-   "rate": 15,
-   "soldOut": false,
-   "firstSeen": "2026-11-12T13:17:39+09:00"
-  },
-  {
    "store": "wconcept",
    "id": "308296237",
    "name": "캠퍼스 베어리 그립톡",
@@ -352,18 +316,6 @@
    "rate": 13,
    "soldOut": false,
    "firstSeen": "2026-10-01T11:26:53+09:00"
-  },
-  {
-   "store": "kakao",
-   "id": "9158489",
-   "name": "\"핑크파우치증정+무료각인\" [각인] 뉴턴 하우스 텀블러 355ml (2종 택 1) +에코텀블러음료쿠폰 2장(카톡발송)",
-   "url": "https://gift.kakao.com/product/9158489",
-   "image": "https://img1.kakaocdn.net/thumb/C305x305@2x.fwebp.q82/?fname=https%3A%2F%2Fst.kakaocdn.net%2Fproduct%2Fgift%2Fproduct%2F20261109081933_720c41296a684a5188d15b91959bc99a.png",
-   "price": 31500,
-   "originalPrice": 0,
-   "rate": 10,
-   "soldOut": false,
-   "firstSeen": "2026-11-05T01:35:59+09:00"
   },
   {
    "store": "naver",
