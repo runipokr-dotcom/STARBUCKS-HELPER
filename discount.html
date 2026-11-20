@@ -20,12 +20,12 @@ main{margin-top:-20px;padding:0 12px calc(30px + env(safe-area-inset-bottom))}.c
 <section class="card"><div class="row-head"><h2>판매처별 현황</h2><span class="hint" id="updated">불러오는 중…</span></div><div class="stores" id="stores"></div>
 <div class="tools"><input id="q" class="search" type="search" placeholder="상품명 검색" autocomplete="off"><select id="sort" class="select" aria-label="정렬"><option value="rate">할인율 높은순</option><option value="new">최근 발견순</option><option value="price">가격 낮은순</option></select><button id="newOnly" class="chip" type="button">NEW만</button></div></section>
 <section class="card"><div class="row-head"><h2 id="listTitle">할인 상품</h2><span class="hint">누르면 판매처 새 창</span></div><div id="list" class="list"></div><div id="empty" class="empty" hidden></div></section>
-<p class="foot">· 하루 2회(오전 9시·오후 6시 무렵) 자동 갱신돼요. 쿠폰·카드 할인처럼 결제 단계에서만 적용되는 할인은 잡히지 않아요.<br>· 지금 바로 다시 수집하려면 <a href="https://github.com/runipokr-dotcom/STARBUCKS-HELPER/actions/workflows/discounts.yml" target="_blank" rel="noopener noreferrer">GitHub Actions</a>에서 Run workflow를 누르세요.</p>
+<p class="foot">· 하루 2회(오전 9시·오후 6시 무렵) 자동 갱신돼요. 자동 수집은 기본 표시가 기준이며, 직접 확인된 조건부 혜택은 별도로 표시해요. SSG는 공식 판매자 확인 스냅샷이며 18시간 경과 시 재확인이 필요해요.<br>· 지금 바로 다시 수집하려면 <a href="https://github.com/runipokr-dotcom/STARBUCKS-HELPER/actions/workflows/discounts.yml" target="_blank" rel="noopener noreferrer">GitHub Actions</a>에서 Run workflow를 누르세요.</p>
 </main>
 <script>
 (()=>{
 const $=id=>document.getElementById(id),PREF='starbucks-helper-discount-radar-v1',NEW_HOURS=72;
-const ORDER=['musinsa','29cm','wconcept','kakao','naver'];
+const ORDER=['musinsa','29cm','wconcept','kakao','naver','ssg'];
 let data=null,store='all',sort='rate',newOnly=false,q='';
 try{const p=JSON.parse(localStorage.getItem(PREF)||'{}');store=p.store||store;sort=p.sort||sort;newOnly=!!p.newOnly}catch{}
 function savePref(){try{localStorage.setItem(PREF,JSON.stringify({store,sort,newOnly}))}catch{}}
@@ -36,27 +36,33 @@ const OFFER={listed:['표시가','offer'],fixed:['즉시할인','offer'],'fixed+
 function when(iso){if(!iso)return'-';const d=new Date(iso);if(isNaN(d))return'-';return d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}
 function isNew(it){const t=new Date(it.firstSeen).getTime();return t&&Date.now()-t<NEW_HOURS*3600e3}
 function thumb(it){const src=safeUrl(it.image),alt=esc(it.name||'상품 이미지');if(src==='#')return'<span class="thumb-wrap"><span class="thumb-missing">이미지<br>미확인</span></span>';return`<span class="thumb-wrap"><img class="thumb" src="${esc(src)}" alt="${alt}" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="thumb-missing" hidden>이미지<br>불러오기 실패</span></span>`}
+function visibleItems(now=Date.now()){
+  const snap=Date.parse(data.stores?.ssg?.snapshotAt||'');
+  return (data.items||[]).filter(it=>it.store!=='ssg'||(data.stores?.ssg?.ok===true&&Number.isFinite(snap)&&now-snap<=18*3600e3&&snap-now<=5*60e3&&Number.isFinite(Date.parse(it.manualExpiresAt))&&now<Date.parse(it.manualExpiresAt)));
+}
 function renderStores(){
-  const s=data.stores||{},total=(data.items||[]).length;
+  const s=data.stores||{},total=visibleItems().length;
   const cards=[`<button class="store${store==='all'?' active':''}" data-store="all"><span class="store-name">전체</span><div class="store-count">${total}<small>개</small></div><div class="store-note">모든 판매처</div></button>`];
-  for(const k of ORDER){const st=s[k];if(!st)continue;const fail=!st.ok;
-    const note=fail?`수집 실패 · 마지막 성공 ${when(st.lastSuccessAt)}`:st.source==='work-browser'?`Work ${when(st.snapshotAt)} 기준 · ${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`:`${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`;
-    cards.push(`<button class="store${store===k?' active':''}${fail?' fail':''}" data-store="${k}" title="${esc(fail?st.error:'')}"><span class="store-name"><span class="dot${fail?' fail':''}"></span>${esc(st.name)}</span><div class="store-count">${Number(st.discounted||0)}<small>개</small></div><div class="store-note">${esc(note)}</div></button>`)}
+  for(const k of ORDER){const st=s[k];if(!st)continue;const count=k==='ssg'?visibleItems().filter(it=>it.store==='ssg').length:Number(st.discounted||0);const fail=!st.ok||(k==='ssg'&&count===0&&Number(st.discounted||0)>0);
+    const note=k==='ssg'&&!fail?`Work ${when(st.snapshotAt)} · 공식판매자 부분 확인 ${count}개 · 수동 재확인 필요`:fail?`수집 실패 · 마지막 성공 ${when(st.lastSuccessAt)}`:st.source==='work-browser'?`Work ${when(st.snapshotAt)} 기준 · ${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`:`${Number(st.scanned||0).toLocaleString('ko-KR')}개 중`;
+    cards.push(`<button class="store${store===k?' active':''}${fail?' fail':''}" data-store="${k}" title="${esc(fail?st.error:'')}"><span class="store-name"><span class="dot${fail?' fail':''}"></span>${esc(st.name)}</span><div class="store-count">${count}<small>개</small></div><div class="store-note">${esc(note)}</div></button>`)}
   $('stores').innerHTML=cards.join('');
   $('stores').querySelectorAll('[data-store]').forEach(b=>b.onclick=()=>{store=b.dataset.store;savePref();renderStores();renderList()});
 }
+function ssgBenefit(it){const base=Number(it.price),p=Number(it.advertisedPrice||base),m=Number(it.conditionalPrice||base);return [base>0?(base-p)/base:0,base>0?(base-m)/base:0]}
 function renderList(){
   const stores=data.stores||{};
   const names=Object.fromEntries(Object.entries(stores).map(([k,v])=>[k,v.name]));
   const isStale=it=>stores[it.store]?.ok===false;
   const staleLabel=it=>stores[it.store]?.lastSuccessAt?`이전 가격 · ${when(stores[it.store].lastSuccessAt)} 확인`:'이전 가격 · 확인일 미상';
-  let rows=(data.items||[]).filter(it=>it&&it.store&&it.name&&(store==='all'||it.store===store)&&(!newOnly||(!isStale(it)&&isNew(it)))&&(!q||String(it.name).toLowerCase().includes(q)));
-  const compare=sort==='new'?(a,b)=>String(b.firstSeen).localeCompare(String(a.firstSeen))||b.rate-a.rate:sort==='price'?(a,b)=>a.price-b.price:(a,b)=>b.rate-a.rate||a.price-b.price;
+  let rows=visibleItems().filter(it=>it&&it.store&&it.name&&(store==='all'||it.store===store)&&(!newOnly||(!isStale(it)&&isNew(it)))&&(!q||String(it.name).toLowerCase().includes(q)));
+  $('sort').querySelector('option[value="rate"]').textContent=store==='ssg'?'표시 조건부 할인율 높은순':'할인율 높은순';
+  const compare=store==='ssg'&&sort==='rate'?(a,b)=>ssgBenefit(b)[0]-ssgBenefit(a)[0]||ssgBenefit(b)[1]-ssgBenefit(a)[1]||a.price-b.price:sort==='new'?(a,b)=>String(b.firstSeen).localeCompare(String(a.firstSeen))||b.rate-a.rate:sort==='price'?(a,b)=>a.price-b.price:(a,b)=>b.rate-a.rate||a.price-b.price;
   rows.sort((a,b)=>Number(isStale(a))-Number(isStale(b))||compare(a,b));
   $('listTitle').textContent=`할인 상품 ${rows.length}개`;
-  $('list').innerHTML=rows.map(it=>{const st=stores[it.store]||{},manual=Array.isArray(st.manualVerifiedIds)&&st.manualVerifiedIds.includes(String(it.id)),expired=it.manualExpiresAt&&Date.now()>new Date(it.manualExpiresAt).getTime(),type=it.offerType||(manual?st.manualOfferType:'')||st.offerType||'listed',offer=OFFER[type]||[type,'offer'],status=expired?'unverified':it.verificationStatus||(manual?'verified':st.verificationStatus||''),verified=it.verifiedAt||(manual?st.manualVerifiedAt:'')||st.snapshotAt||st.checkedAt||'',points=it.pointsNote||st.pointsNote||'',benefitLabel=it.conditionalLabel||'쿠폰',notes=[it.offerNote,manual?st.manualOfferNote:'',points].filter(Boolean).join(' · ');return`<a class="item${it.soldOut?' soldout':''}" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener noreferrer">${thumb(it)}<div class="info"><div class="badges"><span class="badge">${esc(names[it.store]||it.store)}</span><span class="badge ${offer[1]}">${esc(offer[0])}</span>${points?'<span class="badge points">적립 조건 미확인</span>':''}${status==='unverified'?'<span class="badge unverified">현재 미확인</span>':isStale(it)?`<span class="badge sold">${esc(staleLabel(it))}</span>`:isNew(it)?'<span class="badge new">NEW</span>':''}${it.soldOut?'<span class="badge sold">품절</span>':''}${it.category?`<span class="badge">${esc(it.category)}</span>`:''}</div><div class="name">${esc(it.name)}</div><div class="prices">${Number(it.rate)>0?`<span class="rate">${Number(it.rate)}%</span>`:''}<span class="price">${won(it.price)}</span>${it.conditionalPrice?`<span class="price">${esc(benefitLabel)} ${won(it.conditionalPrice)}</span>`:''}${it.originalPrice>it.price?`<span class="orig">${won(it.originalPrice)}</span>`:''}</div>${notes?`<div class="offer-note">${esc(notes)}</div>`:''}<div class="seen">${status==='unverified'?'현재 가격·재고 미확인':isStale(it)?'현재 가격·재고 미확인':verified?`직접 확인 ${when(verified)}`:`할인 발견 ${when(it.firstSeen)}`}</div></div></a>`}).join('');
+  $('list').innerHTML=rows.map(it=>{const st=stores[it.store]||{},manual=Array.isArray(st.manualVerifiedIds)&&st.manualVerifiedIds.includes(String(it.id)),expired=it.manualExpiresAt&&Date.now()>new Date(it.manualExpiresAt).getTime(),type=it.offerType||(manual?st.manualOfferType:'')||st.offerType||'listed',offer=OFFER[type]||[type,'offer'],status=expired?'unverified':it.verificationStatus||(manual?'verified':st.verificationStatus||''),verified=it.verifiedAt||(manual?st.manualVerifiedAt:'')||st.snapshotAt||st.checkedAt||'',points=it.pointsNote||st.pointsNote||'',benefitLabel=it.conditionalLabel||'쿠폰',notes=[it.offerNote,manual?st.manualOfferNote:'',points].filter(Boolean).join(' · ');return`<a class="item${it.soldOut?' soldout':''}" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener noreferrer">${thumb(it)}<div class="info"><div class="badges"><span class="badge">${esc(names[it.store]||it.store)}</span><span class="badge ${offer[1]}">${esc(offer[0])}</span>${points?'<span class="badge points">적립 조건 미확인</span>':''}${status==='unverified'?'<span class="badge unverified">현재 미확인</span>':isStale(it)?`<span class="badge sold">${esc(staleLabel(it))}</span>`:isNew(it)?'<span class="badge new">NEW</span>':''}${it.soldOut?'<span class="badge sold">품절</span>':''}${it.category?`<span class="badge">${esc(it.category)}</span>`:''}</div><div class="name">${esc(it.name)}</div><div class="prices">${Number(it.rate)>0?`<span class="rate">${Number(it.rate)}%</span>`:''}<span class="price">${it.store==='ssg'?'판매가 ':''}${won(it.price)}</span>${it.store==='ssg'&&it.advertisedPrice?`<span class="price">상품 즉시할인 표시 ${won(it.advertisedPrice)}</span>`:''}${it.conditionalPrice?`<span class="price">${esc(benefitLabel)} ${won(it.conditionalPrice)}</span>`:''}${it.originalPrice>it.price?`<span class="orig">${won(it.originalPrice)}</span>`:''}</div>${notes?`<div class="offer-note">${esc(notes)}</div>`:''}<div class="seen">${status==='unverified'?'현재 가격·재고 미확인':isStale(it)?'현재 가격·재고 미확인':verified?`직접 확인 ${when(verified)}`:`할인 발견 ${when(it.firstSeen)}`}</div></div></a>`}).join('');
   const e=$('empty');e.hidden=rows.length>0;
-  e.textContent=(data.items||[]).length?'조건에 맞는 할인 상품이 없어요.':'지금은 할인 중인 상품이 없어요. 다음 갱신 때 다시 확인해 주세요.';
+  e.textContent=visibleItems().length?'조건에 맞는 할인 상품이 없어요.':'지금은 할인 중인 상품이 없어요. 다음 갱신 때 다시 확인해 주세요.';
 }
 function bindTools(){
   $('sort').value=sort;$('newOnly').classList.toggle('active',newOnly);
@@ -75,6 +81,28 @@ async function load(){
     try{loaded=await readData('discounts.json?t='+Date.now(),'no-store')}catch(second){loadError(new Error(`${first.message}; 재시도 ${second.message}`));return}
   }
   data=loaded;
+  $('updated').textContent='전체 데이터 갱신 '+when(data.updatedAt);
+  renderStores();renderList();
+  try {
+    const side=await readData('ssg-radar-public.json','no-store');
+    const st=side.store;
+    const now=Date.now(), stamp=Date.parse(st?.snapshotAt);
+    const ids=new Set();
+    const safeItem=it=>{
+      if(it?.store!=='ssg'||!/^\d+$/.test(it.id)||ids.has(it.id)||typeof it.name!=='string'||!it.name.trim()||typeof it.soldOut!=='boolean')return false;
+      const u=new URL(it.url),image=new URL(it.image);
+      if(u.origin!=='https://www.ssg.com'||u.pathname!=='/item/itemView.ssg'||u.searchParams.get('itemId')!==it.id||image.origin!=='https://sitem.ssgcdn.com')return false;
+      const validPrice=n=>Number.isSafeInteger(n)&&n>0;
+      if(!validPrice(it.price)||it.originalPrice!==it.price||it.rate!==0||!validPrice(it.conditionalPrice)||it.conditionalPrice>=(it.advertisedPrice??it.price)||it.conditionalLabel!=='SSG MONEY 결제 조건'||(it.advertisedPrice!=null&&(!validPrice(it.advertisedPrice)||it.advertisedPrice>=it.price))||typeof it.offerNote!=='string'||!it.offerNote.trim())return false;
+      const expiry=Date.parse(it.manualExpiresAt),verified=Date.parse(it.verifiedAt);
+      if(!Number.isFinite(expiry)||!Number.isFinite(verified)||expiry<=verified||expiry-verified>18*3600e3||verified>stamp+5*60e3||it.firstSeen!==it.verifiedAt)return false;
+      ids.add(it.id);return true;
+    };
+    if(side.version===1&&st?.ok===true&&Number.isFinite(stamp)&&stamp-now<=5*60e3&&Array.isArray(side.items)&&side.items.length>0&&side.items.every(safeItem)){
+      data={...loaded,stores:{...loaded.stores,ssg:{...st,name:'SSG 공식 판매처'}},items:[...loaded.items,...side.items]};
+    }
+  }catch(err){console.warn('SSG 스냅샷 미표시:',err.message)}
+
   try{
     if(store!=='all'&&!(data.stores||{})[store])store='all';
     $('updated').textContent='전체 데이터 갱신 '+when(data.updatedAt);
@@ -84,6 +112,13 @@ async function load(){
   }
 }
 load();
+let ssgVisibleCount;
+setInterval(()=>{
+  if(!data?.stores?.ssg)return;
+  const count=visibleItems().filter(it=>it.store==='ssg').length;
+  if(ssgVisibleCount!==count){ssgVisibleCount=count;renderStores();renderList()}
+},60000);
 })();
 </script>
 </body></html>
+
