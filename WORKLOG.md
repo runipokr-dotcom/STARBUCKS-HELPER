@@ -15,6 +15,21 @@
 
 # WORKLOG
 
+## 2026-11-23 — Codex (무신사 자동 할인 60개 공개 반영)
+
+### 작업 전 기록
+- 사용자 승인/목표: 사용자가 2026-11-23 오전에 직접 검증해 로컬 후보로 준비한 무신사 자동 할인 60개를 기존 STARBUCKS HELPER 할인 레이더에 이번 1회 공개 반영하도록 `ㅇㅇ`로 승인했다. 최신 원격 `main`과 공개 페이지에 같은 60개가 이미 정확히 반영돼 있으면 중복 배포하지 않는다.
+- 기준/대상: 최신 원격 `main`의 `discounts.json`을 병합 기준으로 삼고, 로컬 검증본 `radar-candidate-2026-11-23-am/discounts.json`에서 무신사 자동 할인 60개만 가져온다. 작업 파일은 `discounts.json`과 필수 기록인 본 `WORKLOG.md`로 제한하며 `discount.html`, 수집기·테스트·workflow는 변경하지 않는다.
+- 보존 범위: 운영본의 수동 고정 포포 카드 `6347243` 객체는 가격·조건·검증 상태를 포함해 그대로 보존한다. 네이버·29CM·W컨셉·카카오 전체 행과 판매처 메타데이터, `naver-discounts.json`, `ssg-radar-public.json`, SSG, 승인 대기 중인 네이버 정정안, 카탈로그·쿠폰·주문·인증 및 다른 로컬 작업은 변경하지 않는다.
+- 병합 방식/중단 조건: 후보의 무신사 자동 60개와 해당 회차의 무신사 수집 메타데이터·최상위 갱신 시각만 반영하고, 운영 포포 1개를 합쳐 무신사 총 61개로 검증한다. 원격 `main`이 준비 기준에서 바뀌거나 후보 60개의 가격·구매 상태에 중대한 불일치가 발견되면 임의 대체·강제 병합 없이 중단한다.
+- 검증/배포: 비무신사 행·포포 객체·비무신사 판매처 메타데이터의 deep-equal, 후보 자동 60개의 exact-equal, URL·이미지·가격·할인율·재고·중복, JSON 파싱, 기존 할인 회귀 테스트와 diff allowlist를 확인한다. 승인 범위가 정확할 때만 non-force로 `main`에 push하고 GitHub Pages 성공, 공개 JSON과 실제 레이더의 무신사 61개(자동 60+포포 1) 및 대표 가격을 READBACK한다. 구매·장바구니·주문은 하지 않는다.
+
+### 작업 후 기록
+- 실제 변경: 데이터 commit `82da4e7dcb090d40cb078690ed1f52e77ee80b14` (`chore: publish verified Musinsa discounts`)에서 `discounts.json`만 변경했다. 후보의 자동 할인 60개와 2026-11-23 10:06:21 KST 무신사 수집 메타데이터를 반영하고, 운영본의 포포 카드 `6347243`은 객체 전체를 그대로 유지해 무신사 61개, 전체 88개가 됐다.
+- 보존/영향: 네이버 25개·W컨셉 2개와 29CM·카카오 0개 상태, 비무신사 판매처 메타데이터, `discount.html`, `naver-discounts.json`, `ssg-radar-public.json`, 수집기·workflow·테스트 및 카탈로그·쿠폰·주문·인증은 변경하지 않았다. UI 코드를 바꾸지 않았으므로 PC·모바일 레이아웃 영향은 없고 할인 카드 데이터만 늘어난다.
+- 검증: 후보 자동 60개 exact-equal, 운영 포포 exact-equal, 비무신사 행/메타데이터 deep-equal, 상품 키 중복 0건, 전건 공식 무신사 URL·HTTPS 이미지·양수 가격·15~47% 할인율·판매 가능 상태를 확인했다. `python3 -m json.tool discounts.json`, 할인 관련 Python 단위 테스트 18/18, `git diff --check`가 통과했다.
+- 배포 상태: 기능 데이터 commit과 본 기록 commit은 최신 원격 `main` 기준 `c74fc993af11ad08af5e0ed359ef0c24f39facaf`에서 준비했으며 현재 원격 push 전이다. non-force push 후 Pages exact head 성공과 공개 `discounts.json`/`discount.html`의 무신사 61개 및 대표 가격을 재조회해 최종 배포 결과를 별도 기록한다.
+
 ## 2026-11-17 — Codex (할인 수집기 비관리 메타데이터 보존 로컬 수정안)
 
 ### 작업 전 기록
