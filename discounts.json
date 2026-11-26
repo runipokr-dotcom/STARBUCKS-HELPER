@@ -1,11 +1,11 @@
 {
  "version": 1,
- "updatedAt": "2026-11-26T03:50:52+09:00",
+ "updatedAt": "2026-11-26T14:28:28+09:00",
  "stores": {
   "musinsa": {
    "name": "무신사",
    "ok": false,
-   "checkedAt": "2026-11-26T03:50:52+09:00",
+   "checkedAt": "2026-11-26T14:28:28+09:00",
    "lastSuccessAt": "2026-11-24T10:09:50+09:00",
    "scanned": 276,
    "discounted": 67,
@@ -15,38 +15,38 @@
   "29cm": {
    "name": "29CM",
    "ok": true,
-   "checkedAt": "2026-11-26T03:50:52+09:00",
-   "lastSuccessAt": "2026-11-26T03:50:52+09:00",
-   "scanned": 328,
+   "checkedAt": "2026-11-26T14:28:28+09:00",
+   "lastSuccessAt": "2026-11-26T14:28:28+09:00",
+   "scanned": 326,
    "discounted": 0,
    "error": ""
   },
   "wconcept": {
    "name": "W컨셉",
    "ok": true,
-   "checkedAt": "2026-11-26T03:50:52+09:00",
-   "lastSuccessAt": "2026-11-26T03:50:52+09:00",
-   "scanned": 300,
+   "checkedAt": "2026-11-26T14:28:28+09:00",
+   "lastSuccessAt": "2026-11-26T14:28:28+09:00",
+   "scanned": 297,
    "discounted": 2,
    "error": ""
   },
   "kakao": {
    "name": "카카오 선물하기",
    "ok": true,
-   "checkedAt": "2026-11-26T03:50:52+09:00",
-   "lastSuccessAt": "2026-11-26T03:50:52+09:00",
-   "scanned": 94,
+   "checkedAt": "2026-11-26T14:28:28+09:00",
+   "lastSuccessAt": "2026-11-26T14:28:28+09:00",
+   "scanned": 93,
    "discounted": 0,
    "error": ""
   },
   "naver": {
    "name": "네이버 공식스토어",
    "ok": false,
-   "checkedAt": "2026-11-26T03:50:52+09:00",
+   "checkedAt": "2026-11-26T14:28:28+09:00",
    "lastSuccessAt": "2026-11-17T10:01:26+09:00",
    "scanned": 25,
    "discounted": 25,
-   "error": "네이버 Work 스냅샷이 209시간 전 자료임",
+   "error": "네이버 Work 스냅샷이 220시간 전 자료임",
    "source": "work-browser",
    "snapshotAt": "2026-11-17T10:01:26+09:00",
    "offerType": "fixed",
@@ -703,30 +703,6 @@
    "firstSeen": "2026-11-22T19:03:36+09:00"
   },
   {
-   "store": "wconcept",
-   "id": "308296237",
-   "name": "캠퍼스 베어리 그립톡",
-   "url": "https://www.wconcept.co.kr/Product/308296237",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/37/308296237_YC95179.jpg",
-   "price": 15660,
-   "originalPrice": 18000,
-   "rate": 13,
-   "soldOut": false,
-   "firstSeen": "2026-10-01T11:26:53+09:00"
-  },
-  {
-   "store": "wconcept",
-   "id": "308474349",
-   "name": "토이 스토리 릴리패드 파우치",
-   "url": "https://www.wconcept.co.kr/Product/308474349",
-   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/49/308474349_XD32589.jpg",
-   "price": 25230,
-   "originalPrice": 29000,
-   "rate": 13,
-   "soldOut": false,
-   "firstSeen": "2026-10-01T11:26:53+09:00"
-  },
-  {
    "store": "musinsa",
    "id": "6339318",
    "name": "PL 포에버 미피 콜드컵 710ml +텀블러음료쿠폰(카톡발송)",
@@ -1166,6 +1142,30 @@
    "imageStatus": "not-collected-by-request",
    "verifiedAt": "2026-11-24T10:09:50+09:00",
    "verificationStatus": "text-only"
+  },
+  {
+   "store": "wconcept",
+   "id": "308296237",
+   "name": "캠퍼스 베어리 그립톡",
+   "url": "https://www.wconcept.co.kr/Product/308296237",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/37/308296237_YC95179.jpg",
+   "price": 16200,
+   "originalPrice": 18000,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-01T11:26:53+09:00"
+  },
+  {
+   "store": "wconcept",
+   "id": "308474349",
+   "name": "토이 스토리 릴리패드 파우치",
+   "url": "https://www.wconcept.co.kr/Product/308474349",
+   "image": "https://product-image.wconcept.co.kr/productimg/image/img9/49/308474349_XD32589.jpg",
+   "price": 26100,
+   "originalPrice": 29000,
+   "rate": 10,
+   "soldOut": false,
+   "firstSeen": "2026-10-01T11:26:53+09:00"
   },
   {
    "store": "naver",
